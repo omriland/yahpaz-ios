@@ -1,0 +1,44 @@
+{
+  "name": "אבן דרך",
+  "identifier": "com.yahpz.responder.source",
+  "subtitle": "אפליקציית הכוננים של יחפ״צ",
+  "description": "Native iOS app for Yahpaz responders. Same login as yahpz.com.",
+  "iconURL": "https://omriland.github.io/yahpaz-ios/icon.png",
+  "website": "https://yahpz.com",
+  "tintColor": "1D4E89",
+  "apps": [
+    {
+      "name": "אבן דרך",
+      "bundleIdentifier": "com.yahpz.responder",
+      "developerName": "Yahpaz",
+      "subtitle": "תיעוד אירועים לכוננים",
+      "localizedDescription": "כניסה, האירועים שלי, השלמת פרטים, זמינות, פרופיל, ושיתוף מיקום חי.",
+      "iconURL": "https://omriland.github.io/yahpaz-ios/icon.png",
+      "tintColor": "1D4E89",
+      "category": "utilities",
+      "screenshots": {
+        "iphone": [
+          "https://omriland.github.io/yahpaz-ios/screenshots/login.png"
+        ]
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "buildVersion": "1",
+          "date": "2026-08-17",
+          "localizedDescription": "גרסה ראשונה לכוננים.",
+          "downloadURL": "https://github.com/omriland/yahpaz-ios/releases/download/v1.0.0/Yahpaz.ipa",
+          "size": 3984048,
+          "minOSVersion": "17.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": ["com.apple.developer.location"],
+        "privacy": {
+          "NSLocationWhenInUseUsageDescription": "אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע.",
+          "NSLocationAlwaysAndWhenInUseUsageDescription": "אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח."
+        }
+      }
+    }
+  ]
+}

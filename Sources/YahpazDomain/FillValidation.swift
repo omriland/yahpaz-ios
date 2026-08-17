@@ -1,0 +1,159 @@
+import Foundation
+
+public struct ResponderFillDraft: Equatable, Sendable {
+    public var vehiclePlate: String
+    public var odometerStart: String
+    public var odometerEnd: String
+    public var route: String
+    public var treatmentDetail: String
+    public var treatmentNotes: String
+
+    public init(
+        vehiclePlate: String = "",
+        odometerStart: String = "",
+        odometerEnd: String = "",
+        route: String = "",
+        treatmentDetail: String = "",
+        treatmentNotes: String = ""
+    ) {
+        self.vehiclePlate = vehiclePlate
+        self.odometerStart = odometerStart
+        self.odometerEnd = odometerEnd
+        self.route = route
+        self.treatmentDetail = treatmentDetail
+        self.treatmentNotes = treatmentNotes
+    }
+
+    public static func empty() -> ResponderFillDraft {
+        ResponderFillDraft()
+    }
+}
+
+public struct ResponderFillErrors: Equatable, Sendable {
+    public var vehiclePlate: String?
+    public var odometerStart: String?
+    public var odometerEnd: String?
+    public var route: String?
+    public var treatmentDetail: String?
+    public var form: String?
+
+    public init(
+        vehiclePlate: String? = nil,
+        odometerStart: String? = nil,
+        odometerEnd: String? = nil,
+        route: String? = nil,
+        treatmentDetail: String? = nil,
+        form: String? = nil
+    ) {
+        self.vehiclePlate = vehiclePlate
+        self.odometerStart = odometerStart
+        self.odometerEnd = odometerEnd
+        self.route = route
+        self.treatmentDetail = treatmentDetail
+        self.form = form
+    }
+
+    public var isEmpty: Bool {
+        vehiclePlate == nil
+            && odometerStart == nil
+            && odometerEnd == nil
+            && route == nil
+            && treatmentDetail == nil
+            && form == nil
+    }
+
+    public var firstMessage: String? {
+        form ?? vehiclePlate ?? odometerStart ?? odometerEnd ?? route ?? treatmentDetail
+    }
+}
+
+public enum FillMode: String, Sendable {
+    case draft
+    case complete
+}
+
+private enum ParsedNumber {
+    case missing
+    case invalid
+    case value(Double)
+}
+
+private func parseOptionalNumber(_ raw: String) -> ParsedNumber {
+    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.isEmpty { return .missing }
+    guard let value = Double(trimmed), value.isFinite else { return .invalid }
+    return .value(value)
+}
+
+public func validateResponderFillDraft(
+    _ draft: ResponderFillDraft,
+    mode: FillMode,
+    allowedPlates: [String] = [],
+    totalKm: Double? = nil
+) -> ResponderFillErrors {
+    var errors = ResponderFillErrors()
+    let start = parseOptionalNumber(draft.odometerStart)
+    let end = parseOptionalNumber(draft.odometerEnd)
+    let plate = plateDigits(draft.vehiclePlate)
+    let allowed = Set(allowedPlates.map(plateDigits).filter { !$0.isEmpty })
+
+    if case .invalid = start { errors.odometerStart = "מד אוץ התחלה חייב להיות מספר." }
+    if case .invalid = end { errors.odometerEnd = "מד אוץ סיום חייב להיות מספר." }
+
+    if mode == .complete {
+        if plate.isEmpty {
+            errors.vehiclePlate = "יש לבחור רכב."
+        } else if !allowed.isEmpty && !allowed.contains(plate) {
+            errors.vehiclePlate = "יש לבחור רכב מהרשימה המקושרת למשתמש."
+        } else if allowed.isEmpty {
+            errors.vehiclePlate = "לא מקושר רכב למשתמש. פנו למנהל המערכת."
+        }
+        switch start {
+        case .missing, .invalid:
+            errors.odometerStart = "יש למלא מד אוץ התחלה."
+        case .value:
+            break
+        }
+        if totalKm == nil {
+            errors.odometerEnd = "האחמ״ש טרם הזין קילומטרים לאירוע. לא ניתן לסיים את הדיווח."
+        } else {
+            switch end {
+            case .missing, .invalid:
+                errors.odometerEnd = "יש למלא מד אוץ סיום."
+            case .value:
+                break
+            }
+        }
+        if draft.route.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            errors.route = "יש למלא נתיב נסיעה."
+        }
+        if draft.treatmentDetail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            errors.treatmentDetail = "יש למלא פירוט הטיפול."
+        }
+    }
+
+    if errors.odometerEnd == nil,
+       case let .value(startValue) = start,
+       case let .value(endValue) = end,
+       endValue <= startValue
+    {
+        errors.odometerEnd = "מד אוץ סיום חייב להיות גדול ממד אוץ התחלה"
+    }
+
+    return errors
+}
+
+public func odometerRangeError(odometerStart: String, odometerEnd: String) -> String? {
+    guard case let .value(start) = parseOptionalNumber(odometerStart),
+          case let .value(end) = parseOptionalNumber(odometerEnd)
+    else { return nil }
+    if end <= start { return "מד אוץ סיום חייב להיות גדול ממד אוץ התחלה" }
+    return nil
+}
+
+public func parsedOdometer(_ raw: String) -> Double? {
+    switch parseOptionalNumber(raw) {
+    case .value(let value): return value
+    case .missing, .invalid: return nil
+    }
+}

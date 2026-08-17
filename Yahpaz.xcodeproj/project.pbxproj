@@ -1,0 +1,526 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00E8BC6C2270157F47FF509C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2574186A5FE0C909397F34D8 /* RootView.swift */; };
+		0110E9F5BBF3E7421F7BA38C /* IBMPlexSansHebrew-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 949406EE1DD844BB4AABCA09 /* IBMPlexSansHebrew-Bold.ttf */; };
+		0F3921D04288E48D59ABBF03 /* YahpazDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 429F18C51C4868F898CDA146 /* YahpazDomain */; };
+		15E3E261F351D599933DD106 /* IBMPlexSansHebrew-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CE6FB3FC3AD7CC65FE0837B1 /* IBMPlexSansHebrew-Regular.ttf */; };
+		17B4EAC88AAC44697D8E6DD1 /* YahpazAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21920944C2DB0146A29F68D /* YahpazAPI.swift */; };
+		1921DFDF4231C1E21FE4135F /* IBMPlexMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CB921B968CF788CDAC0D711F /* IBMPlexMono-Regular.ttf */; };
+		23F3C03072B4AD5F4693FAC0 /* IBMPlexMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BCE6920A7A69D4EB75444497 /* IBMPlexMono-Medium.ttf */; };
+		24FDEA766250C67AFC9071E5 /* IBMPlexSansHebrew-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A28CDDCFE8A67ED88B771DD6 /* IBMPlexSansHebrew-SemiBold.ttf */; };
+		2950B2FC2785594EC2096F0B /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2119B064EE20C7795B4CB807 /* Models.swift */; };
+		3E35EB166AAD1D6BFAA2627B /* AvailabilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8915303B176A0042571DFD /* AvailabilityView.swift */; };
+		4115A779ED82ABB923ED29BB /* SuezOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */; };
+		41FF31B1846901FBA9BDC8D0 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2598AE3CB5C5538DD160252 /* AppModel.swift */; };
+		729713569D334E3157C148AB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB83D7A01555CE80B3556CDB /* Theme.swift */; };
+		73CF00F65E4913CA823C6EB9 /* IBMPlexSansHebrew-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 678DAE6BE4F304171D76FEE0 /* IBMPlexSansHebrew-Medium.ttf */; };
+		75FD527C3B0036958A94E57B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C5845FC5A3C48BCF0F298F63 /* Supabase */; };
+		77F430C6B2ACA60C6D82A7BF /* LiveTrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F73989167E600C672451F9 /* LiveTrackView.swift */; };
+		7E1F7543AF4FB5BBC68BD962 /* YahpazApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */; };
+		872C34052EF7571F438053CB /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1323069FBE38F80122C6D25D /* Components.swift */; };
+		986E66942C394796BD5B163A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218839F2643327DCE9377825 /* ProfileView.swift */; };
+		A7E07EBA5713DC715C4F1E0B /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71219BA6D29D59260C134B93 /* InboxView.swift */; };
+		A88EA3E3800BA06646B93551 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F142807897FEACAC43A4F1 /* Config.swift */; };
+		BFA660E39C6243A072FCE1C4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */; };
+		C6FD9185988F136FB9CDAFE4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A60A9BA2B4BB03C6EBA47470 /* Assets.xcassets */; };
+		F0EA93A8938B91CEF1775435 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20CBB261BAF651A391E04B62 /* LoginView.swift */; };
+		F72F8B8E95AFD0D604B444C3 /* FillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8868B33715C1E400A912305E /* FillView.swift */; };
+		FBEA3195F81A3ECC6416B880 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847870FA1511E83F00BEDFED /* LocationTracker.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0F2832BD0B04339F96CB82A4 /* yahpaz-ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yahpaz-ios"; path = .; sourceTree = SOURCE_ROOT; };
+		1323069FBE38F80122C6D25D /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		20CBB261BAF651A391E04B62 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		2119B064EE20C7795B4CB807 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		218839F2643327DCE9377825 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		21F142807897FEACAC43A4F1 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		2574186A5FE0C909397F34D8 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SuezOne-Regular.ttf"; sourceTree = "<group>"; };
+		678DAE6BE4F304171D76FEE0 /* IBMPlexSansHebrew-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Medium.ttf"; sourceTree = "<group>"; };
+		71219BA6D29D59260C134B93 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
+		76E883F5BF0EE8F11A8EBD47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		847870FA1511E83F00BEDFED /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
+		8868B33715C1E400A912305E /* FillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillView.swift; sourceTree = "<group>"; };
+		91BD24328991DAF45C72E03A /* Yahpaz.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Yahpaz.entitlements; sourceTree = "<group>"; };
+		949406EE1DD844BB4AABCA09 /* IBMPlexSansHebrew-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Bold.ttf"; sourceTree = "<group>"; };
+		A0753CA283E13CC4A2DD6492 /* Yahpaz.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Yahpaz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2598AE3CB5C5538DD160252 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		A28CDDCFE8A67ED88B771DD6 /* IBMPlexSansHebrew-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-SemiBold.ttf"; sourceTree = "<group>"; };
+		A60A9BA2B4BB03C6EBA47470 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BB8915303B176A0042571DFD /* AvailabilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailabilityView.swift; sourceTree = "<group>"; };
+		BCE6920A7A69D4EB75444497 /* IBMPlexMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Medium.ttf"; sourceTree = "<group>"; };
+		C21920944C2DB0146A29F68D /* YahpazAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YahpazAPI.swift; sourceTree = "<group>"; };
+		CB83D7A01555CE80B3556CDB /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		CB921B968CF788CDAC0D711F /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
+		CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YahpazApp.swift; sourceTree = "<group>"; };
+		CE6FB3FC3AD7CC65FE0837B1 /* IBMPlexSansHebrew-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Regular.ttf"; sourceTree = "<group>"; };
+		D4F73989167E600C672451F9 /* LiveTrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTrackView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		EDF953F397A15638E263A32F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F3921D04288E48D59ABBF03 /* YahpazDomain in Frameworks */,
+				75FD527C3B0036958A94E57B /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0F956E90D6F3E7EAC6378E5A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				BCE6920A7A69D4EB75444497 /* IBMPlexMono-Medium.ttf */,
+				CB921B968CF788CDAC0D711F /* IBMPlexMono-Regular.ttf */,
+				949406EE1DD844BB4AABCA09 /* IBMPlexSansHebrew-Bold.ttf */,
+				678DAE6BE4F304171D76FEE0 /* IBMPlexSansHebrew-Medium.ttf */,
+				CE6FB3FC3AD7CC65FE0837B1 /* IBMPlexSansHebrew-Regular.ttf */,
+				A28CDDCFE8A67ED88B771DD6 /* IBMPlexSansHebrew-SemiBold.ttf */,
+				565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */,
+				64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		15D9CC2B80A6633E1EE4350D = {
+			isa = PBXGroup;
+			children = (
+				ABAD25819AFCDF114AB02B8F /* App */,
+				1CB207F3813D844508884F58 /* Packages */,
+				576B18EACE6B0F93AF766887 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1CB207F3813D844508884F58 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				0F2832BD0B04339F96CB82A4 /* yahpaz-ios */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		576B18EACE6B0F93AF766887 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A0753CA283E13CC4A2DD6492 /* Yahpaz.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		599D1EEE21BC2B4E8C85B3B5 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				BB8915303B176A0042571DFD /* AvailabilityView.swift */,
+				8868B33715C1E400A912305E /* FillView.swift */,
+				71219BA6D29D59260C134B93 /* InboxView.swift */,
+				D4F73989167E600C672451F9 /* LiveTrackView.swift */,
+				20CBB261BAF651A391E04B62 /* LoginView.swift */,
+				218839F2643327DCE9377825 /* ProfileView.swift */,
+				2574186A5FE0C909397F34D8 /* RootView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		866208EEC3581E60BCA731D2 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				CB83D7A01555CE80B3556CDB /* Theme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		9F9A0B096F4E1F3372E73EB5 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				1323069FBE38F80122C6D25D /* Components.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		ABAD25819AFCDF114AB02B8F /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A2598AE3CB5C5538DD160252 /* AppModel.swift */,
+				A60A9BA2B4BB03C6EBA47470 /* Assets.xcassets */,
+				21F142807897FEACAC43A4F1 /* Config.swift */,
+				76E883F5BF0EE8F11A8EBD47 /* Info.plist */,
+				91BD24328991DAF45C72E03A /* Yahpaz.entitlements */,
+				CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */,
+				F49028005DB97F8363BFA318 /* API */,
+				9F9A0B096F4E1F3372E73EB5 /* Components */,
+				F98315A09F1B96F3C1AC8CF1 /* Live */,
+				0F956E90D6F3E7EAC6378E5A /* Resources */,
+				599D1EEE21BC2B4E8C85B3B5 /* Screens */,
+				866208EEC3581E60BCA731D2 /* Theme */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		F49028005DB97F8363BFA318 /* API */ = {
+			isa = PBXGroup;
+			children = (
+				2119B064EE20C7795B4CB807 /* Models.swift */,
+				C21920944C2DB0146A29F68D /* YahpazAPI.swift */,
+			);
+			path = API;
+			sourceTree = "<group>";
+		};
+		F98315A09F1B96F3C1AC8CF1 /* Live */ = {
+			isa = PBXGroup;
+			children = (
+				847870FA1511E83F00BEDFED /* LocationTracker.swift */,
+			);
+			path = Live;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		97565EAE6CEC2FCF73EB9074 /* Yahpaz */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 22C45CA768DC4546EC5A5505 /* Build configuration list for PBXNativeTarget "Yahpaz" */;
+			buildPhases = (
+				4F917FE1917FD5E1C3B07930 /* Sources */,
+				5FE1F10A6D798D602E455FF2 /* Resources */,
+				EDF953F397A15638E263A32F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Yahpaz;
+			packageProductDependencies = (
+				429F18C51C4868F898CDA146 /* YahpazDomain */,
+				C5845FC5A3C48BCF0F298F63 /* Supabase */,
+			);
+			productName = Yahpaz;
+			productReference = A0753CA283E13CC4A2DD6492 /* Yahpaz.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		78AD59E3D64AB719371BA52A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					97565EAE6CEC2FCF73EB9074 = {
+						DevelopmentTeam = 477WWCHXU7;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = BBDDFEF64215E3DDCA859758 /* Build configuration list for PBXProject "Yahpaz" */;
+			developmentRegion = he;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				he,
+			);
+			mainGroup = 15D9CC2B80A6633E1EE4350D;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				88C19A4B463E932DA6EA45C5 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				5A67D9CBFBC4E11E5AF99403 /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 576B18EACE6B0F93AF766887 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				97565EAE6CEC2FCF73EB9074 /* Yahpaz */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5FE1F10A6D798D602E455FF2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6FD9185988F136FB9CDAFE4 /* Assets.xcassets in Resources */,
+				23F3C03072B4AD5F4693FAC0 /* IBMPlexMono-Medium.ttf in Resources */,
+				1921DFDF4231C1E21FE4135F /* IBMPlexMono-Regular.ttf in Resources */,
+				0110E9F5BBF3E7421F7BA38C /* IBMPlexSansHebrew-Bold.ttf in Resources */,
+				73CF00F65E4913CA823C6EB9 /* IBMPlexSansHebrew-Medium.ttf in Resources */,
+				15E3E261F351D599933DD106 /* IBMPlexSansHebrew-Regular.ttf in Resources */,
+				24FDEA766250C67AFC9071E5 /* IBMPlexSansHebrew-SemiBold.ttf in Resources */,
+				BFA660E39C6243A072FCE1C4 /* PrivacyInfo.xcprivacy in Resources */,
+				4115A779ED82ABB923ED29BB /* SuezOne-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4F917FE1917FD5E1C3B07930 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				41FF31B1846901FBA9BDC8D0 /* AppModel.swift in Sources */,
+				3E35EB166AAD1D6BFAA2627B /* AvailabilityView.swift in Sources */,
+				872C34052EF7571F438053CB /* Components.swift in Sources */,
+				A88EA3E3800BA06646B93551 /* Config.swift in Sources */,
+				F72F8B8E95AFD0D604B444C3 /* FillView.swift in Sources */,
+				A7E07EBA5713DC715C4F1E0B /* InboxView.swift in Sources */,
+				77F430C6B2ACA60C6D82A7BF /* LiveTrackView.swift in Sources */,
+				FBEA3195F81A3ECC6416B880 /* LocationTracker.swift in Sources */,
+				F0EA93A8938B91CEF1775435 /* LoginView.swift in Sources */,
+				2950B2FC2785594EC2096F0B /* Models.swift in Sources */,
+				986E66942C394796BD5B163A /* ProfileView.swift in Sources */,
+				00E8BC6C2270157F47FF509C /* RootView.swift in Sources */,
+				729713569D334E3157C148AB /* Theme.swift in Sources */,
+				17B4EAC88AAC44697D8E6DD1 /* YahpazAPI.swift in Sources */,
+				7E1F7543AF4FB5BBC68BD962 /* YahpazApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		65B3E3F6F8372701600929F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_LANGUAGE = he;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		8B0D9ABC6D4E9AD9E45E64A1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = App/Yahpaz.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 477WWCHXU7;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder;
+				PRODUCT_NAME = Yahpaz;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9172CC8CA7B22CEB98C1A2A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_LANGUAGE = he;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		EAB5F66E42F4275CCC114173 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = App/Yahpaz.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 477WWCHXU7;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder;
+				PRODUCT_NAME = Yahpaz;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		22C45CA768DC4546EC5A5505 /* Build configuration list for PBXNativeTarget "Yahpaz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EAB5F66E42F4275CCC114173 /* Debug */,
+				8B0D9ABC6D4E9AD9E45E64A1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BBDDFEF64215E3DDCA859758 /* Build configuration list for PBXProject "Yahpaz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9172CC8CA7B22CEB98C1A2A8 /* Debug */,
+				65B3E3F6F8372701600929F4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		5A67D9CBFBC4E11E5AF99403 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		88C19A4B463E932DA6EA45C5 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.31.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		429F18C51C4868F898CDA146 /* YahpazDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = YahpazDomain;
+		};
+		C5845FC5A3C48BCF0F298F63 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 88C19A4B463E932DA6EA45C5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 78AD59E3D64AB719371BA52A /* Project object */;
+}

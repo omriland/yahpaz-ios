@@ -1,0 +1,87 @@
+name: Yahpaz
+options:
+  bundleIdPrefix: com.yahpz
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: he
+  createIntermediateGroups: true
+  defaultConfig: Release
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    DEVELOPMENT_LANGUAGE: he
+    SWIFT_EMIT_LOC_STRINGS: YES
+packages:
+  YahpazDomain:
+    path: .
+  supabase-swift:
+    url: https://github.com/supabase/supabase-swift.git
+    from: "2.31.0"
+targets:
+  Yahpaz:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - "**/.DS_Store"
+    resources:
+      - path: App/Resources
+        optional: true
+      - path: App/Assets.xcassets
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: אבן דרך
+        CFBundleName: Yahpaz
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        CFBundleDevelopmentRegion: he
+        CFBundleLocalizations:
+          - he
+        UIRequiresFullScreen: true
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        ITSAppUsesNonExemptEncryption: false
+        NSLocationWhenInUseUsageDescription: אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע. אפשר לעצור בכל רגע מסך המעקב.
+        NSLocationAlwaysAndWhenInUseUsageDescription: אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.
+        UIBackgroundModes:
+          - location
+        CFBundleURLTypes:
+          - CFBundleURLName: com.yahpz.responder
+            CFBundleURLSchemes:
+              - yahpaz
+        UIAppFonts:
+          - IBMPlexSansHebrew-Regular.ttf
+          - IBMPlexSansHebrew-Medium.ttf
+          - IBMPlexSansHebrew-SemiBold.ttf
+          - IBMPlexSansHebrew-Bold.ttf
+          - IBMPlexMono-Regular.ttf
+          - IBMPlexMono-Medium.ttf
+          - SuezOne-Regular.ttf
+    entitlements:
+      path: App/Yahpaz.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yahpz.responder
+        PRODUCT_NAME: Yahpaz
+        INFOPLIST_KEY_CFBundleDisplayName: אבן דרך
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 477WWCHXU7
+        CODE_SIGN_IDENTITY: Apple Development
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 1
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited)
+    dependencies:
+      - package: YahpazDomain
+        product: YahpazDomain
+      - package: supabase-swift
+        product: Supabase

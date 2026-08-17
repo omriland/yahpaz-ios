@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>אבן דרך — התקנה ל-iPhone</title>
+  <style>
+    :root {
+      --page: #182A47;
+      --card: #ffffff;
+      --text: #0F1B2D;
+      --muted: #445A73;
+      --accent: #1D4E89;
+      --accent-fill: #2E6CB4;
+      --on-dark: #F2F6FA;
+      --secondary: #C3CEDD;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "IBM Plex Sans Hebrew", "Helvetica Neue", Arial, sans-serif;
+      background: var(--page);
+      color: var(--on-dark);
+    }
+    main { max-width: 560px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-family: "Suez One", serif; font-size: 40px; font-weight: 400; margin: 0 0 8px; }
+    .kicker { color: var(--secondary); font-size: 14px; margin-bottom: 28px; }
+    .card {
+      background: var(--card);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 24px;
+      margin: 0 0 16px;
+    }
+    h2 { font-size: 17px; margin: 0 0 12px; }
+    p, li { font-size: 16px; line-height: 1.55; color: var(--muted); }
+    ol { padding-inline-start: 20px; }
+    a.btn {
+      display: block;
+      text-align: center;
+      background: var(--accent-fill);
+      color: white;
+      text-decoration: none;
+      padding: 14px 16px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin: 12px 0 0;
+    }
+    a.ghost {
+      display: block;
+      text-align: center;
+      color: var(--accent);
+      margin-top: 12px;
+    }
+    code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 13px; word-break: break-all; }
+    .note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>אבן דרך</h1>
+    <p class="kicker">אפליקציית כוננים ל-iPhone · אותו חשבון כמו yahpz.com</p>
+
+    <section class="card">
+      <h2>התקנה מומלצת — Xcode על המק הזה</h2>
+      <ol>
+        <li>חברו את האייפון בכבל, פתחו את המכשיר, ואשרו Trust.</li>
+        <li>הפעילו מצב מפתח: הגדרות ← פרטיות ואבטחה ← מצב מפתח.</li>
+        <li>פתחו את הפרויקט <code>Yahpaz.xcodeproj</code>.</li>
+        <li>Xcode ← Settings ← Accounts ← הוסיפו את <code>omriland@gmail.com</code>.</li>
+        <li>בחרו את האייפון למעלה, לחצו Run.</li>
+      </ol>
+      <p class="note">צוות Apple האישי לא מאפשר TestFlight. ההתקנה הראשונה חייבת לעבור חתימה של Xcode על המכשיר הרשום.</p>
+    </section>
+
+    <section class="card">
+      <h2>התקנה בלי כבל — AltStore</h2>
+      <p>התקינו <a href="https://altstore.io">AltStore</a> על המק, חברו אייפון, והוסיפו את המקור הזה:</p>
+      <p><code>https://omriland.github.io/yahpaz-ios/altstore.json</code></p>
+      <a class="btn" href="https://github.com/omriland/yahpaz-ios/releases/download/v1.0.0/Yahpaz.ipa">הורדת IPA</a>
+      <p class="note">חתימת Apple החינמית תקפה 7 ימים. AltStore מרענן אותה אוטומטית כשהמק דולק.</p>
+    </section>
+
+    <section class="card">
+      <h2>מה יש באפליקציה</h2>
+      <ul>
+        <li>כניסה בדוא״ל וסיסמה</li>
+        <li>האירועים שלי — ממתינים / תועדו</li>
+        <li>השלמת הפרטים שלי</li>
+        <li>זמינות ופרופיל</li>
+        <li>שיתוף מיקום חי עם <code>yahpaz://track?token=</code></li>
+      </ul>
+      <a class="ghost" href="https://github.com/omriland/yahpaz-ios">קוד המקור ב-GitHub</a>
+    </section>
+  </main>
+</body>
+</html>
