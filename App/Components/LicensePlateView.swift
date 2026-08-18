@@ -23,7 +23,7 @@ struct LicensePlateView: View {
                 }
                 .frame(width: 24)
                 .frame(maxHeight: .infinity)
-                .background(FieldTheme.accent)
+                .background(FieldTheme.accentHover)
 
                 Text(serial)
                     .font(.custom("IBM Plex Mono", size: 16).weight(.medium))
@@ -47,7 +47,7 @@ struct LicensePlateView: View {
 private struct IsraelFlagMark: View {
     var body: some View {
         Canvas { context, size in
-            let band = FieldTheme.accent
+            let band = FieldTheme.accentHover
             let paper = Color.white
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(paper))
             let stripeH = size.height * (2.2 / 16)
