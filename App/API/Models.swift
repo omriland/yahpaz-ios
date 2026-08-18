@@ -173,6 +173,7 @@ struct FillAssignmentRow: Decodable, Sendable {
     var status: ParticipationStatus
     var updatedAt: String?
     var endedAt: String?
+    var treatedPlates: [EventTreatedPlateRow]
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -187,6 +188,7 @@ struct FillAssignmentRow: Decodable, Sendable {
         case status
         case updatedAt = "updated_at"
         case endedAt = "ended_at"
+        case treatedPlates = "treated_plates"
     }
 
     init(from decoder: Decoder) throws {
@@ -203,6 +205,7 @@ struct FillAssignmentRow: Decodable, Sendable {
         status = try c.decode(ParticipationStatus.self, forKey: .status)
         updatedAt = try c.decodeIfPresent(String.self, forKey: .updatedAt)
         endedAt = try c.decodeIfPresent(String.self, forKey: .endedAt)
+        treatedPlates = try c.decodeIfPresent([EventTreatedPlateRow].self, forKey: .treatedPlates) ?? []
     }
 
     private static func number(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Double? {

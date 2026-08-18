@@ -92,6 +92,33 @@ final class FillValidationTests: XCTestCase {
         XCTAssertEqual(errors.vehiclePlate, "יש לבחור רכב מהרשימה המקושרת למשתמש.")
     }
 
+    func testCompleteErrorsOnLeftoverTreatedPlatePending() {
+        let errors = validateResponderFillDraft(
+            draft(
+                vehiclePlate: "1234567",
+                odometerStart: "100",
+                odometerEnd: "112",
+                route: "כביש 1",
+                treatmentDetail: "טיפול",
+                treatedPlatePending: "123"
+            ),
+            mode: .complete,
+            allowedPlates: plates,
+            totalKm: 12
+        )
+        XCTAssertEqual(errors.treatedPlates, TREATED_PLATE_LEFTOVER_ERROR)
+    }
+
+    func testDraftAllowsLeftoverTreatedPlatePending() {
+        let errors = validateResponderFillDraft(
+            draft(treatedPlatePending: "123"),
+            mode: .draft,
+            allowedPlates: plates,
+            totalKm: nil
+        )
+        XCTAssertNil(errors.treatedPlates)
+    }
+
     func testDeriveEventStatusKeepsDraftProgressAsInProgress() {
         XCTAssertEqual(
             deriveEventStatusAfterParticipation([.pending, .inProgress]),
@@ -113,7 +140,9 @@ final class FillValidationTests: XCTestCase {
         odometerEnd: String = "",
         route: String = "",
         treatmentDetail: String = "",
-        treatmentNotes: String = ""
+        treatmentNotes: String = "",
+        treatedPlates: [TreatedPlate] = [],
+        treatedPlatePending: String = ""
     ) -> ResponderFillDraft {
         ResponderFillDraft(
             vehiclePlate: vehiclePlate,
@@ -121,7 +150,9 @@ final class FillValidationTests: XCTestCase {
             odometerEnd: odometerEnd,
             route: route,
             treatmentDetail: treatmentDetail,
-            treatmentNotes: treatmentNotes
+            treatmentNotes: treatmentNotes,
+            treatedPlates: treatedPlates,
+            treatedPlatePending: treatedPlatePending
         )
     }
 }

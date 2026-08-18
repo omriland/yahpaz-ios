@@ -13,6 +13,7 @@ struct FillView: View {
     @State private var failed = false
     @State private var savingDraft = false
     @State private var completing = false
+    @State private var plateLookupGeneration = 0
 
     var body: some View {
         Group {
@@ -109,6 +110,7 @@ struct FillView: View {
                         .disabled(readOnly)
                     FormArea(label: "פירוט הטיפול", error: errors.treatmentDetail, text: $draft.treatmentDetail)
                         .disabled(readOnly)
+                    treatedPlatesSection(readOnly: readOnly)
                     FormArea(label: "הערות לטיפול", minHeight: 80, text: $draft.treatmentNotes)
                         .disabled(readOnly)
                     if let formError {
@@ -136,6 +138,99 @@ struct FillView: View {
         }
     }
 
+    @ViewBuilder
+    private func treatedPlatesSection(readOnly: Bool) -> some View {
+        if readOnly {
+            if !draft.treatedPlates.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("מספרי כלי רכב")
+                        .font(TypeScale.label)
+                        .foregroundStyle(FieldTheme.textSecondary)
+                    ForEach(draft.treatedPlates, id: \.plateNumber) { row in
+                        treatedPlateRow(row, removable: false)
+                    }
+                }
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                if !draft.treatedPlates.isEmpty {
+                    ForEach(draft.treatedPlates, id: \.plateNumber) { row in
+                        treatedPlateRow(row, removable: true)
+                    }
+                }
+                HStack(alignment: .bottom, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("מספרי כלי רכב")
+                            .font(TypeScale.label)
+                            .tracking(0.13)
+                            .foregroundStyle(FieldTheme.textSecondary)
+                        TextField("מספר רישוי", text: Binding(
+                            get: { draft.treatedPlatePending },
+                            set: { draft.treatedPlatePending = digitsOnly($0) }
+                        ))
+                        .font(TypeScale.numeric)
+                        .foregroundStyle(FieldTheme.textPrimary)
+                        .keyboardType(.numbersAndPunctuation)
+                        .textInputAutocapitalization(.never)
+                        .submitLabel(.done)
+                        .onSubmit { commitTreatedPlate() }
+                        .padding(.horizontal, 12)
+                        .frame(minHeight: 44)
+                        .background(FieldTheme.raised)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .stroke(errors.treatedPlates == nil ? FieldTheme.strong : FieldTheme.alert, lineWidth: 1)
+                        )
+                        .environment(\.layoutDirection, .leftToRight)
+                        if let error = errors.treatedPlates {
+                            Text(error)
+                                .font(TypeScale.caption)
+                                .foregroundStyle(FieldTheme.alert)
+                        }
+                    }
+                    Button("הוספה") { commitTreatedPlate() }
+                        .font(TypeScale.bodyStrong)
+                        .foregroundStyle(FieldTheme.accent)
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, 12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .stroke(FieldTheme.strong, lineWidth: 1)
+                        )
+                        .padding(.bottom, errors.treatedPlates == nil ? 0 : 18)
+                }
+            }
+        }
+    }
+
+    private func treatedPlateRow(_ row: TreatedPlate, removable: Bool) -> some View {
+        HStack(spacing: 8) {
+            LicensePlateView(plate: row.plateNumber)
+            if let caption = treatedPlateCaption(model: row.model, color: row.color) {
+                Text(caption)
+                    .font(TypeScale.caption)
+                    .foregroundStyle(FieldTheme.textSecondary)
+                    .lineLimit(2)
+            }
+            Spacer(minLength: 0)
+            if removable {
+                Button {
+                    draft.treatedPlates = removeTreatedPlate(
+                        draft.treatedPlates,
+                        plateDigitsKey: row.plateNumber
+                    )
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(FieldTheme.textMuted)
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("הסרת מספר \(row.plateNumber)")
+            }
+        }
+    }
+
     private func summary(_ context: FillContext) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             LedgerRow(label: "תאריך", value: formatDate(context.eventDate))
@@ -151,6 +246,36 @@ struct FillView: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(FieldTheme.hairline, lineWidth: 1)
         )
+    }
+
+    private func commitTreatedPlate() {
+        let result = YahpazDomain.commitTreatedPlate(
+            pending: draft.treatedPlatePending,
+            plates: draft.treatedPlates
+        )
+        switch result {
+        case let .error(message):
+            errors.treatedPlates = message
+        case let .ok(plate, plates):
+            draft.treatedPlates = plates
+            draft.treatedPlatePending = ""
+            errors.treatedPlates = nil
+            enqueuePlateLookup(plate.plateNumber)
+        }
+    }
+
+    private func enqueuePlateLookup(_ plateNumber: String) {
+        plateLookupGeneration += 1
+        let generation = plateLookupGeneration
+        Task {
+            let hit = await lookupPlate(plate: plateNumber)
+            guard generation <= plateLookupGeneration, let hit else { return }
+            let key = plateDigits(plateNumber)
+            draft.treatedPlates = draft.treatedPlates.map { row in
+                guard plateDigits(row.plateNumber) == key else { return row }
+                return TreatedPlate(plateNumber: row.plateNumber, model: hit.model, color: hit.color)
+            }
+        }
     }
 
     private func load() async {
@@ -179,6 +304,10 @@ struct FillView: View {
             totalKm: context.totalKm
         )
         errors = nextErrors
+        if !nextErrors.isEmpty {
+            formError = nextErrors.firstMessage
+            return
+        }
         if complete { completing = true } else { savingDraft = true }
         let error = await YahpazAPI.shared.saveFill(context: context, draft: draft, complete: complete)
         completing = false

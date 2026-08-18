@@ -7,6 +7,8 @@ public struct ResponderFillDraft: Equatable, Sendable {
     public var route: String
     public var treatmentDetail: String
     public var treatmentNotes: String
+    public var treatedPlates: [TreatedPlate]
+    public var treatedPlatePending: String
 
     public init(
         vehiclePlate: String = "",
@@ -14,7 +16,9 @@ public struct ResponderFillDraft: Equatable, Sendable {
         odometerEnd: String = "",
         route: String = "",
         treatmentDetail: String = "",
-        treatmentNotes: String = ""
+        treatmentNotes: String = "",
+        treatedPlates: [TreatedPlate] = [],
+        treatedPlatePending: String = ""
     ) {
         self.vehiclePlate = vehiclePlate
         self.odometerStart = odometerStart
@@ -22,6 +26,8 @@ public struct ResponderFillDraft: Equatable, Sendable {
         self.route = route
         self.treatmentDetail = treatmentDetail
         self.treatmentNotes = treatmentNotes
+        self.treatedPlates = treatedPlates
+        self.treatedPlatePending = treatedPlatePending
     }
 
     public static func empty() -> ResponderFillDraft {
@@ -35,6 +41,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
     public var odometerEnd: String?
     public var route: String?
     public var treatmentDetail: String?
+    public var treatedPlates: String?
     public var form: String?
 
     public init(
@@ -43,6 +50,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
         odometerEnd: String? = nil,
         route: String? = nil,
         treatmentDetail: String? = nil,
+        treatedPlates: String? = nil,
         form: String? = nil
     ) {
         self.vehiclePlate = vehiclePlate
@@ -50,6 +58,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
         self.odometerEnd = odometerEnd
         self.route = route
         self.treatmentDetail = treatmentDetail
+        self.treatedPlates = treatedPlates
         self.form = form
     }
 
@@ -59,11 +68,18 @@ public struct ResponderFillErrors: Equatable, Sendable {
             && odometerEnd == nil
             && route == nil
             && treatmentDetail == nil
+            && treatedPlates == nil
             && form == nil
     }
 
     public var firstMessage: String? {
-        form ?? vehiclePlate ?? odometerStart ?? odometerEnd ?? route ?? treatmentDetail
+        form
+            ?? vehiclePlate
+            ?? odometerStart
+            ?? odometerEnd
+            ?? route
+            ?? treatmentDetail
+            ?? treatedPlates
     }
 }
 
@@ -129,6 +145,9 @@ public func validateResponderFillDraft(
         }
         if draft.treatmentDetail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             errors.treatmentDetail = "יש למלא פירוט הטיפול."
+        }
+        if let leftover = leftoverTreatedPlateError(pending: draft.treatedPlatePending, mode: mode) {
+            errors.treatedPlates = leftover
         }
     }
 
