@@ -2,8 +2,7 @@
 
 Native SwiftUI app for Yahpaz responders. Same Supabase backend as [yahpz.com](https://yahpz.com).
 
-**Install:** [omriland.github.io/yahpaz-ios](https://omriland.github.io/yahpaz-ios/)  
-**IPA:** [github.com/omriland/yahpaz-ios/releases](https://github.com/omriland/yahpaz-ios/releases)
+**Install:** [yahpz.com/ios](https://yahpz.com/ios) — Safari on iPhone only
 
 ## What it does
 
@@ -16,10 +15,29 @@ Native SwiftUI app for Yahpaz responders. Same Supabase backend as [yahpz.com](h
 
 ## Install
 
-Personal Apple team `477WWCHXU7` cannot publish to TestFlight. Two working paths:
+Distribution is **Ad Hoc, self-hosted from yahpz.com** — no App Store, no TestFlight, no
+AltStore. A device only installs if its UDID was registered in team `477WWCHXU7` *before*
+the build was signed.
 
-1. **Xcode → iPhone** (best): sign in to Xcode with `omriland@gmail.com`, plug in the iPhone, Run `Yahpaz`.
-2. **AltStore:** add source `https://omriland.github.io/yahpaz-ios/altstore.json` and install. Free signing lasts 7 days.
+Volunteers open <https://yahpz.com/ios> in **Safari** on the iPhone and tap install.
+`itms-services://` links do nothing in Chrome, Firefox, or in-app browsers.
+
+Hard limits worth knowing: 100 iPhones per membership year, resetting only at renewal, and
+the provisioning profile expires 12 months after it is issued — at which point the app
+stops launching until everyone reinstalls.
+
+Design: `op-yh-26/docs/superpowers/specs/2026-09-04-yahpaz-ios-adhoc-selfhosted-distribution-design.md`
+
+### Cutting a release
+
+```bash
+./scripts/build-adhoc.sh    # signed IPA + OTA manifest in dist/adhoc/
+./scripts/publish-ios.sh    # copies into op-yh-26/public/ios/ and refreshes version.json
+```
+
+To add a volunteer: register the UDID at
+<https://developer.apple.com/account/resources/devices/list>, then rerun both scripts.
+Automatic signing picks up every registered device on each build.
 
 ## Build
 
@@ -29,8 +47,10 @@ Requires Xcode 16+ / iOS 17+.
 xcodegen generate
 swift test
 xcodebuild -scheme Yahpaz -destination 'platform=iOS Simulator,name=iPhone 17' -configuration Debug build
-./scripts/build-ipa.sh
 ```
+
+For a distributable build see "Cutting a release" above — `build-ipa.sh` produced an
+unsigned IPA for AltStore and has been removed.
 
 Bundle ID: `com.yahpz.responder`
 
