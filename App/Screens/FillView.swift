@@ -164,7 +164,7 @@ struct FillView: View {
                             .font(TypeScale.label)
                             .tracking(0.13)
                             .foregroundStyle(FieldTheme.textSecondary)
-                        TextField("מספר רישוי", text: Binding(
+                        TextField("xx-xxx-xx", text: Binding(
                             get: { draft.treatedPlatePending },
                             set: { draft.treatedPlatePending = digitsOnly($0) }
                         ))
@@ -208,12 +208,33 @@ struct FillView: View {
             LicensePlateView(plate: row.plateNumber)
             if let caption = treatedPlateCaption(model: row.model, color: row.color) {
                 Text(caption)
-                    .font(TypeScale.caption)
+                    .font(TypeScale.body)
                     .foregroundStyle(FieldTheme.textSecondary)
                     .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
             if removable {
+                TextField("איפה הרכב הושאר", text: Binding(
+                    get: { row.leftWhere ?? "" },
+                    set: {
+                        draft.treatedPlates = setTreatedPlateLeftWhere(
+                            draft.treatedPlates,
+                            plateDigitsKey: row.plateNumber,
+                            leftWhere: $0
+                        )
+                    }
+                ))
+                .font(TypeScale.body)
+                .foregroundStyle(FieldTheme.textPrimary)
+                .padding(.horizontal, 8)
+                .frame(minWidth: 140, maxWidth: 140, minHeight: 36, alignment: .leading)
+                .background(FieldTheme.raised)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .stroke(FieldTheme.strong, lineWidth: 1)
+                )
                 Button {
                     draft.treatedPlates = removeTreatedPlate(
                         draft.treatedPlates,
@@ -227,6 +248,12 @@ struct FillView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("הסרת מספר \(row.plateNumber)")
+            } else if let left = row.leftWhere?.trimmingCharacters(in: .whitespacesAndNewlines), !left.isEmpty {
+                Text(left)
+                    .font(TypeScale.body)
+                    .foregroundStyle(FieldTheme.textSecondary)
+                    .lineLimit(2)
+                    .frame(width: 140, alignment: .leading)
             }
         }
     }
@@ -273,7 +300,12 @@ struct FillView: View {
             let key = plateDigits(plateNumber)
             draft.treatedPlates = draft.treatedPlates.map { row in
                 guard plateDigits(row.plateNumber) == key else { return row }
-                return TreatedPlate(plateNumber: row.plateNumber, model: hit.model, color: hit.color)
+                return TreatedPlate(
+                    plateNumber: row.plateNumber,
+                    model: hit.model,
+                    color: hit.color,
+                    leftWhere: row.leftWhere
+                )
             }
         }
     }
