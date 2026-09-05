@@ -19,12 +19,26 @@ struct InboxView: View {
             .padding(.horizontal, 16)
             .padding(.top, 12)
             .background(FieldTheme.page.ignoresSafeArea())
+            .yahpazRootNavigationBarHidden()
+            .yahpazFormScroll()
+            .yahpazKeyboardAccessory()
             .navigationDestination(item: $fillEventId) { route in
                 FillView(eventId: route.id)
             }
             .sheet(item: $detailEvent) { event in
-                EventSummarySheet(event: event)
+                EventSummarySheet(
+                    event: event,
+                    userId: app.userId,
+                    onFill: {
+                        let id = event.id
+                        detailEvent = nil
+                        DispatchQueue.main.async {
+                            fillEventId = EventRoute(id: id)
+                        }
+                    }
+                )
             }
+            .refreshable { await app.reloadEvents() }
         }
     }
 
@@ -56,10 +70,11 @@ struct InboxView: View {
             tab = value
         } label: {
             Text(label)
-                .font(TypeScale.label)
+                .font(TypeScale.body)
+                .multilineTextAlignment(.center)
                 .foregroundStyle(tab == value ? FieldTheme.accent : FieldTheme.textSecondary)
-                .padding(.horizontal, 12)
-                .frame(height: 36)
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .background(tab == value ? FieldTheme.accentSubtle : FieldTheme.raised)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
@@ -72,11 +87,13 @@ struct InboxView: View {
     @ViewBuilder
     private var content: some View {
         if app.eventsFailed {
-            EmptyState(
-                title: "טעינת האירועים נכשלה. בדקו את החיבור ונסו שוב.",
-                actionTitle: "רענון"
-            ) {
-                Task { await app.reloadEvents() }
+            ScrollView {
+                EmptyState(
+                    title: "טעינת האירועים נכשלה. בדקו את החיבור ונסו שוב.",
+                    actionTitle: "רענון"
+                ) {
+                    Task { await app.reloadEvents() }
+                }
             }
         } else if app.eventsLoading && app.events.isEmpty {
             ProgressView("טוען את הדיווחים שלך…")
@@ -91,12 +108,14 @@ struct InboxView: View {
     @ViewBuilder
     private var pendingList: some View {
         if pending.isEmpty {
-            EmptyState(
-                title: MINE_PENDING_EMPTY_TITLE,
-                caption: MINE_PENDING_EMPTY_CAPTION,
-                actionTitle: logged.isEmpty ? nil : MINE_PENDING_EMPTY_VIEW_LOGGED
-            ) {
-                tab = .logged
+            ScrollView {
+                EmptyState(
+                    title: MINE_PENDING_EMPTY_TITLE,
+                    caption: MINE_PENDING_EMPTY_CAPTION,
+                    actionTitle: logged.isEmpty ? nil : MINE_PENDING_EMPTY_VIEW_LOGGED
+                ) {
+                    tab = .logged
+                }
             }
         } else {
             ScrollView {
@@ -107,8 +126,8 @@ struct InboxView: View {
                             EventCardView(
                                 event: event,
                                 userId: app.userId,
-                                onFill: { fillEventId = EventRoute(id: event.id) },
-                                onOpen: { detailEvent = event }
+                                onOpen: { detailEvent = event },
+                                onFill: { fillEventId = EventRoute(id: event.id) }
                             )
                         case .shift(let title, let events):
                             ShiftGroupView(
@@ -120,8 +139,8 @@ struct InboxView: View {
                                     EventCardView(
                                         event: event,
                                         userId: app.userId,
-                                        onFill: { fillEventId = EventRoute(id: event.id) },
-                                        onOpen: { detailEvent = event }
+                                        onOpen: { detailEvent = event },
+                                        onFill: { fillEventId = EventRoute(id: event.id) }
                                     )
                                 }
                             }
@@ -130,7 +149,6 @@ struct InboxView: View {
                 }
                 .padding(.bottom, 24)
             }
-            .refreshable { await app.reloadEvents() }
         }
     }
 
@@ -148,13 +166,15 @@ struct InboxView: View {
                 .font(TypeScale.caption)
                 .foregroundStyle(FieldTheme.textMuted)
             if filteredLogged.isEmpty {
-                EmptyState(
-                    title: loggedQuery.trimmingCharacters(in: .whitespaces).isEmpty
-                        ? MINE_LOGGED_EMPTY_TITLE
-                        : mineLoggedNoResultsTitle(query: loggedQuery.trimmingCharacters(in: .whitespacesAndNewlines)),
-                    actionTitle: loggedQuery.isEmpty ? nil : "ניקוי חיפוש"
-                ) {
-                    loggedQuery = ""
+                ScrollView {
+                    EmptyState(
+                        title: loggedQuery.trimmingCharacters(in: .whitespaces).isEmpty
+                            ? MINE_LOGGED_EMPTY_TITLE
+                            : mineLoggedNoResultsTitle(query: loggedQuery.trimmingCharacters(in: .whitespacesAndNewlines)),
+                        actionTitle: loggedQuery.isEmpty ? nil : "ניקוי חיפוש"
+                    ) {
+                        loggedQuery = ""
+                    }
                 }
             } else {
                 ScrollView {
@@ -163,7 +183,7 @@ struct InboxView: View {
                             Button {
                                 detailEvent = event
                             } label: {
-                                LoggedRow(event: event)
+                                LoggedRow(event: event, query: loggedQuery, userId: app.userId)
                             }
                             .buttonStyle(.plain)
                         }
@@ -188,7 +208,10 @@ struct InboxView: View {
     private var pending: [EventListItem] {
         app.events.filter { event in
             guard let userId = app.userId else { return false }
-            return event.ownParticipation(userId: userId) != .done
+            return mineInboxIsOpen(
+                event.ownParticipation(userId: userId),
+                totalKm: event.ownTotalKm(userId: userId)
+            )
         }
         .sorted { $0.eventDate > $1.eventDate }
     }
@@ -202,7 +225,8 @@ struct InboxView: View {
                 MineListEvent(
                     id: $0.id,
                     date: $0.eventDate,
-                    participation: $0.ownParticipation(userId: userId) ?? .pending
+                    participation: $0.ownParticipation(userId: userId) ?? .pending,
+                    totalKm: $0.ownTotalKm(userId: userId)
                 )
             },
             today: israelToday(),
@@ -301,36 +325,66 @@ struct ShiftGroupView<Content: View>: View {
 struct EventCardView: View {
     let event: EventListItem
     var userId: String?
-    var onFill: () -> Void
     var onOpen: () -> Void
+    var onFill: () -> Void
 
     var body: some View {
         let mine = userId.flatMap { event.ownParticipation(userId: $0) } ?? .pending
         let stamp = event.isCancelled ? cancelledStamp() : participationStamp(mine, isViewer: true)
+        let overdue = isMineFillOverdue(
+            isCancelled: event.isCancelled,
+            participationStatus: mine,
+            fillCompletableAt: userId.flatMap { event.ownFillCompletableAt(userId: $0) }
+        )
+        let regular = event.origin != "shift"
+        let cardFill: Color = {
+            if overdue { return FieldTheme.alertTint }
+            if regular { return FieldTheme.accentSubtle }
+            return FieldTheme.raised
+        }()
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(event.typeLabel.isEmpty ? "אירוע" : event.typeLabel)
-                        .font(TypeScale.section)
-                        .foregroundStyle(FieldTheme.textPrimary)
-                    Text(metaLine)
-                        .font(TypeScale.caption)
-                        .foregroundStyle(FieldTheme.textMuted)
+            Button(action: onOpen) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            if overdue {
+                                Image(systemName: "hourglass")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(FieldTheme.alert)
+                                    .accessibilityLabel(OVERDUE_FILL_CARD_TIP)
+                            }
+                            Text(event.typeLabel.isEmpty ? "אירוע" : event.typeLabel)
+                                .font(TypeScale.section)
+                                .foregroundStyle(FieldTheme.textPrimary)
+                        }
+                        Text(metaLine)
+                            .font(TypeScale.caption)
+                            .foregroundStyle(FieldTheme.textMuted)
+                    }
+                    Spacer()
+                    StampWithNote(
+                        stamp: stamp,
+                        note: userId.flatMap { leadKmPendingNote(mine, totalKm: event.ownTotalKm(userId: $0)) }
+                    )
                 }
-                Spacer()
-                StampChip(stamp: stamp)
             }
+            .buttonStyle(.plain)
             if let fill = mineFillCtaLabel(mine) {
                 PrimaryButton(title: fill, action: onFill)
             }
-            GhostButton(title: "פרטי האירוע", action: onOpen)
         }
         .padding(16)
-        .background(FieldTheme.raised)
+        .background(cardFill)
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(FieldTheme.hairline, lineWidth: 1)
         )
+        .overlay(alignment: .leading) {
+            if overdue || regular {
+                (overdue ? FieldTheme.alert : FieldTheme.accent)
+                    .frame(width: 3)
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
@@ -342,21 +396,84 @@ struct EventCardView: View {
     }
 }
 
-struct LoggedRow: View {
-    let event: EventListItem
+private let searchHitYellow = Color(hex: 0xFFF59D)
+
+struct HighlightedText: View {
+    let text: String
+    let query: String
+    var font: Font
+    var color: Color
 
     var body: some View {
-        HStack {
+        let ranges = searchHighlightRanges(text, query: query)
+        if ranges.isEmpty {
+            Text(text)
+                .font(font)
+                .foregroundStyle(color)
+        } else {
+            Text(highlighted(ranges))
+                .font(font)
+                .foregroundStyle(color)
+        }
+    }
+
+    private func highlighted(_ ranges: [TextHighlightRange]) -> AttributedString {
+        var result = AttributedString(text)
+        for range in ranges {
+            guard range.start >= 0, range.endExclusive <= text.utf16.count else { continue }
+            let start = String.Index(utf16Offset: range.start, in: text)
+            let end = String.Index(utf16Offset: range.endExclusive, in: text)
+            if let lower = AttributedString.Index(start, within: result),
+               let upper = AttributedString.Index(end, within: result)
+            {
+                result[lower..<upper].backgroundColor = searchHitYellow
+            }
+        }
+        return result
+    }
+}
+
+struct LoggedRow: View {
+    let event: EventListItem
+    var query: String
+    var userId: String?
+
+    var body: some View {
+        let place = [event.road?.name, event.location]
+            .compactMap { $0?.isEmpty == false ? $0 : nil }
+            .joined(separator: " · ")
+        HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(event.typeLabel.isEmpty ? "אירוע" : event.typeLabel)
-                    .font(TypeScale.bodyStrong)
-                    .foregroundStyle(FieldTheme.textPrimary)
-                Text("\(formatDate(event.eventDate)) · \(event.policeEventId ?? "")")
-                    .font(TypeScale.caption)
-                    .foregroundStyle(FieldTheme.textMuted)
+                HighlightedText(
+                    text: event.typeLabel.isEmpty ? "אירוע" : event.typeLabel,
+                    query: query,
+                    font: TypeScale.bodyStrong,
+                    color: FieldTheme.textPrimary
+                )
+                HighlightedText(
+                    text: [formatDate(event.eventDate), event.policeEventId]
+                        .compactMap { $0?.isEmpty == false ? $0 : nil }
+                        .joined(separator: " · "),
+                    query: query,
+                    font: TypeScale.caption,
+                    color: FieldTheme.textMuted
+                )
+                if !place.isEmpty {
+                    HighlightedText(
+                        text: place,
+                        query: query,
+                        font: TypeScale.caption,
+                        color: FieldTheme.textMuted
+                    )
+                }
             }
             Spacer()
-            StampChip(stamp: participationStamp(.done, isViewer: true))
+            StampWithNote(
+                stamp: participationStamp(.done, isViewer: true),
+                note: userId.flatMap {
+                    leadKmPendingNote(.done, totalKm: event.ownTotalKm(userId: $0))
+                }
+            )
         }
         .padding(16)
         .overlay(alignment: .bottom) {
@@ -367,18 +484,49 @@ struct LoggedRow: View {
 
 struct EventSummarySheet: View {
     let event: EventListItem
+    var userId: String?
+    var onFill: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        let mine = userId.flatMap { event.ownParticipation(userId: $0) } ?? .pending
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    LedgerRow(label: "תאריך", value: formatDate(event.eventDate))
-                    LedgerRow(label: "מספר אירוע", value: event.policeEventId ?? "")
-                    LedgerRow(label: "סוג אירוע", value: event.typeLabel)
-                    LedgerRow(label: "כביש", value: event.road?.name ?? "")
-                    LedgerRow(label: "מיקום", value: event.location ?? "")
-                    LedgerRow(label: "אחמ״ש", value: event.shiftLead?.display ?? "")
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        LedgerRow(label: "תאריך", value: formatDate(event.eventDate))
+                        LedgerRow(label: "מספר אירוע", value: event.policeEventId ?? "")
+                        LedgerRow(label: "סוג אירוע", value: event.typeLabel)
+                        LedgerRow(label: "כביש", value: event.road?.name ?? "")
+                        LedgerRow(label: "מיקום", value: event.location ?? "")
+                        LedgerRow(label: "אחמ״ש", value: event.shiftLead?.display ?? "")
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("מתנדבים (\(event.responders.count))")
+                            .font(TypeScale.section)
+                            .foregroundStyle(FieldTheme.textPrimary)
+                        ForEach(event.responders) { row in
+                            HStack {
+                                Text(row.profile?.display ?? "מתנדב")
+                                    .font(TypeScale.body)
+                                    .foregroundStyle(FieldTheme.textPrimary)
+                                Spacer()
+                                StampWithNote(
+                                    stamp: participationStamp(
+                                        row.status,
+                                        isViewer: row.responderId == userId
+                                    ),
+                                    note: row.responderId == userId
+                                        ? leadKmPendingNote(row.status, totalKm: row.totalKm)
+                                        : nil
+                                )
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    if let fill = mineFillCtaLabel(mine), let onFill {
+                        PrimaryButton(title: fill, action: onFill)
+                    }
                 }
                 .padding(16)
             }
@@ -392,5 +540,7 @@ struct EventSummarySheet: View {
             }
         }
         .environment(\.layoutDirection, .rightToLeft)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }

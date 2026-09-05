@@ -20,3 +20,4 @@ fastlane/test_output
 .env.local
 Config.local.xcconfig
 App/Secrets.plist
+*.p8

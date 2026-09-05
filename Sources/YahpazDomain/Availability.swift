@@ -10,10 +10,18 @@ public let AVAILABILITY_LABELS: [AvailabilityStatus: String] = [
     .unavailable: "לא זמין",
 ]
 
-public let AVAILABILITY_DATE_ERROR = "בחרו תאריך מהמחר או השאירו ריק."
+public let AVAILABILITY_DATE_ERROR = "יש לבחור תאריך עתידי"
 
 public func availabilityLabel(_ status: AvailabilityStatus) -> String {
     AVAILABILITY_LABELS[status] ?? AVAILABILITY_LABELS[.available]!
+}
+
+public func availabilitySearchLabel(
+    _ status: AvailabilityStatus,
+    availableFrom: String?,
+    today: String
+) -> String {
+    availabilityLabel(effectiveAvailability(status, availableFrom: availableFrom, today: today))
 }
 
 public func israelToday(_ now: Date = Date()) -> String {
@@ -57,15 +65,76 @@ public func buildAvailabilityWrite(
     if date.isEmpty {
         return .ok(availability: .unavailable, availableFrom: nil)
     }
-    if !isValidReturnDate(date, today: today) {
+    guard let iso = normalizeReturnDate(date), iso > today else {
         return .error(AVAILABILITY_DATE_ERROR)
     }
-    return .ok(availability: .unavailable, availableFrom: date)
+    return .ok(availability: .unavailable, availableFrom: iso)
+}
+
+public func formatReturnDateInput(_ raw: String) -> String {
+    let digits = String(digitsOnly(raw).prefix(8))
+    let day = String(digits.prefix(2))
+    let month = String(digits.dropFirst(2).prefix(2))
+    let year = String(digits.dropFirst(4).prefix(4))
+    return [day, month, year].filter { !$0.isEmpty }.joined(separator: "/")
+}
+
+public func applyReturnDateKeystroke(previous: String, incoming: String) -> String {
+    let previousDigits = digitsOnly(previous)
+    var nextDigits = String(digitsOnly(incoming).prefix(8))
+    if nextDigits == previousDigits && incoming.count < previous.count && !previousDigits.isEmpty {
+        nextDigits = String(previousDigits.dropLast())
+    }
+    return formatReturnDateInput(nextDigits)
+}
+
+public func returnDateToInput(_ stored: String) -> String {
+    let trimmed = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.isEmpty { return "" }
+    let parts = trimmed.split(separator: "-")
+    if parts.count == 3,
+       parts[0].count == 4,
+       parts[1].count == 2,
+       parts[2].count == 2,
+       parts.allSatisfy({ $0.allSatisfy(\.isNumber) }) {
+        return "\(parts[2])/\(parts[1])/\(parts[0])"
+    }
+    return formatReturnDateInput(trimmed)
+}
+
+public func parseReturnDateInput(_ raw: String) -> String? {
+    let digits = digitsOnly(raw)
+    guard digits.count == 8,
+          let day = Int(digits.prefix(2)),
+          let month = Int(digits.dropFirst(2).prefix(2)),
+          let year = Int(digits.suffix(4)) else { return nil }
+    let calendar = Calendar(identifier: .gregorian)
+    var components = DateComponents()
+    components.year = year
+    components.month = month
+    components.day = day
+    guard components.isValidDate(in: calendar) else { return nil }
+    return String(format: "%04d-%02d-%02d", year, month, day)
+}
+
+public func normalizeReturnDate(_ raw: String) -> String? {
+    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil {
+        let parts = trimmed.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3 else { return nil }
+        var components = DateComponents()
+        components.year = parts[0]
+        components.month = parts[1]
+        components.day = parts[2]
+        guard components.isValidDate(in: Calendar(identifier: .gregorian)) else { return nil }
+        return trimmed
+    }
+    return parseReturnDateInput(trimmed)
 }
 
 public func isValidReturnDate(_ availableFrom: String, today: String) -> Bool {
-    availableFrom.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil
-        && availableFrom > today
+    guard let iso = normalizeReturnDate(availableFrom) else { return false }
+    return iso > today
 }
 
 public func tomorrowJerusalem(today: String = israelToday()) -> String {

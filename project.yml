@@ -30,6 +30,9 @@ targets:
     resources:
       - path: App/Resources
         optional: true
+      - path: App/Resources/car-logos
+        type: folder
+        optional: true
       - path: App/Assets.xcassets
     info:
       path: App/Info.plist
@@ -37,7 +40,7 @@ targets:
         CFBundleDisplayName: אבן דרך
         CFBundleName: Yahpaz
         CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "5"
+        CFBundleVersion: "9"
         CFBundleDevelopmentRegion: he
         CFBundleLocalizations:
           - he
@@ -50,12 +53,16 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע. אפשר לעצור בכל רגע מסך המעקב.
         NSLocationAlwaysAndWhenInUseUsageDescription: אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.
+        NSCameraUsageDescription: אבן דרך משתמש במצלמה לסריקת לוחית רישוי בעת תיעוד אירוע.
+        NSMicrophoneUsageDescription: אבן דרך משתמש במיקרופון כדי להקליט הודעת משוב. אפשר לכתוב הערה במקום.
         UIBackgroundModes:
           - location
         CFBundleURLTypes:
           - CFBundleURLName: com.yahpz.responder
             CFBundleURLSchemes:
               - yahpaz
+        LSApplicationQueriesSchemes:
+          - itms-services
         UIAppFonts:
           - IBMPlexSansHebrew-Regular.ttf
           - IBMPlexSansHebrew-Medium.ttf
@@ -80,7 +87,7 @@ targets:
         CODE_SIGN_IDENTITY: Apple Development
         TARGETED_DEVICE_FAMILY: "1"
         MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 5
+        CURRENT_PROJECT_VERSION: 9
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited)
@@ -89,3 +96,4 @@ targets:
         product: YahpazDomain
       - package: supabase-swift
         product: Supabase
+      - sdk: WebKit.framework

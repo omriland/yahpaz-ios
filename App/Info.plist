@@ -34,13 +34,21 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>9</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>itms-services</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>אבן דרך משתמש במצלמה לסריקת לוחית רישוי בעת תיעוד אירוע.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע. אפשר לעצור בכל רגע מסך המעקב.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>אבן דרך משתמש במיקרופון כדי להקליט הודעת משוב. אפשר לכתוב הערה במקום.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexSansHebrew-Regular.ttf</string>

@@ -42,6 +42,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
     public var route: String?
     public var treatmentDetail: String?
     public var treatedPlates: String?
+    public var eventMedia: String?
     public var form: String?
 
     public init(
@@ -51,6 +52,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
         route: String? = nil,
         treatmentDetail: String? = nil,
         treatedPlates: String? = nil,
+        eventMedia: String? = nil,
         form: String? = nil
     ) {
         self.vehiclePlate = vehiclePlate
@@ -59,6 +61,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
         self.route = route
         self.treatmentDetail = treatmentDetail
         self.treatedPlates = treatedPlates
+        self.eventMedia = eventMedia
         self.form = form
     }
 
@@ -69,6 +72,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
             && route == nil
             && treatmentDetail == nil
             && treatedPlates == nil
+            && eventMedia == nil
             && form == nil
     }
 
@@ -80,6 +84,7 @@ public struct ResponderFillErrors: Equatable, Sendable {
             ?? route
             ?? treatmentDetail
             ?? treatedPlates
+            ?? eventMedia
     }
 }
 
@@ -105,7 +110,8 @@ public func validateResponderFillDraft(
     _ draft: ResponderFillDraft,
     mode: FillMode,
     allowedPlates: [String] = [],
-    totalKm: Double? = nil
+    totalKm: Double? = nil,
+    unfinishedMediaDraftCount: Int = 0
 ) -> ResponderFillErrors {
     var errors = ResponderFillErrors()
     let start = parseOptionalNumber(draft.odometerStart)
@@ -130,24 +136,17 @@ public func validateResponderFillDraft(
         case .value:
             break
         }
-        if totalKm == nil {
-            errors.odometerEnd = "האחמ״ש טרם הזין קילומטרים לאירוע. לא ניתן לסיים את הדיווח."
-        } else {
-            switch end {
-            case .missing, .invalid:
-                errors.odometerEnd = "יש למלא מד אוץ סיום."
-            case .value:
-                break
-            }
+        switch end {
+        case .missing, .invalid:
+            errors.odometerEnd = "יש למלא מד אוץ סיום."
+        case .value:
+            break
         }
         if draft.route.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             errors.route = "יש למלא נתיב נסיעה."
         }
         if draft.treatmentDetail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             errors.treatmentDetail = "יש למלא פירוט הטיפול."
-        }
-        if let leftover = leftoverTreatedPlateError(pending: draft.treatedPlatePending, mode: mode) {
-            errors.treatedPlates = leftover
         }
     }
 
@@ -157,6 +156,13 @@ public func validateResponderFillDraft(
        endValue <= startValue
     {
         errors.odometerEnd = "מד אוץ סיום חייב להיות גדול ממד אוץ התחלה"
+    }
+
+    if let leftover = leftoverTreatedPlateError(pending: draft.treatedPlatePending, mode: mode) {
+        errors.treatedPlates = leftover
+    }
+    if let leftover = leftoverEventMediaError(unfinishedDraftCount: unfinishedMediaDraftCount, mode: mode) {
+        errors.eventMedia = leftover
     }
 
     return errors
@@ -175,4 +181,23 @@ public func parsedOdometer(_ raw: String) -> Double? {
     case .value(let value): return value
     case .missing, .invalid: return nil
     }
+}
+
+public enum FillWriteGate: String, Equatable, Sendable {
+    case proceed
+    case locked
+    case alreadyComplete
+}
+
+/** Completing an already-done assignment is success; drafts stay locked. */
+public func gateResponderFillWrite(
+    complete: Bool,
+    participationStatus: ParticipationStatus,
+    eventStatus: EventStatus?
+) -> FillWriteGate {
+    if participationStatus == .done {
+        return complete ? .alreadyComplete : .locked
+    }
+    if eventStatus == .done { return .locked }
+    return .proceed
 }

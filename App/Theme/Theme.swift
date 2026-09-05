@@ -72,6 +72,7 @@ extension StampTone {
         case .partial: return FieldTheme.partial
         case .pending: return FieldTheme.pending
         case .draft: return FieldTheme.draft
+        case .alert: return FieldTheme.alert
         }
     }
 
@@ -81,6 +82,7 @@ extension StampTone {
         case .partial: return FieldTheme.partialTint
         case .pending: return FieldTheme.accentSubtle
         case .draft: return FieldTheme.sunken
+        case .alert: return FieldTheme.alertTint
         }
     }
 }

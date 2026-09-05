@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import YahpazDomain
 
 struct StampChip: View {
@@ -18,6 +19,27 @@ struct StampChip: View {
                     .stroke(stamp.tone.ink.opacity(0.25), lineWidth: 1)
             )
             .accessibilityLabel(stamp.label)
+    }
+}
+
+struct StampWithNote: View {
+    let stamp: StampDescriptor
+    var note: String? = nil
+
+    var body: some View {
+        let trimmed = note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty {
+            StampChip(stamp: stamp)
+        } else {
+            VStack(alignment: .trailing, spacing: 2) {
+                StampChip(stamp: stamp)
+                Text(trimmed)
+                    .font(TypeScale.caption)
+                    .foregroundStyle(FieldTheme.alert)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 176, alignment: .trailing)
+            }
+        }
     }
 }
 
@@ -53,17 +75,22 @@ struct PrimaryButton: View {
 struct GhostButton: View {
     let title: String
     var enabled = true
+    var danger = false
     let action: () -> Void
 
     var body: some View {
+        let color: Color = {
+            if !enabled { return FieldTheme.textMuted }
+            return danger ? FieldTheme.alert : FieldTheme.accent
+        }()
         Button(action: action) {
             Text(title)
                 .font(TypeScale.bodyStrong)
-                .foregroundStyle(enabled ? FieldTheme.accent : FieldTheme.textMuted)
+                .foregroundStyle(color)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .stroke(FieldTheme.strong, lineWidth: 1)
+                        .stroke(danger ? FieldTheme.alert : FieldTheme.strong, lineWidth: 1)
                 )
         }
         .disabled(!enabled)
@@ -71,11 +98,42 @@ struct GhostButton: View {
     }
 }
 
+enum YahpazKeyboard {
+    static func dismiss() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+extension View {
+    func yahpazKeyboardAccessory() -> some View {
+        toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("סיום") { YahpazKeyboard.dismiss() }
+            }
+        }
+    }
+
+    func yahpazFormScroll() -> some View {
+        scrollDismissesKeyboard(.interactively)
+    }
+
+    func yahpazRootNavigationBarHidden() -> some View {
+        toolbar(.hidden, for: .navigationBar)
+    }
+}
+
 struct FormField: View {
     let label: String
     var keyboard: UIKeyboardType = .default
     var mono = false
+    var ltr = false
     var error: String?
+    var enabled = true
+    var placeholder: String? = nil
+    var submit: SubmitLabel = .done
+    var contentType: UITextContentType? = nil
+    var onSubmit: (() -> Void)? = nil
     @Binding var text: String
 
     var body: some View {
@@ -84,11 +142,19 @@ struct FormField: View {
                 .font(TypeScale.label)
                 .tracking(0.13)
                 .foregroundStyle(FieldTheme.textSecondary)
-            TextField("", text: $text)
+            TextField(
+                "",
+                text: $text,
+                prompt: placeholder.map { Text($0) }
+            )
                 .font(mono ? TypeScale.numeric : TypeScale.body)
-                .foregroundStyle(FieldTheme.textPrimary)
+                .foregroundStyle(enabled ? FieldTheme.textPrimary : FieldTheme.textMuted)
                 .keyboardType(keyboard)
                 .textInputAutocapitalization(.never)
+                .textContentType(contentType)
+                .disabled(!enabled)
+                .submitLabel(submit)
+                .onSubmit { onSubmit?() }
                 .padding(.horizontal, 12)
                 .frame(minHeight: 44)
                 .background(FieldTheme.raised)
@@ -96,12 +162,149 @@ struct FormField: View {
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .stroke(error == nil ? FieldTheme.strong : FieldTheme.alert, lineWidth: 1)
                 )
-                .environment(\.layoutDirection, mono ? .leftToRight : .rightToLeft)
+                .environment(\.layoutDirection, (mono || ltr) ? .leftToRight : .rightToLeft)
             if let error {
                 Text(error)
                     .font(TypeScale.caption)
                     .foregroundStyle(FieldTheme.alert)
             }
+        }
+    }
+}
+
+struct SecureFormField: View {
+    let label: String
+    var error: String? = nil
+    var contentType: UITextContentType = .password
+    var submit: SubmitLabel = .done
+    var onSubmit: (() -> Void)? = nil
+    @Binding var text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(TypeScale.label)
+                .tracking(0.13)
+                .foregroundStyle(FieldTheme.textSecondary)
+            SecureField("", text: $text)
+                .font(TypeScale.body)
+                .textContentType(contentType)
+                .submitLabel(submit)
+                .onSubmit { onSubmit?() }
+                .padding(.horizontal, 12)
+                .frame(minHeight: 44)
+                .background(FieldTheme.raised)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .stroke(error == nil ? FieldTheme.strong : FieldTheme.alert, lineWidth: 1)
+                )
+                .environment(\.layoutDirection, .leftToRight)
+            if let error {
+                Text(error)
+                    .font(TypeScale.caption)
+                    .foregroundStyle(FieldTheme.alert)
+            }
+        }
+    }
+}
+
+struct ReturnDateField: View {
+    let label: String
+    var error: String? = nil
+    var enabled = true
+    @Binding var text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(TypeScale.label)
+                .tracking(0.13)
+                .foregroundStyle(FieldTheme.textSecondary)
+            ReturnDateTextField(text: $text)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.horizontal, 12)
+                .background(FieldTheme.raised)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .stroke(error == nil ? FieldTheme.strong : FieldTheme.alert, lineWidth: 1)
+                )
+                .environment(\.layoutDirection, .leftToRight)
+                .disabled(!enabled)
+                .opacity(enabled ? 1 : 0.55)
+            if let error {
+                Text(error)
+                    .font(TypeScale.caption)
+                    .foregroundStyle(FieldTheme.alert)
+            }
+        }
+    }
+}
+
+private struct ReturnDateTextField: UIViewRepresentable {
+    @Binding var text: String
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.delegate = context.coordinator
+        field.keyboardType = .numberPad
+        field.textAlignment = .left
+        field.semanticContentAttribute = .forceLeftToRight
+        field.autocorrectionType = .no
+        field.autocapitalizationType = .none
+        field.spellCheckingType = .no
+        field.smartInsertDeleteType = .no
+        field.font = UIFont(name: "IBM Plex Mono", size: 16)
+            ?? .monospacedSystemFont(ofSize: 16, weight: .regular)
+        field.textColor = UIColor(red: 15 / 255, green: 27 / 255, blue: 45 / 255, alpha: 1)
+        field.attributedPlaceholder = NSAttributedString(
+            string: "30/12/2026",
+            attributes: [
+                .foregroundColor: UIColor(red: 91 / 255, green: 111 / 255, blue: 134 / 255, alpha: 1),
+                .font: field.font as Any,
+            ]
+        )
+        field.text = text
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return field
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+            context.coordinator.moveCaretToEnd(uiView)
+        }
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var text: Binding<String>
+
+        init(text: Binding<String>) {
+            self.text = text
+        }
+
+        func textField(
+            _ textField: UITextField,
+            shouldChangeCharactersIn range: NSRange,
+            replacementString string: String
+        ) -> Bool {
+            let current = textField.text ?? ""
+            guard let swiftRange = Range(range, in: current) else { return false }
+            let incoming = current.replacingCharacters(in: swiftRange, with: string)
+            let formatted = applyReturnDateKeystroke(previous: current, incoming: incoming)
+            textField.text = formatted
+            text.wrappedValue = formatted
+            moveCaretToEnd(textField)
+            return false
+        }
+
+        func moveCaretToEnd(_ textField: UITextField) {
+            let end = textField.endOfDocument
+            textField.selectedTextRange = textField.textRange(from: end, to: end)
         }
     }
 }
@@ -135,6 +338,142 @@ struct FormArea: View {
                     .foregroundStyle(FieldTheme.alert)
             }
         }
+    }
+}
+
+struct FormCheckbox: View {
+    let label: String
+    var checked: Bool
+    var enabled = true
+    let onChange: (Bool) -> Void
+
+    var body: some View {
+        Button {
+            if enabled { onChange(!checked) }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: checked ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(enabled ? FieldTheme.accent : FieldTheme.textMuted)
+                    .font(.system(size: 20))
+                Text(label)
+                    .font(TypeScale.body)
+                    .foregroundStyle(enabled ? FieldTheme.textPrimary : FieldTheme.textMuted)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(checked ? [.isSelected] : [])
+    }
+}
+
+struct TimeField: View {
+    let label: String
+    var placeholder: String = "08:00"
+    @Binding var text: String
+    var onFourDigitsComplete: (() -> Void)? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(TypeScale.label)
+                .foregroundStyle(FieldTheme.textSecondary)
+            TextField("", text: Binding(
+                get: { text },
+                set: { incoming in
+                    let next = applyTimeKeystroke(previous: text, incoming: incoming)
+                    let advanced = digitsOnly(text).count < 4 && digitsOnly(next).count == 4
+                    text = next
+                    if advanced { onFourDigitsComplete?() }
+                }
+            ), prompt: Text(placeholder))
+                .font(TypeScale.numeric)
+                .keyboardType(.numberPad)
+                .textInputAutocapitalization(.never)
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(FieldTheme.raised)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .stroke(FieldTheme.strong, lineWidth: 1)
+                )
+                .environment(\.layoutDirection, .leftToRight)
+        }
+    }
+}
+
+struct FrozenEventMark: View {
+    let flags: EventFreezeFlags
+
+    var body: some View {
+        if let tip = flags.tooltipHe {
+            Image(systemName: "snowflake")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(FieldTheme.pending)
+                .accessibilityLabel(tip)
+        }
+    }
+}
+
+struct EventDeleteControls: View {
+    var visible: Bool
+    var confirmArmed: Bool
+    var hint: String?
+    var deleting: Bool
+    let onClick: () -> Void
+
+    var body: some View {
+        if visible {
+            VStack(alignment: .leading, spacing: 8) {
+                if let hint {
+                    Text(hint)
+                        .font(TypeScale.caption)
+                        .foregroundStyle(FieldTheme.alert)
+                }
+                GhostButton(
+                    title: confirmArmed ? EVENT_DELETE_ACTION : EVENT_DELETE_TITLE,
+                    enabled: !deleting,
+                    danger: true,
+                    action: onClick
+                )
+            }
+        }
+    }
+}
+
+struct FieldCard<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            content
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(FieldTheme.raised)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(FieldTheme.hairline, lineWidth: 1)
+        )
+    }
+}
+
+struct PrivacyPolicyLink: View {
+    var command = false
+    let onOpen: () -> Void
+
+    var body: some View {
+        Button(action: onOpen) {
+            Text("מדיניות פרטיות")
+                .font(TypeScale.caption)
+                .foregroundStyle(command ? CommandTheme.textSecondary : FieldTheme.textMuted)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("מדיניות פרטיות")
     }
 }
 

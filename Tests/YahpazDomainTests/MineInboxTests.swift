@@ -40,7 +40,7 @@ final class MineInboxTests: XCTestCase {
         let sections = partitionMineList(
             [
                 MineListEvent(id: "a", date: "2026-08-17", participation: .pending),
-                MineListEvent(id: "b", date: "2026-08-16", participation: .done),
+                MineListEvent(id: "b", date: "2026-08-16", participation: .done, totalKm: 12),
                 MineListEvent(id: "c", date: "2026-08-10", participation: .inProgress),
             ],
             today: "2026-08-17",
@@ -50,15 +50,75 @@ final class MineInboxTests: XCTestCase {
         XCTAssertEqual(sections.logged.map(\.id), ["b"])
     }
 
+    func testPartitionKeepsDoneWithoutKmInPending() {
+        let sections = partitionMineList(
+            [
+                MineListEvent(id: "done-km", date: "2026-08-17", participation: .done, totalKm: 12),
+                MineListEvent(id: "done-no-km", date: "2026-08-16", participation: .done, totalKm: nil),
+            ],
+            today: "2026-08-17",
+            windowsLoaded: 1
+        )
+        XCTAssertEqual(sections.pending.map(\.id), ["done-no-km"])
+        XCTAssertEqual(sections.logged.map(\.id), ["done-km"])
+    }
+
     func testFillCtaLabels() {
-        XCTAssertEqual(mineFillCtaLabel(.pending), "השלמת הפרטים שלי")
-        XCTAssertEqual(mineFillCtaLabel(.inProgress), "המשך מילוי הפרטים")
+        XCTAssertEqual(mineFillCtaLabel(.pending), "השלמת התיעוד שלי")
+        XCTAssertEqual(mineFillCtaLabel(.inProgress), "המשך התיעוד")
         XCTAssertNil(mineFillCtaLabel(.done))
     }
 
     func testParticipationStampsForViewer() {
         XCTAssertEqual(participationStamp(.done, isViewer: true).label, "הושלם")
         XCTAssertEqual(participationStamp(.inProgress, isViewer: true).label, "טיוטה נשמרה")
-        XCTAssertEqual(participationStamp(.pending, isViewer: true).label, "ממתין למילוי פרטים")
+        XCTAssertEqual(participationStamp(.pending, isViewer: true).label, "ממתין לתיעוד")
+        XCTAssertEqual(participationStamp(.pending, isViewer: false).label, "ממתין למתנדב")
+    }
+
+    func testSearchHighlightRangesMarksMatchingSubstring() {
+        XCTAssertEqual(
+            searchHighlightRanges("צומת גזר", query: "גזר"),
+            [TextHighlightRange(start: 5, endExclusive: 8)]
+        )
+    }
+
+    func testSearchHighlightRangesFindsEnglishKeyboardMappedHebrew() {
+        XCTAssertEqual(
+            searchHighlightRanges("צומת גזר", query: "dzr"),
+            [TextHighlightRange(start: 5, endExclusive: 8)]
+        )
+    }
+
+    func testSearchHighlightRangesEmptyWhenQueryBlank() {
+        XCTAssertTrue(searchHighlightRanges("צומת גזר", query: "   ").isEmpty)
+    }
+
+    func testCancelledRefreshKeepsExistingList() {
+        XCTAssertEqual(listReloadFailure(hadItems: true, cancelled: true), .ignore)
+        XCTAssertEqual(listReloadFailure(hadItems: false, cancelled: true), .ignore)
+    }
+
+    func testRealRefreshErrorKeepsListWhenItemsExist() {
+        XCTAssertEqual(listReloadFailure(hadItems: true, cancelled: false), .toast)
+        XCTAssertEqual(listReloadFailure(hadItems: false, cancelled: false), .failed)
+    }
+
+    func testURLSessionCancelIsLoadCancellation() {
+        let cancelled = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+        XCTAssertTrue(isLoadCancellation(cancelled, taskCancelled: false))
+        XCTAssertTrue(isLoadCancellation(CancellationError(), taskCancelled: false))
+        XCTAssertFalse(
+            isLoadCancellation(
+                NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut),
+                taskCancelled: false
+            )
+        )
+        XCTAssertTrue(
+            isLoadCancellation(
+                NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut),
+                taskCancelled: true
+            )
+        )
     }
 }
