@@ -130,7 +130,7 @@ struct FormField: View {
     var error: String?
     var enabled = true
     var placeholder: String? = nil
-    var submit: SubmitLabel = .done
+    var submit: UIReturnKeyType = .done
     var contentType: UITextContentType? = nil
     var onSubmit: (() -> Void)? = nil
     @Binding var text: String
@@ -141,28 +141,25 @@ struct FormField: View {
                 .font(TypeScale.label)
                 .tracking(0.13)
                 .foregroundStyle(FieldTheme.textSecondary)
-            TextField(
-                "",
+            YahpazTextField(
                 text: $text,
-                prompt: placeholder.map { Text($0) }
+                font: mono ? UIFontScale.numeric : UIFontScale.body,
+                keyboard: keyboard,
+                contentType: contentType,
+                forceLeftToRight: mono || ltr,
+                returnKey: submit,
+                enabled: enabled,
+                placeholder: placeholder,
+                onSubmit: onSubmit
             )
-                .font(mono ? TypeScale.numeric : TypeScale.body)
-                .foregroundStyle(enabled ? FieldTheme.textPrimary : FieldTheme.textMuted)
-                .keyboardType(keyboard)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .textContentType(contentType)
-                .disabled(!enabled)
-                .submitLabel(submit)
-                .onSubmit { onSubmit?() }
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.horizontal, 12)
-                .frame(minHeight: 44)
                 .background(FieldTheme.raised)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .stroke(error == nil ? FieldTheme.strong : FieldTheme.alert, lineWidth: 1)
                 )
-                .environment(\.layoutDirection, (mono || ltr) ? .leftToRight : .rightToLeft)
+                .opacity(enabled ? 1 : 0.55)
             if let error {
                 Text(error)
                     .font(TypeScale.caption)
@@ -172,11 +169,88 @@ struct FormField: View {
     }
 }
 
+/// SwiftUI's `TextField` does not paint its text while it is first responder anywhere in
+/// this app — the binding updates and every unfocused view of the same value renders, but
+/// the focused field stays blank until it resigns. A `UITextField` in the same chrome does
+/// not have the problem, so every text input goes through UIKit.
+struct YahpazTextField: UIViewRepresentable {
+    @Binding var text: String
+    var font: UIFont
+    var keyboard: UIKeyboardType = .default
+    var contentType: UITextContentType? = nil
+    var isSecure = false
+    var forceLeftToRight = false
+    var returnKey: UIReturnKeyType = .done
+    var enabled = true
+    var placeholder: String? = nil
+    var onSubmit: (() -> Void)? = nil
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.delegate = context.coordinator
+        field.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.editingChanged(_:)),
+            for: .editingChanged
+        )
+        field.autocorrectionType = .no
+        field.autocapitalizationType = .none
+        field.spellCheckingType = .no
+        field.smartInsertDeleteType = .no
+        field.tintColor = UIColor(FieldTheme.pending)
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return field
+    }
+
+    func updateUIView(_ field: UITextField, context: Context) {
+        context.coordinator.parent = self
+        if field.text != text { field.text = text }
+        field.font = font
+        field.keyboardType = keyboard
+        field.textContentType = contentType
+        field.isSecureTextEntry = isSecure
+        field.returnKeyType = returnKey
+        field.isEnabled = enabled
+        field.textColor = UIColor(enabled ? FieldTheme.textPrimary : FieldTheme.textMuted)
+        field.semanticContentAttribute = forceLeftToRight ? .forceLeftToRight : .forceRightToLeft
+        field.textAlignment = forceLeftToRight ? .left : .right
+        field.attributedPlaceholder = placeholder.map {
+            NSAttributedString(
+                string: $0,
+                attributes: [
+                    .foregroundColor: UIColor(FieldTheme.textMuted),
+                    .font: font,
+                ]
+            )
+        }
+    }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: YahpazTextField
+
+        init(_ parent: YahpazTextField) {
+            self.parent = parent
+        }
+
+        @objc func editingChanged(_ field: UITextField) {
+            parent.text = field.text ?? ""
+        }
+
+        func textFieldShouldReturn(_ field: UITextField) -> Bool {
+            parent.onSubmit?()
+            return true
+        }
+    }
+}
+
 struct SecureFormField: View {
     let label: String
     var error: String? = nil
     var contentType: UITextContentType = .password
-    var submit: SubmitLabel = .done
+    var submit: UIReturnKeyType = .done
     var onSubmit: (() -> Void)? = nil
     @Binding var text: String
 
@@ -186,19 +260,22 @@ struct SecureFormField: View {
                 .font(TypeScale.label)
                 .tracking(0.13)
                 .foregroundStyle(FieldTheme.textSecondary)
-            SecureField("", text: $text)
-                .font(TypeScale.body)
-                .textContentType(contentType)
-                .submitLabel(submit)
-                .onSubmit { onSubmit?() }
+            YahpazTextField(
+                text: $text,
+                font: UIFontScale.body,
+                contentType: contentType,
+                isSecure: true,
+                forceLeftToRight: true,
+                returnKey: submit,
+                onSubmit: onSubmit
+            )
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.horizontal, 12)
-                .frame(minHeight: 44)
                 .background(FieldTheme.raised)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4, style: .continuous)
                         .stroke(error == nil ? FieldTheme.strong : FieldTheme.alert, lineWidth: 1)
                 )
-                .environment(\.layoutDirection, .leftToRight)
             if let error {
                 Text(error)
                     .font(TypeScale.caption)

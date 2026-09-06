@@ -121,6 +121,9 @@ class QACase: XCTestCase {
             shot("\(prefix)-\(index)-focused")
             field.typeText(text)
             shot("\(prefix)-\(index)-typed")
+            // Distinguishes "never renders while focused" from "renders a frame late".
+            sleep(2)
+            shot("\(prefix)-\(index)-typed-settled")
             let value = (field.value as? String) ?? ""
             XCTContext.runActivity(
                 named: "\(prefix)-\(index) label='\(label)' typed='\(text)' value='\(value)'"
