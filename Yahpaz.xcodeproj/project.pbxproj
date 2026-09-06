@@ -29,12 +29,15 @@
 		1EF93696B01BEB7B44DECE3F /* bmw.png in Resources */ = {isa = PBXBuildFile; fileRef = 3415EC75317871A639841DAE /* bmw.png */; };
 		23F3C03072B4AD5F4693FAC0 /* IBMPlexMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BCE6920A7A69D4EB75444497 /* IBMPlexMono-Medium.ttf */; };
 		24FDEA766250C67AFC9071E5 /* IBMPlexSansHebrew-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A28CDDCFE8A67ED88B771DD6 /* IBMPlexSansHebrew-SemiBold.ttf */; };
+		2534D3D036631FCA5AB7EC37 /* DeepSweepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F75CF7BF94531D68F5F34C3 /* DeepSweepTests.swift */; };
 		266B09192833F9638DA47E95 /* lincoln.png in Resources */ = {isa = PBXBuildFile; fileRef = 767BA4B1801FFE14A002536B /* lincoln.png */; };
 		2950B2FC2785594EC2096F0B /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2119B064EE20C7795B4CB807 /* Models.swift */; };
+		2961442E9BA6D68BB89301A7 /* TypingVisibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */; };
 		2A864538CCC5F6EA2525A736 /* TreatedPlateModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */; };
 		2C8554BD954D31810AC0F983 /* mazda.png in Resources */ = {isa = PBXBuildFile; fileRef = E2244F10216597A8FDF0D7AB /* mazda.png */; };
 		2DAA671F9512734FBBBBAF7E /* porsche.png in Resources */ = {isa = PBXBuildFile; fileRef = E66122670E0EBC6FB863578C /* porsche.png */; };
 		33654B122309EDD6F7D8BE28 /* ComingSoonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C5F5C50355222D9D6DF0994 /* ComingSoonViews.swift */; };
+		3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752BFE6312112CAD041949AD /* InboxCardTests.swift */; };
 		3E35EB166AAD1D6BFAA2627B /* AvailabilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8915303B176A0042571DFD /* AvailabilityView.swift */; };
 		3F1F9A5B3AB2EEF55557FF64 /* dacia.png in Resources */ = {isa = PBXBuildFile; fileRef = 6908AD7CEA32E546D96AA6DE /* dacia.png */; };
 		4115A779ED82ABB923ED29BB /* SuezOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */; };
@@ -42,6 +45,7 @@
 		4402C71A5F3EB9B662198704 /* suzuki.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ACEE8BA593E67205C42DE27 /* suzuki.png */; };
 		443B7768A66BAC0312412DBC /* mini.png in Resources */ = {isa = PBXBuildFile; fileRef = 35F5F4074F2514B25B7215FE /* mini.png */; };
 		47D296FF6CE5B7F659037B51 /* cadillac.png in Resources */ = {isa = PBXBuildFile; fileRef = 5ED8144A8AC7CC914314B8BD /* cadillac.png */; };
+		4EC529D19C279041144BE647 /* FullSweepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */; };
 		5050CA2BBBC131556B2DA37E /* kia.png in Resources */ = {isa = PBXBuildFile; fileRef = C8D90932C77DAA3AAAD17F46 /* kia.png */; };
 		522265FB5B37CB43C9849C6C /* jaguar.png in Resources */ = {isa = PBXBuildFile; fileRef = A12B763E5909EA1037C6B341 /* jaguar.png */; };
 		523EAA203FEE7FFE3E61CECD /* mercedes-benz.png in Resources */ = {isa = PBXBuildFile; fileRef = 0631C0DD49764B99933DD0CC /* mercedes-benz.png */; };
@@ -74,6 +78,7 @@
 		986E66942C394796BD5B163A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218839F2643327DCE9377825 /* ProfileView.swift */; };
 		A07CB325A9F446C659B6B6A2 /* renault.png in Resources */ = {isa = PBXBuildFile; fileRef = 6A01AA9373884945AB75F02F /* renault.png */; };
 		A107974998DE02097A8ACB69 /* audi.png in Resources */ = {isa = PBXBuildFile; fileRef = B6C270B888C9E2596C815909 /* audi.png */; };
+		A3124790FF07392A25796BFD /* QAHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C2BDB6090708E4849BCDEFC /* QAHarness.swift */; };
 		A7E07EBA5713DC715C4F1E0B /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71219BA6D29D59260C134B93 /* InboxView.swift */; };
 		A88EA3E3800BA06646B93551 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F142807897FEACAC43A4F1 /* Config.swift */; };
 		ADC4CC17151E3AE58E2AA3F0 /* chrysler.png in Resources */ = {isa = PBXBuildFile; fileRef = 4D1F07DD35755DBDA8576B60 /* chrysler.png */; };
@@ -110,6 +115,16 @@
 		FED27A4526286AC80BD42FF7 /* chery.png in Resources */ = {isa = PBXBuildFile; fileRef = BCC59C530B89141135007C44 /* chery.png */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		80ACCB5320970CCCEFD40A80 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 78AD59E3D64AB719371BA52A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 97565EAE6CEC2FCF73EB9074;
+			remoteInfo = Yahpaz;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0631C0DD49764B99933DD0CC /* mercedes-benz.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mercedes-benz.png"; sourceTree = "<group>"; };
 		0EFE7E44232604A77B667971 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
@@ -137,6 +152,7 @@
 		2D1300700D640CA6A5831717 /* PushRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistration.swift; sourceTree = "<group>"; };
 		2F1289CF3AEEE61C2416C945 /* AppUpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateCheck.swift; sourceTree = "<group>"; };
 		2F71AFC8AF52C362668F5271 /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
+		2F75CF7BF94531D68F5F34C3 /* DeepSweepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSweepTests.swift; sourceTree = "<group>"; };
 		3415EC75317871A639841DAE /* bmw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bmw.png; sourceTree = "<group>"; };
 		350C707B8D31EB701536B82B /* PlateScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateScanView.swift; sourceTree = "<group>"; };
 		35F5F4074F2514B25B7215FE /* mini.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mini.png; sourceTree = "<group>"; };
@@ -144,6 +160,7 @@
 		378F6D10DDE0B4F7898E12A4 /* ForceUpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForceUpdateView.swift; sourceTree = "<group>"; };
 		37FAFC28EE9C759C07424D6A /* Yahpaz-Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Yahpaz-Debug.entitlements"; sourceTree = "<group>"; };
 		3B3DA49446D40C99FA0B3EA4 /* FillMediaTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillMediaTab.swift; sourceTree = "<group>"; };
+		3C2BDB6090708E4849BCDEFC /* QAHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAHarness.swift; sourceTree = "<group>"; };
 		3E899B2F909C0813614A33F6 /* skoda.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = skoda.png; sourceTree = "<group>"; };
 		40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatedPlateModels.swift; sourceTree = "<group>"; };
 		41F47D3B774EE4227A553D2C /* LicensePlateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensePlateView.swift; sourceTree = "<group>"; };
@@ -163,6 +180,7 @@
 		6DFAF114360AC0CBF14BFFD2 /* ViewAsSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewAsSheets.swift; sourceTree = "<group>"; };
 		6FE6CF9B3D12241CEDBB76F9 /* MyShiftsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyShiftsView.swift; sourceTree = "<group>"; };
 		71219BA6D29D59260C134B93 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
+		752BFE6312112CAD041949AD /* InboxCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxCardTests.swift; sourceTree = "<group>"; };
 		767BA4B1801FFE14A002536B /* lincoln.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lincoln.png; sourceTree = "<group>"; };
 		76E883F5BF0EE8F11A8EBD47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		79435B281971A8353E233202 /* jeep.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = jeep.png; sourceTree = "<group>"; };
@@ -174,6 +192,7 @@
 		872B2D99FE678B59DA4D7285 /* geely.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = geely.png; sourceTree = "<group>"; };
 		8868B33715C1E400A912305E /* FillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillView.swift; sourceTree = "<group>"; };
 		8A54FE7F80D92B250990A2C5 /* volkswagen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = volkswagen.png; sourceTree = "<group>"; };
+		8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullSweepTests.swift; sourceTree = "<group>"; };
 		91BD24328991DAF45C72E03A /* Yahpaz.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Yahpaz.entitlements; sourceTree = "<group>"; };
 		949406EE1DD844BB4AABCA09 /* IBMPlexSansHebrew-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Bold.ttf"; sourceTree = "<group>"; };
 		95344154C35C32E2192287E2 /* isuzu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = isuzu.png; sourceTree = "<group>"; };
@@ -208,11 +227,13 @@
 		CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YahpazApp.swift; sourceTree = "<group>"; };
 		CE6FB3FC3AD7CC65FE0837B1 /* IBMPlexSansHebrew-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Regular.ttf"; sourceTree = "<group>"; };
 		D4F73989167E600C672451F9 /* LiveTrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTrackView.swift; sourceTree = "<group>"; };
+		D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingVisibilityTests.swift; sourceTree = "<group>"; };
 		DBB2B73F08EC19057C697AE7 /* dodge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dodge.png; sourceTree = "<group>"; };
 		E2244F10216597A8FDF0D7AB /* mazda.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mazda.png; sourceTree = "<group>"; };
 		E66122670E0EBC6FB863578C /* porsche.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = porsche.png; sourceTree = "<group>"; };
 		F3A3D3CB81ECCCB510F5C00D /* fiat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fiat.png; sourceTree = "<group>"; };
 		F3FA90F6D9D8BD2D071AAEFF /* ReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportView.swift; sourceTree = "<group>"; };
+		F505BD34F2858A4A8F306193 /* YahpazUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = YahpazUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5EB7730EA23456EE6951AFA /* FillDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillDraftStore.swift; sourceTree = "<group>"; };
 		FA65732D93D8340BE117EFE4 /* alfa-romeo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "alfa-romeo.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -252,6 +273,7 @@
 			children = (
 				ABAD25819AFCDF114AB02B8F /* App */,
 				1CB207F3813D844508884F58 /* Packages */,
+				EAEDDF21C01F020EAD33FD03 /* UITests */,
 				82E646B9C1E446FA0601B42E /* Frameworks */,
 				576B18EACE6B0F93AF766887 /* Products */,
 			);
@@ -269,6 +291,7 @@
 			isa = PBXGroup;
 			children = (
 				A0753CA283E13CC4A2DD6492 /* Yahpaz.app */,
+				F505BD34F2858A4A8F306193 /* YahpazUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -407,6 +430,18 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		EAEDDF21C01F020EAD33FD03 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				2F75CF7BF94531D68F5F34C3 /* DeepSweepTests.swift */,
+				8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */,
+				752BFE6312112CAD041949AD /* InboxCardTests.swift */,
+				3C2BDB6090708E4849BCDEFC /* QAHarness.swift */,
+				D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
 		F49028005DB97F8363BFA318 /* API */ = {
 			isa = PBXGroup;
 			children = (
@@ -432,6 +467,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0676CEC4DD57B51723F1106B /* YahpazUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2FCF09F7D85769753BDC9682 /* Build configuration list for PBXNativeTarget "YahpazUITests" */;
+			buildPhases = (
+				D4D76CF26D58F14F454F29B4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				39106EE1B45C929AF7C6BDC8 /* PBXTargetDependency */,
+			);
+			name = YahpazUITests;
+			packageProductDependencies = (
+			);
+			productName = YahpazUITests;
+			productReference = F505BD34F2858A4A8F306193 /* YahpazUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		97565EAE6CEC2FCF73EB9074 /* Yahpaz */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 22C45CA768DC4546EC5A5505 /* Build configuration list for PBXNativeTarget "Yahpaz" */;
@@ -462,6 +515,11 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					0676CEC4DD57B51723F1106B = {
+						DevelopmentTeam = 477WWCHXU7;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 97565EAE6CEC2FCF73EB9074;
+					};
 					97565EAE6CEC2FCF73EB9074 = {
 						DevelopmentTeam = 477WWCHXU7;
 						ProvisioningStyle = Automatic;
@@ -487,6 +545,7 @@
 			projectRoot = "";
 			targets = (
 				97565EAE6CEC2FCF73EB9074 /* Yahpaz */,
+				0676CEC4DD57B51723F1106B /* YahpazUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -607,7 +666,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D4D76CF26D58F14F454F29B4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2534D3D036631FCA5AB7EC37 /* DeepSweepTests.swift in Sources */,
+				4EC529D19C279041144BE647 /* FullSweepTests.swift in Sources */,
+				3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */,
+				A3124790FF07392A25796BFD /* QAHarness.swift in Sources */,
+				2961442E9BA6D68BB89301A7 /* TypingVisibilityTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		39106EE1B45C929AF7C6BDC8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 97565EAE6CEC2FCF73EB9074 /* Yahpaz */;
+			targetProxy = 80ACCB5320970CCCEFD40A80 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		65B3E3F6F8372701600929F4 /* Release */ = {
@@ -669,6 +748,25 @@
 			};
 			name = Release;
 		};
+		89DD11EC7FBCC45CF9578F73 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 477WWCHXU7;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Yahpaz;
+			};
+			name = Release;
+		};
 		8B0D9ABC6D4E9AD9E45E64A1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -677,7 +775,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Yahpaz.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
@@ -769,7 +867,7 @@
 				CODE_SIGN_ENTITLEMENTS = "App/Yahpaz-Debug.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
@@ -787,6 +885,25 @@
 			};
 			name = Debug;
 		};
+		EB28F08717C410C317210AB0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 477WWCHXU7;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Yahpaz;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -795,6 +912,15 @@
 			buildConfigurations = (
 				EAB5F66E42F4275CCC114173 /* Debug */,
 				8B0D9ABC6D4E9AD9E45E64A1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2FCF09F7D85769753BDC9682 /* Build configuration list for PBXNativeTarget "YahpazUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EB28F08717C410C317210AB0 /* Debug */,
+				89DD11EC7FBCC45CF9578F73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

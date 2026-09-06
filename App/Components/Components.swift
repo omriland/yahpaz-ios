@@ -105,13 +105,12 @@ enum YahpazKeyboard {
 }
 
 extension View {
+    /// No-op. `ToolbarItemGroup(placement: .keyboard)` renders as a capsule floating well
+    /// above the keyboard, overlapping form fields and swallowing taps meant for them, and
+    /// it outlives the keyboard it belongs to. Dismissal is covered by `yahpazFormScroll`
+    /// (drag to dismiss) and by tapping outside the field.
     func yahpazKeyboardAccessory() -> some View {
-        toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("סיום") { YahpazKeyboard.dismiss() }
-            }
-        }
+        self
     }
 
     func yahpazFormScroll() -> some View {
@@ -151,6 +150,7 @@ struct FormField: View {
                 .foregroundStyle(enabled ? FieldTheme.textPrimary : FieldTheme.textMuted)
                 .keyboardType(keyboard)
                 .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
                 .textContentType(contentType)
                 .disabled(!enabled)
                 .submitLabel(submit)
@@ -285,6 +285,14 @@ private struct ReturnDateTextField: UIViewRepresentable {
 
         init(text: Binding<String>) {
             self.text = text
+        }
+
+        /// A full date already holds the 8-digit maximum, so every further keystroke is a
+        /// silent no-op. Selecting on focus lets the first digit start a new date.
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            if digitsOnly(textField.text ?? "").count >= 8 {
+                textField.selectAll(nil)
+            }
         }
 
         func textField(

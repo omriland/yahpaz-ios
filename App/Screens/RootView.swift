@@ -105,9 +105,14 @@ struct RootView: View {
             && !app.mustChangePassword
     }
 
+    /// The FAB overlays `content`, which already contains `mobileTabBar`, so the bar height
+    /// has to be cleared explicitly or the bubble lands on top of the עוד tab.
     private var feedbackFabBottomPadding: CGFloat {
-        stacksCreateFab ? 16 + 44 + 12 : 16
+        let base = app.mustChangePassword ? 16 : 16 + mobileTabBarHeight
+        return stacksCreateFab ? base + 44 + 12 : base
     }
+
+    private var mobileTabBarHeight: CGFloat { 49 }
 
     private var currentFeedbackPagePath: String {
         feedbackPagePathForUi(

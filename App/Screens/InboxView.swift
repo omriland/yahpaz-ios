@@ -313,6 +313,7 @@ struct ShiftGroupView<Content: View>: View {
                         .foregroundStyle(FieldTheme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             if isOpen {
@@ -367,6 +368,10 @@ struct EventCardView: View {
                         note: userId.flatMap { leadKmPendingNote(mine, totalKm: event.ownTotalKm(userId: $0)) }
                     )
                 }
+                // `.plain` draws no background, so without an explicit shape the Spacer
+                // between the title and the stamp is dead space and the card ignores taps
+                // anywhere in its middle.
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             if let fill = mineFillCtaLabel(mine) {

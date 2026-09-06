@@ -155,6 +155,7 @@ private struct ShiftCard: View {
                     Spacer()
                     StampChip(stamp: shiftStamp(shift.status))
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             GhostButton(title: "פרטי המשמרת", action: onOpen)

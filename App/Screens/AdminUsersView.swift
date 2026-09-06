@@ -470,7 +470,9 @@ private struct AdminUserRow: View {
             }
         }
         .frame(minHeight: 44)
-        .accessibilityLabel(user.fullName.isEmpty ? "משתמש" : user.fullName)
+        // Without .combine every subview inherits the row label, so VoiceOver reads the
+        // name once per subview. Combining also lets callsign and status be announced.
+        .accessibilityElement(children: .combine)
     }
 
     private func userRowTags(_ user: AdminUserListItem, invitePending: Bool) -> [String] {
