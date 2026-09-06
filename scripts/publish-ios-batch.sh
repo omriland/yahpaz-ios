@@ -31,7 +31,8 @@ read -r '?Continue after portal registration? '
 "$ROOT/scripts/build-adhoc.sh"
 
 WORK=$(mktemp -d)
-trap 'rm -rf "$WORK"' EXIT
+LIVE_WORK=""
+trap 'rm -rf "$WORK" ${LIVE_WORK:+"$LIVE_WORK"}' EXIT
 unzip -qq "$ROOT/dist/adhoc/Yahpaz.ipa" -d "$WORK"
 PROFILE="$WORK/Payload/Yahpaz.app/embedded.mobileprovision"
 security cms -D -i "$PROFILE" > "$WORK/profile.plist"
@@ -56,6 +57,38 @@ fi
 "$ROOT/scripts/publish-ios.sh"
 
 BUILD=$(/usr/bin/python3 -c "import json; print(json.load(open('${YAHPAZ_WEB:-/Users/omrilandman/CursorProjects/today-i/op-yh-26}/public/ios/version.json'))['latestBuild'])")
+
+# CRITICAL ORDER: emails must not go out until https://yahpz.com serves this IPA.
+# Local publish-ios.sh only copies into the web repo — production needs a deploy/push first.
+echo ""
+echo "Deploy public/ios to production (commit+push infra/bootstrap, or Netlify prod deploy),"
+echo "then press Enter so we can verify the LIVE IPA before emailing anyone."
+read -r '?Continue after yahpz.com has the new IPA? '
+
+echo "Verifying live IPA at https://yahpz.com/ios/Yahpaz.ipa …"
+LIVE_WORK=$(mktemp -d)
+curl -fsSL -o "$LIVE_WORK/Yahpaz.ipa" "https://yahpz.com/ios/Yahpaz.ipa?ts=$(date +%s)"
+unzip -qq "$LIVE_WORK/Yahpaz.ipa" -d "$LIVE_WORK/out"
+security cms -D -i "$LIVE_WORK/out/Payload/Yahpaz.app/embedded.mobileprovision" > "$LIVE_WORK/profile.plist"
+LIVE_DEVICES=$(/usr/libexec/PlistBuddy -c 'Print :ProvisionedDevices' "$LIVE_WORK/profile.plist" 2>/dev/null || true)
+
+LIVE_MISSING=0
+while IFS= read -r udid; do
+  [ -z "$udid" ] && continue
+  if ! print -r -- "$LIVE_DEVICES" | grep -q -- "$udid"; then
+    echo "ERROR: live yahpz.com IPA is missing UDID $udid — NOT emailing." >&2
+    LIVE_MISSING=1
+  fi
+done < <(/usr/bin/python3 -c "import json,sys
+for row in json.loads(sys.argv[1]):
+  print(row['udid'])
+" "$JSON")
+
+if [ "$LIVE_MISSING" -ne 0 ]; then
+  echo "Fix production deploy and re-run. Emails were not sent; devices stay approved." >&2
+  exit 1
+fi
+echo "✅ Live IPA includes all batch UDIDs. Sending email…"
 
 EMAIL_FAILS=()
 while IFS=$'\t' read -r id uid; do
@@ -88,7 +121,7 @@ for row in json.loads(sys.argv[1]):
   print(row['id'] + '\t' + row['user_id'])
 " "$JSON")
 
-echo "✅ Batch published (build $BUILD). Marked $COUNT device(s) registered."
+echo "✅ Batch live + emailed (build $BUILD). Marked $COUNT device(s) registered."
 if [ "${#EMAIL_FAILS[@]}" -gt 0 ]; then
   echo "WARNING: email failed for user_ids:" >&2
   print -l -- "${EMAIL_FAILS[@]}" >&2
