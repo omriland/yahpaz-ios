@@ -202,7 +202,23 @@ struct YahpazTextField: UIViewRepresentable {
         field.tintColor = UIColor(FieldTheme.pending)
         field.setContentHuggingPriority(.defaultLow, for: .horizontal)
         field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        field.setContentHuggingPriority(.required, for: .vertical)
+        field.setContentCompressionResistancePriority(.required, for: .vertical)
         return field
+    }
+
+    /// A representable takes whatever height the parent proposes, so on a screen with room
+    /// to spare the field grows to fill it — `minHeight` only sets a floor. Pin the height
+    /// to the control's intrinsic size and let the width stretch.
+    func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        uiView: UITextField,
+        context: Context
+    ) -> CGSize? {
+        CGSize(
+            width: proposal.replacingUnspecifiedDimensions().width,
+            height: uiView.intrinsicContentSize.height
+        )
     }
 
     func updateUIView(_ field: UITextField, context: Context) {
