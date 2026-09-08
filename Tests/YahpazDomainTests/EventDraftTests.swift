@@ -117,6 +117,7 @@ final class EventDraftTests: XCTestCase {
         crew = toggleEventResponder(crew, responderId: "c")
         crew = toggleEventResponder(crew, responderId: "d")
         XCTAssertEqual(crew.map(\.responderId), ["a", "b", "c", "d"])
+        XCTAssertTrue(crew.allSatisfy { $0.emergencyMeans == NEW_RESPONDER_EMERGENCY_MEANS })
         XCTAssertEqual(toggleEventResponder(crew, responderId: "b").map(\.responderId), ["a", "c", "d"])
     }
 

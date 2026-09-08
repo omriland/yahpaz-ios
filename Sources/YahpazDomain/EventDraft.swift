@@ -82,6 +82,8 @@ public struct EventResponderDraft: Equatable, Sendable {
     }
 }
 
+public let NEW_RESPONDER_EMERGENCY_MEANS = true
+
 public struct EventDraft: Equatable, Sendable {
     public var eventDate: String
     public var policeEventId: String
@@ -357,7 +359,13 @@ public func toggleEventResponder(
     if selected.contains(where: { $0.responderId == responderId }) {
         return selected.filter { $0.responderId != responderId }
     }
-    return selected + [EventResponderDraft(responderId: responderId, hasVehicle: hasVehicle)]
+    return selected + [
+        EventResponderDraft(
+            responderId: responderId,
+            emergencyMeans: NEW_RESPONDER_EMERGENCY_MEANS,
+            hasVehicle: hasVehicle
+        )
+    ]
 }
 
 public func updateEventResponder(
