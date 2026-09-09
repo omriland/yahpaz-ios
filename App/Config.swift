@@ -10,6 +10,9 @@ enum AppConfig {
     static let iosVersionUrl = URL(string: "https://yahpz.com/ios/version.json")!
     static let iosInstallPageUrl = URL(string: "https://yahpz.com/ios")!
     static let defaultIosManifestUrl = "https://yahpz.com/ios/manifest.plist"
+    /// Same Places key as the web client; requests send a yahpz.com Referer.
+    static let googleMapsApiKey = "AIzaSyBG2qoX5KWkUU6oQ_DI4idn8P6aYMdef4Y"
+    static let googleMapsReferer = "https://yahpz.com/"
     /// HMAC secret shared with the web `/privacy?t=` gate. Not a user credential.
     static let privacyPageSecret =
         "7dac9feb0b215b384d9e024eb6be9e7704ada56ef66077b1b03705d3997e5901"

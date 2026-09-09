@@ -168,6 +168,7 @@ final class EventDraftTests: XCTestCase {
         XCTAssertEqual(EVENT_ASSIGN_CLOSE, "סגירת הקצאה")
         XCTAssertEqual(EVENT_ASSIGN_REMOVE, "הסרת מתנדב")
         XCTAssertEqual(EVENT_PATROL_CALLSIGN_LABEL, "או״ק ניידת")
+        XCTAssertEqual(EVENT_LOCATION_PLACEHOLDER, "למשל: מחלף שורק")
         XCTAssertEqual(UNIT_EVENTS_LOAD_FAILED, "טעינת האירועים נכשלה. בדקו את החיבור ונסו שוב.")
     }
 

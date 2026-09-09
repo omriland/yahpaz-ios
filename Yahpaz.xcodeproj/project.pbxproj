@@ -38,6 +38,7 @@
 		2DAA671F9512734FBBBBAF7E /* porsche.png in Resources */ = {isa = PBXBuildFile; fileRef = E66122670E0EBC6FB863578C /* porsche.png */; };
 		33654B122309EDD6F7D8BE28 /* ComingSoonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C5F5C50355222D9D6DF0994 /* ComingSoonViews.swift */; };
 		3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752BFE6312112CAD041949AD /* InboxCardTests.swift */; };
+		3D614FC2EF6A55EFEFA44081 /* LocationPlacesField.swift in Sources */ = {isa = PBXBuildFile; fileRef = D830E2203D41414812EA0ABD /* LocationPlacesField.swift */; };
 		3E35EB166AAD1D6BFAA2627B /* AvailabilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8915303B176A0042571DFD /* AvailabilityView.swift */; };
 		3F1F9A5B3AB2EEF55557FF64 /* dacia.png in Resources */ = {isa = PBXBuildFile; fileRef = 6908AD7CEA32E546D96AA6DE /* dacia.png */; };
 		4115A779ED82ABB923ED29BB /* SuezOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */; };
@@ -56,6 +57,7 @@
 		689A2B8AF8C9E41D0CCE8189 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EFE7E44232604A77B667971 /* WebKit.framework */; };
 		695CC5249E7484AB5B6D73F4 /* UnitShiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB02F0AFB85B036BF514663 /* UnitShiftsView.swift */; };
 		6B075DD19AFB83D8C71D764B /* cupra.png in Resources */ = {isa = PBXBuildFile; fileRef = AA7DC4434F87F0DCB84DFBF7 /* cupra.png */; };
+		6DFED523FC31020288E92AE9 /* GooglePlaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD9F521F978C38639A5691B /* GooglePlaces.swift */; };
 		6E1A5A9BF2F13CE5B53BCD5E /* AdminUsersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 297A35FD79E95AFD3EABD6BC /* AdminUsersView.swift */; };
 		727811E114252483B8CE8BDA /* fiat.png in Resources */ = {isa = PBXBuildFile; fileRef = F3A3D3CB81ECCCB510F5C00D /* fiat.png */; };
 		729713569D334E3157C148AB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB83D7A01555CE80B3556CDB /* Theme.swift */; };
@@ -172,6 +174,7 @@
 		565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		57E45008D42BBF9E1549AD04 /* opel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = opel.png; sourceTree = "<group>"; };
 		5894DC5F39B090DC3D901407 /* lexus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lexus.png; sourceTree = "<group>"; };
+		5DD9F521F978C38639A5691B /* GooglePlaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlaces.swift; sourceTree = "<group>"; };
 		5ED8144A8AC7CC914314B8BD /* cadillac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cadillac.png; sourceTree = "<group>"; };
 		64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SuezOne-Regular.ttf"; sourceTree = "<group>"; };
 		678DAE6BE4F304171D76FEE0 /* IBMPlexSansHebrew-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Medium.ttf"; sourceTree = "<group>"; };
@@ -227,6 +230,7 @@
 		CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YahpazApp.swift; sourceTree = "<group>"; };
 		CE6FB3FC3AD7CC65FE0837B1 /* IBMPlexSansHebrew-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Regular.ttf"; sourceTree = "<group>"; };
 		D4F73989167E600C672451F9 /* LiveTrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTrackView.swift; sourceTree = "<group>"; };
+		D830E2203D41414812EA0ABD /* LocationPlacesField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPlacesField.swift; sourceTree = "<group>"; };
 		D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingVisibilityTests.swift; sourceTree = "<group>"; };
 		DBB2B73F08EC19057C697AE7 /* dodge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dodge.png; sourceTree = "<group>"; };
 		E2244F10216597A8FDF0D7AB /* mazda.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mazda.png; sourceTree = "<group>"; };
@@ -404,6 +408,7 @@
 				1323069FBE38F80122C6D25D /* Components.swift */,
 				50295DF0C135A7A94A111C09 /* FormPickers.swift */,
 				41F47D3B774EE4227A553D2C /* LicensePlateView.swift */,
+				D830E2203D41414812EA0ABD /* LocationPlacesField.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -448,6 +453,7 @@
 				2F1289CF3AEEE61C2416C945 /* AppUpdateCheck.swift */,
 				2C7923592FB8484388B803A4 /* EventImageCompress.swift */,
 				F5EB7730EA23456EE6951AFA /* FillDraftStore.swift */,
+				5DD9F521F978C38639A5691B /* GooglePlaces.swift */,
 				2119B064EE20C7795B4CB807 /* Models.swift */,
 				40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */,
 				10C40E130BC5ED7B032B2794 /* ViewAsStore.swift */,
@@ -640,9 +646,11 @@
 				F72F8B8E95AFD0D604B444C3 /* FillView.swift in Sources */,
 				84102FF6C29D7E9FB53D962D /* ForceUpdateView.swift in Sources */,
 				EE8671AF8D2452AAB461585E /* FormPickers.swift in Sources */,
+				6DFED523FC31020288E92AE9 /* GooglePlaces.swift in Sources */,
 				A7E07EBA5713DC715C4F1E0B /* InboxView.swift in Sources */,
 				141555C6090FF1FE337D1BDE /* LicensePlateView.swift in Sources */,
 				77F430C6B2ACA60C6D82A7BF /* LiveTrackView.swift in Sources */,
+				3D614FC2EF6A55EFEFA44081 /* LocationPlacesField.swift in Sources */,
 				FBEA3195F81A3ECC6416B880 /* LocationTracker.swift in Sources */,
 				F0EA93A8938B91CEF1775435 /* LoginView.swift in Sources */,
 				2950B2FC2785594EC2096F0B /* Models.swift in Sources */,
@@ -775,7 +783,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Yahpaz.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
@@ -784,7 +792,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder;
 				PRODUCT_NAME = Yahpaz;
 				SDKROOT = iphoneos;
@@ -867,7 +875,7 @@
 				CODE_SIGN_ENTITLEMENTS = "App/Yahpaz-Debug.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
@@ -876,7 +884,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder;
 				PRODUCT_NAME = Yahpaz;
 				SDKROOT = iphoneos;

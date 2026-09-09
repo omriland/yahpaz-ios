@@ -926,6 +926,12 @@ struct EventFormDetail: Decodable, Sendable {
     var eventTypeId: String?
     var roadId: String?
     var location: String?
+    var locationPlaceId: String?
+    var locationLat: Double?
+    var locationLng: Double?
+    var locationPinSource: String?
+    var locationPinnedAt: String?
+    var locationPinnedBy: String?
     var station: String?
     var notes: String?
     var isCancelled: Bool
@@ -945,6 +951,12 @@ struct EventFormDetail: Decodable, Sendable {
         case eventTypeId = "event_type_id"
         case roadId = "road_id"
         case location
+        case locationPlaceId = "location_place_id"
+        case locationLat = "location_lat"
+        case locationLng = "location_lng"
+        case locationPinSource = "location_pin_source"
+        case locationPinnedAt = "location_pinned_at"
+        case locationPinnedBy = "location_pinned_by"
         case station
         case notes
         case isCancelled = "is_cancelled"
@@ -966,6 +978,12 @@ struct EventFormDetail: Decodable, Sendable {
         eventTypeId = try c.decodeIfPresent(String.self, forKey: .eventTypeId)
         roadId = try c.decodeIfPresent(String.self, forKey: .roadId)
         location = try c.decodeIfPresent(String.self, forKey: .location)
+        locationPlaceId = try c.decodeIfPresent(String.self, forKey: .locationPlaceId)
+        locationLat = try c.decodeIfPresent(Double.self, forKey: .locationLat)
+        locationLng = try c.decodeIfPresent(Double.self, forKey: .locationLng)
+        locationPinSource = try c.decodeIfPresent(String.self, forKey: .locationPinSource)
+        locationPinnedAt = try c.decodeIfPresent(String.self, forKey: .locationPinnedAt)
+        locationPinnedBy = try c.decodeIfPresent(String.self, forKey: .locationPinnedBy)
         station = try c.decodeIfPresent(String.self, forKey: .station)
         notes = try c.decodeIfPresent(String.self, forKey: .notes)
         isCancelled = try c.decodeIfPresent(Bool.self, forKey: .isCancelled) ?? false
@@ -990,6 +1008,12 @@ struct EventFormDetail: Decodable, Sendable {
             roadId: roadId ?? "",
             districtId: districtId ?? "",
             location: location ?? "",
+            locationPlaceId: locationPlaceId,
+            locationLat: locationLat,
+            locationLng: locationLng,
+            locationPinSource: locationPinSource,
+            locationPinnedAt: locationPinnedAt,
+            locationPinnedBy: locationPinnedBy,
             station: station ?? "",
             notes: notes ?? "",
             responders: responders.map { $0.toDraft(hasVehicle: vehicleOwnerIds.contains($0.responderId)) },

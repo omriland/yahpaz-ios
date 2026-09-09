@@ -530,7 +530,8 @@ actor YahpazAPI {
             .select(
                 """
                 id, event_date, police_event_id, district_id, patrol_callsign, event_type_id, road_id,
-                location, station, notes, is_cancelled, bus_lane, status, shift_lead_id,
+                location, location_place_id, location_lat, location_lng, location_pin_source,
+                location_pinned_at, location_pinned_by, station, notes, is_cancelled, bus_lane, status, shift_lead_id,
                 shift_lead:profiles!events_shift_lead_id_fkey(full_name, callsign),
                 \(EVENT_SECONDARY_LEADS_EMBED),
                 responders:event_responders(
@@ -543,6 +544,43 @@ actor YahpazAPI {
             .single()
             .execute()
             .value
+    }
+
+    private var junctionCatalog: [HighwayJunctionCatalogRow]?
+
+    func prefetchJunctionCatalog() async {
+        _ = try? await fetchJunctionCatalog()
+    }
+
+    func fetchJunctionCatalog() async throws -> [HighwayJunctionCatalogRow] {
+        if let junctionCatalog { return junctionCatalog }
+        let rows: [HighwayJunctionCatalogRow] = try await client
+            .from("highway_junctions")
+            .select("id, name_he, name_en, roads, lat, lng, aliases_he, aliases_en")
+            .limit(700)
+            .execute()
+            .value
+        junctionCatalog = rows
+        return rows
+    }
+
+    func searchHighwayJunctions(_ query: String) async throws -> [HighwayJunction] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return [] }
+        do {
+            return rankHighwayJunctions(try await fetchJunctionCatalog(), query: trimmed)
+        } catch let catalogError {
+            let baseQuery = splitJunctionDirection(trimmed).baseQuery
+            do {
+                let rows: [HighwayJunction] = try await client
+                    .rpc("search_highway_junctions", params: JunctionSearchParams(q: baseQuery))
+                    .execute()
+                    .value
+                return rows
+            } catch {
+                throw catalogError
+            }
+        }
     }
 
     func createUnitEvent(
@@ -561,6 +599,7 @@ actor YahpazAPI {
         }
         guard let eventDate = normalizeReturnDate(draft.eventDate) else { return EVENT_DRAFT_DATE_ERROR }
         let mainLeadId = draft.shiftLeadId.isEmpty ? userId : draft.shiftLeadId
+        let pin = buildLocationPayload(draft)
         do {
             let nextStatus = deriveEventStatusFromDraft(draft.responders)
             let inserted: IdRow = try await client
@@ -573,7 +612,13 @@ actor YahpazAPI {
                         patrolCallsign: draft.patrolCallsign.nilIfEmpty,
                         eventTypeId: draft.eventTypeId.nilIfEmpty,
                         roadId: draft.roadId.nilIfEmpty,
-                        location: draft.location.nilIfEmpty,
+                        location: pin.location,
+                        locationPlaceId: pin.locationPlaceId,
+                        locationLat: pin.locationLat,
+                        locationLng: pin.locationLng,
+                        locationPinSource: pin.locationPinSource,
+                        locationPinnedAt: pin.locationPinnedAt,
+                        locationPinnedBy: pin.locationPinnedBy,
                         station: stationForSave(districts, districtId: draft.districtId, station: draft.station),
                         notes: draft.notes.nilIfEmpty,
                         busLane: draft.busLane,
@@ -679,6 +724,7 @@ actor YahpazAPI {
         guard let eventDate = normalizeReturnDate(draft.eventDate) else { return EVENT_DRAFT_DATE_ERROR }
         let mainLeadId = draft.shiftLeadId.trimmingCharacters(in: .whitespacesAndNewlines)
         if mainLeadId.isEmpty { return "אין אחמ״ש ראשי." }
+        let pin = buildLocationPayload(draft)
         do {
             let nextStatus = deriveEventStatusFromDraft(draft.responders)
             let updated: [IdRow] = try await client
@@ -691,7 +737,13 @@ actor YahpazAPI {
                         patrolCallsign: draft.patrolCallsign.nilIfEmpty,
                         eventTypeId: draft.eventTypeId.nilIfEmpty,
                         roadId: draft.roadId.nilIfEmpty,
-                        location: draft.location.nilIfEmpty,
+                        location: pin.location,
+                        locationPlaceId: pin.locationPlaceId,
+                        locationLat: pin.locationLat,
+                        locationLng: pin.locationLng,
+                        locationPinSource: pin.locationPinSource,
+                        locationPinnedAt: pin.locationPinnedAt,
+                        locationPinnedBy: pin.locationPinnedBy,
                         station: stationForSave(districts, districtId: draft.districtId, station: draft.station),
                         notes: draft.notes.nilIfEmpty,
                         isCancelled: draft.isCancelled,
@@ -2782,6 +2834,10 @@ private struct MyActiveEventPrefWrite: Encodable {
     }
 }
 
+private struct JunctionSearchParams: Encodable, Sendable {
+    var q: String
+}
+
 private struct EventInsert: Encodable {
     var eventDate: String
     var policeEventId: String?
@@ -2790,6 +2846,12 @@ private struct EventInsert: Encodable {
     var eventTypeId: String?
     var roadId: String?
     var location: String?
+    var locationPlaceId: String?
+    var locationLat: Double?
+    var locationLng: Double?
+    var locationPinSource: String?
+    var locationPinnedAt: String?
+    var locationPinnedBy: String?
     var station: String?
     var notes: String?
     var isCancelled = false
@@ -2805,7 +2867,14 @@ private struct EventInsert: Encodable {
         case patrolCallsign = "patrol_callsign"
         case eventTypeId = "event_type_id"
         case roadId = "road_id"
-        case location, station, notes
+        case location
+        case locationPlaceId = "location_place_id"
+        case locationLat = "location_lat"
+        case locationLng = "location_lng"
+        case locationPinSource = "location_pin_source"
+        case locationPinnedAt = "location_pinned_at"
+        case locationPinnedBy = "location_pinned_by"
+        case station, notes
         case isCancelled = "is_cancelled"
         case busLane = "bus_lane"
         case status
@@ -2822,6 +2891,12 @@ private struct EventUpdateWrite: Encodable {
     var eventTypeId: String?
     var roadId: String?
     var location: String?
+    var locationPlaceId: String?
+    var locationLat: Double?
+    var locationLng: Double?
+    var locationPinSource: String?
+    var locationPinnedAt: String?
+    var locationPinnedBy: String?
     var station: String?
     var notes: String?
     var isCancelled: Bool
@@ -2837,7 +2912,14 @@ private struct EventUpdateWrite: Encodable {
         case patrolCallsign = "patrol_callsign"
         case eventTypeId = "event_type_id"
         case roadId = "road_id"
-        case location, station, notes
+        case location
+        case locationPlaceId = "location_place_id"
+        case locationLat = "location_lat"
+        case locationLng = "location_lng"
+        case locationPinSource = "location_pin_source"
+        case locationPinnedAt = "location_pinned_at"
+        case locationPinnedBy = "location_pinned_by"
+        case station, notes
         case isCancelled = "is_cancelled"
         case busLane = "bus_lane"
         case status
@@ -2854,6 +2936,12 @@ private struct EventUpdateWrite: Encodable {
         try encodeNull(&c, eventTypeId, .eventTypeId)
         try encodeNull(&c, roadId, .roadId)
         try encodeNull(&c, location, .location)
+        try encodeNull(&c, locationPlaceId, .locationPlaceId)
+        try encodeNullDouble(&c, locationLat, .locationLat)
+        try encodeNullDouble(&c, locationLng, .locationLng)
+        try encodeNull(&c, locationPinSource, .locationPinSource)
+        try encodeNull(&c, locationPinnedAt, .locationPinnedAt)
+        try encodeNull(&c, locationPinnedBy, .locationPinnedBy)
         try encodeNull(&c, station, .station)
         try encodeNull(&c, notes, .notes)
         try c.encode(isCancelled, forKey: .isCancelled)
@@ -2867,6 +2955,18 @@ private struct EventUpdateWrite: Encodable {
 private func encodeNull<K: CodingKey>(
     _ c: inout KeyedEncodingContainer<K>,
     _ value: String?,
+    _ key: K
+) throws {
+    if let value {
+        try c.encode(value, forKey: key)
+    } else {
+        try c.encodeNil(forKey: key)
+    }
+}
+
+private func encodeNullDouble<K: CodingKey>(
+    _ c: inout KeyedEncodingContainer<K>,
+    _ value: Double?,
     _ key: K
 ) throws {
     if let value {

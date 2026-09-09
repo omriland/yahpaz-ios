@@ -14,6 +14,12 @@ public let EVENT_SAVE_TITLE = "שמירת אירוע"
 public let EVENT_SAVE_DRAFT_TITLE = "שמירת טיוטה"
 public let EVENT_DRAFT_PARTIAL_SAVED = "הטיוטה נשמרה."
 public let EVENT_PATROL_CALLSIGN_LABEL = "או״ק ניידת"
+public let EVENT_LOCATION_PLACEHOLDER = "למשל: מחלף שורק"
+public let EVENT_LOCATION_SEARCHING = "מחפשים צמתים ומקומות…"
+public let EVENT_LOCATION_JUNCTIONS_UNAVAILABLE = "חיפוש הצמתים אינו זמין כרגע."
+public let EVENT_LOCATION_GROUP_JUNCTIONS = "צמתים ומחלפים"
+public let EVENT_LOCATION_GROUP_GOOGLE = "תוצאות ממפות Google"
+public let EVENT_LOCATION_PLACES_UNAVAILABLE = "השלמת מיקום מגוגל אינה זמינה כרגע. אפשר להזין מיקום ידנית."
 public let EVENT_STATION_LABEL = "תחנה"
 public let STATION_MAX_LENGTH = 80
 public let MY_ACTIVE_EVENTS_TITLE = "האירועים הפעילים שלי"
@@ -92,6 +98,12 @@ public struct EventDraft: Equatable, Sendable {
     public var roadId: String
     public var districtId: String
     public var location: String
+    public var locationPlaceId: String?
+    public var locationLat: Double?
+    public var locationLng: Double?
+    public var locationPinSource: String?
+    public var locationPinnedAt: String?
+    public var locationPinnedBy: String?
     public var station: String
     public var notes: String
     public var responders: [EventResponderDraft]
@@ -108,6 +120,12 @@ public struct EventDraft: Equatable, Sendable {
         roadId: String = "",
         districtId: String = "",
         location: String = "",
+        locationPlaceId: String? = nil,
+        locationLat: Double? = nil,
+        locationLng: Double? = nil,
+        locationPinSource: String? = nil,
+        locationPinnedAt: String? = nil,
+        locationPinnedBy: String? = nil,
         station: String = "",
         notes: String = "",
         responders: [EventResponderDraft] = [],
@@ -123,6 +141,12 @@ public struct EventDraft: Equatable, Sendable {
         self.roadId = roadId
         self.districtId = districtId
         self.location = location
+        self.locationPlaceId = locationPlaceId
+        self.locationLat = locationLat
+        self.locationLng = locationLng
+        self.locationPinSource = locationPinSource
+        self.locationPinnedAt = locationPinnedAt
+        self.locationPinnedBy = locationPinnedBy
         self.station = station
         self.notes = notes
         self.responders = responders
@@ -130,6 +154,28 @@ public struct EventDraft: Equatable, Sendable {
         self.busLane = busLane
         self.shiftLeadId = shiftLeadId
         self.secondaryLeads = secondaryLeads
+    }
+
+    public var locationPin: LocationPinFields {
+        LocationPinFields(
+            location: location,
+            locationPlaceId: locationPlaceId,
+            locationLat: locationLat,
+            locationLng: locationLng,
+            locationPinSource: locationPinSource,
+            locationPinnedAt: locationPinnedAt,
+            locationPinnedBy: locationPinnedBy
+        )
+    }
+
+    public mutating func applyLocationPin(_ pin: LocationPinFields) {
+        location = pin.location
+        locationPlaceId = pin.locationPlaceId
+        locationLat = pin.locationLat
+        locationLng = pin.locationLng
+        locationPinSource = pin.locationPinSource
+        locationPinnedAt = pin.locationPinnedAt
+        locationPinnedBy = pin.locationPinnedBy
     }
 
     public var responderIds: [String] { responders.map(\.responderId) }

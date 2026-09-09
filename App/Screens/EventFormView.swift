@@ -12,6 +12,12 @@ struct EventFormView: View {
     @State private var roadId = ""
     @State private var districtId = ""
     @State private var location = ""
+    @State private var locationPlaceId: String?
+    @State private var locationLat: Double?
+    @State private var locationLng: Double?
+    @State private var locationPinSource: String?
+    @State private var locationPinnedAt: String?
+    @State private var locationPinnedBy: String?
     @State private var station = ""
     @State private var notes = ""
     @State private var responders: [EventResponderDraft] = []
@@ -228,22 +234,55 @@ struct EventFormView: View {
                     set: { station = String($0.prefix(STATION_MAX_LENGTH)) }
                 ))
             }
-            HStack(alignment: .top, spacing: 12) {
-                LookupPickerField(
-                    label: "כביש",
-                    options: app.lookups.roads,
-                    selectedId: roadId,
-                    placeholder: "בחירת כביש",
-                    searchPlaceholder: "חיפוש כביש",
-                    error: errors.road
-                ) { roadId = $0 }
-                FormField(
-                    label: "מיקום",
-                    error: errors.location,
-                    placeholder: "למשל: מחלף שורק",
-                    text: $location
-                )
-            }
+            LocationPlacesField(
+                value: LocationPinFields(
+                    location: location,
+                    locationPlaceId: locationPlaceId,
+                    locationLat: locationLat,
+                    locationLng: locationLng,
+                    locationPinSource: locationPinSource,
+                    locationPinnedAt: locationPinnedAt,
+                    locationPinnedBy: locationPinnedBy
+                ),
+                error: errors.location,
+                required: districtNeedsLocation(app.lookups.districts, districtId: districtId),
+                roadName: app.lookups.roads.first(where: { $0.id == roadId })?.name,
+                placeholder: EVENT_LOCATION_PLACEHOLDER,
+                onChange: { pin in
+                    location = pin.location
+                    locationPlaceId = pin.locationPlaceId
+                    locationLat = pin.locationLat
+                    locationLng = pin.locationLng
+                    locationPinSource = pin.locationPinSource
+                    locationPinnedAt = pin.locationPinnedAt
+                    locationPinnedBy = pin.locationPinnedBy
+                    if errors.location != nil {
+                        errors.location = nil
+                    }
+                },
+                onJunctionCommit: { junction in
+                    let nextRoadId = roadIdAfterJunctionSelection(
+                        currentRoadId: roadId,
+                        junctionRoads: junction.roads,
+                        lookups: app.lookups.roads
+                    )
+                    if !nextRoadId.isEmpty, nextRoadId != roadId {
+                        roadId = nextRoadId
+                        errors.road = nil
+                    }
+                },
+                onAutocompleteUnavailable: {
+                    app.showToast(EVENT_LOCATION_PLACES_UNAVAILABLE, tone: .pending)
+                }
+            )
+            LookupPickerField(
+                label: "כביש",
+                options: app.lookups.roads,
+                selectedId: roadId,
+                placeholder: "בחירת כביש",
+                searchPlaceholder: "חיפוש כביש",
+                error: errors.road
+            ) { roadId = $0 }
             CrewAssignmentSection(
                 assignOpenLabel: EVENT_ASSIGN_OPEN,
                 assignCloseLabel: EVENT_ASSIGN_CLOSE,
@@ -313,6 +352,12 @@ struct EventFormView: View {
             roadId: roadId,
             districtId: districtId,
             location: location,
+            locationPlaceId: locationPlaceId,
+            locationLat: locationLat,
+            locationLng: locationLng,
+            locationPinSource: locationPinSource,
+            locationPinnedAt: locationPinnedAt,
+            locationPinnedBy: locationPinnedBy,
             station: station,
             notes: notes,
             responders: responders,
@@ -414,6 +459,12 @@ struct EventFormView: View {
             roadId = draft.roadId
             districtId = draft.districtId
             location = draft.location
+            locationPlaceId = draft.locationPlaceId
+            locationLat = draft.locationLat
+            locationLng = draft.locationLng
+            locationPinSource = draft.locationPinSource
+            locationPinnedAt = draft.locationPinnedAt
+            locationPinnedBy = draft.locationPinnedBy
             station = draft.station
             notes = draft.notes
             responders = draft.responders

@@ -183,6 +183,8 @@ struct YahpazTextField: UIViewRepresentable {
     var returnKey: UIReturnKeyType = .done
     var enabled = true
     var placeholder: String? = nil
+    var onFocus: (() -> Void)? = nil
+    var onBlur: (() -> Void)? = nil
     var onSubmit: (() -> Void)? = nil
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -253,6 +255,14 @@ struct YahpazTextField: UIViewRepresentable {
 
         @objc func editingChanged(_ field: UITextField) {
             parent.text = field.text ?? ""
+        }
+
+        func textFieldDidBeginEditing(_ field: UITextField) {
+            parent.onFocus?()
+        }
+
+        func textFieldDidEndEditing(_ field: UITextField) {
+            parent.onBlur?()
         }
 
         func textFieldShouldReturn(_ field: UITextField) -> Bool {
