@@ -40,7 +40,7 @@ targets:
         CFBundleDisplayName: אבן דרך
         CFBundleName: Yahpaz
         CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "13"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleDevelopmentRegion: he
         CFBundleLocalizations:
           - he
