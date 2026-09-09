@@ -62,14 +62,29 @@ final class FillValidationTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty)
     }
 
-    func testEndMustBeGreaterThanStart() {
-        let errors = validateResponderFillDraft(
+    func testEqualOdometersAreAllowedIncludingZeroInBoth() {
+        XCTAssertNil(validateResponderFillDraft(
             draft(odometerStart: "100", odometerEnd: "100"),
             mode: .draft,
             allowedPlates: plates,
             totalKm: nil
+        ).odometerEnd)
+        XCTAssertNil(validateResponderFillDraft(
+            draft(odometerStart: "0", odometerEnd: "0"),
+            mode: .draft,
+            allowedPlates: plates,
+            totalKm: nil
+        ).odometerEnd)
+    }
+
+    func testEndMustNotBeSmallerThanStart() {
+        let errors = validateResponderFillDraft(
+            draft(odometerStart: "100", odometerEnd: "99"),
+            mode: .draft,
+            allowedPlates: plates,
+            totalKm: nil
         )
-        XCTAssertEqual(errors.odometerEnd, "מד אוץ סיום חייב להיות גדול ממד אוץ התחלה")
+        XCTAssertEqual(errors.odometerEnd, "מד אוץ סיום אינו יכול להיות קטן ממד אוץ התחלה")
     }
 
     func testCompleteRequiresPlateFromRoster() {

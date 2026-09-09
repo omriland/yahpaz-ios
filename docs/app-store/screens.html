@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>אבן דרך — App Store screens</title>
+  <style>
+    @font-face {
+      font-family: "Suez One";
+      src: url("../../App/Resources/SuezOne-Regular.ttf") format("truetype");
+    }
+    @font-face {
+      font-family: "IBM Plex Sans Hebrew";
+      src: url("../../App/Resources/IBMPlexSansHebrew-Regular.ttf") format("truetype");
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "IBM Plex Sans Hebrew";
+      src: url("../../App/Resources/IBMPlexSansHebrew-Medium.ttf") format("truetype");
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: "IBM Plex Sans Hebrew";
+      src: url("../../App/Resources/IBMPlexSansHebrew-SemiBold.ttf") format("truetype");
+      font-weight: 600;
+    }
+    @font-face {
+      font-family: "IBM Plex Sans Hebrew";
+      src: url("../../App/Resources/IBMPlexSansHebrew-Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+    }
+    .phone {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+      font-family: "IBM Plex Sans Hebrew", "Helvetica Neue", Arial, sans-serif;
+    }
+    .phone.active { display: flex; }
+    .status {
+      height: 54px;
+      flex: none;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 28px 8px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      direction: ltr;
+    }
+    .status.dark { color: #F2F6FA; }
+    .status.light { color: #0F1B2D; }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+    .body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .tabbar {
+      flex: none;
+      height: 83px;
+      background: #FFFFFF;
+      border-top: 1px solid rgba(15, 27, 45, 0.12);
+      display: flex;
+      padding: 6px 8px 28px;
+    }
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #5B6F86;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .tab.on { color: #1D4E89; }
+    .tab svg { width: 24px; height: 24px; }
+    .home {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: #0F1B2D;
+      border-radius: 100px;
+      opacity: 0.85;
+    }
+    .phone { position: relative; }
+
+    .phone.login { background: #182A47; }
+    .body.login {
+      background: #182A47;
+      color: #F2F6FA;
+      justify-content: center;
+      padding: 0 16px 40px;
+      gap: 32px;
+    }
+    .masthead {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .brand {
+      font-family: "Suez One", serif;
+      font-size: 44px;
+      font-weight: 400;
+      line-height: 1;
+    }
+    .rule { width: 1px; height: 52px; background: rgba(242, 246, 250, 0.15); }
+    .unit { font-size: 13px; font-weight: 500; color: #C3CEDC; line-height: 1.35; }
+    .card {
+      background: #FFFFFF;
+      color: #0F1B2D;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(15, 27, 45, 0.16);
+    }
+    .section { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
+    .label { font-size: 13px; font-weight: 500; color: #445A73; margin: 0 0 4px; letter-spacing: 0.13px; }
+    .field {
+      border: 1px solid rgba(15, 27, 45, 0.55);
+      border-radius: 4px;
+      min-height: 44px;
+      padding: 10px 12px;
+      font-size: 16px;
+      direction: ltr;
+      text-align: left;
+      color: #5B6F86;
+      background: #FFFFFF;
+      margin-bottom: 16px;
+    }
+    .primary {
+      background: #1D4E89;
+      color: #FFFFFF;
+      border-radius: 4px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .link {
+      color: #1D4E89;
+      text-align: center;
+      font-size: 16px;
+      margin-top: 16px;
+    }
+
+    .field-page { background: #F6F8FA; color: #0F1B2D; }
+    .pad { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .title { font-size: 22px; font-weight: 700; margin: 0; }
+    .sub { font-size: 16px; color: #445A73; margin: 0; line-height: 1.45; }
+    .chips { display: flex; gap: 8px; }
+    .chip {
+      padding: 10px 16px;
+      border-radius: 4px;
+      font-size: 16px;
+      background: #FFFFFF;
+      border: 1px solid rgba(15, 27, 45, 0.55);
+      color: #445A73;
+    }
+    .chip.on {
+      background: #EDF4FB;
+      border-color: #1D4E89;
+      color: #1D4E89;
+    }
+    .event {
+      background: #FFFFFF;
+      border: 1px solid rgba(15, 27, 45, 0.12);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .event h3 { margin: 0 0 4px; font-size: 17px; font-weight: 600; }
+    .meta { font-size: 12px; color: #5B6F86; }
+    .stamp {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.72px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .stamp.pending { color: #1D4E89; background: #EDF4FB; border: 1px solid rgba(29, 78, 137, 0.25); }
+    .stamp.done { color: #2E7D5B; background: #E3F1EA; border: 1px solid rgba(46, 125, 91, 0.25); }
+    .ghost {
+      margin-top: 12px;
+      min-height: 44px;
+      border: 1px solid rgba(15, 27, 45, 0.55);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1D4E89;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .primary.block { margin-top: 12px; }
+    .note { font-size: 16px; color: #0F1B2D; margin: 0; }
+
+    .avail-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(15, 27, 45, 0.12);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #2E7D5B; flex: none; }
+    .seg {
+      display: flex;
+      background: #EDF1F5;
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .seg span {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #445A73;
+    }
+    .seg span.on { background: #FFFFFF; color: #0F1B2D; }
+
+    .shift-label { font-size: 13px; font-weight: 500; color: #445A73; }
+    .empty {
+      text-align: center;
+      padding: 40px 16px;
+      color: #0F1B2D;
+      font-size: 16px;
+    }
+    .empty .icon { font-size: 28px; color: #5B6F86; margin-bottom: 12px; }
+    .caption { font-size: 12px; color: #5B6F86; margin-top: 8px; }
+
+    .track {
+      background: #F6F8FA;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      gap: 20px;
+    }
+    .track .title { font-size: 22px; font-weight: 700; }
+    .track .sub { max-width: 280px; }
+    .track .ghost { width: 100%; max-width: 320px; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <section id="login" class="phone login">
+    <div class="status dark"><span>9:41</span><span class="status-icons">■■■ ▬</span></div>
+    <div class="body login">
+      <div class="masthead">
+        <div class="brand">אבן דרך</div>
+        <div class="rule"></div>
+        <div class="unit">היחידה הארצית<br />לפינוי צירים</div>
+      </div>
+      <div class="card">
+        <p class="section">כניסה למערכת</p>
+        <p class="label">דוא״ל</p>
+        <div class="field">responder@yahpz.com</div>
+        <p class="label">סיסמה</p>
+        <div class="field">••••••••</div>
+        <div class="primary">כניסה</div>
+        <div class="link">שכחתי סיסמה</div>
+      </div>
+    </div>
+    <div class="home" style="background:#F2F6FA"></div>
+  </section>
+
+  <section id="inbox" class="phone field-page">
+    <div class="status light"><span>9:41</span><span class="status-icons">■■■ ▬</span></div>
+    <div class="body">
+      <div class="pad">
+        <p class="title">האירועים שלי</p>
+        <p class="sub">יש לך אירוע אחד לתעד.</p>
+        <p class="note">שימו לב! אירועים שלא תועדו במלואם לא נכללים בהחזר הדלק הרבעוני</p>
+        <div class="chips">
+          <div class="chip on">ממתינים לתיעוד 1</div>
+          <div class="chip">תועדו</div>
+        </div>
+        <div class="event">
+          <div class="row">
+            <div>
+              <h3>תרגול יחידה</h3>
+              <div class="meta">17.08.2026</div>
+            </div>
+            <span class="stamp pending">ממתין למילוי פרטים</span>
+          </div>
+          <div class="primary block">השלמת הפרטים שלי</div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+          האירועים שלי
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+          המשמרות שלי
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h.01M8.5 8.5c2.5-2.5 6.5-2.5 9 0M6.5 16.5c4.5 4.5 10.5 2 12-4"/></svg>
+          זמינות
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.2-3 4-4.5 7-4.5S17.8 16 19 19"/></svg>
+          פרופיל
+        </div>
+      </div>
+    </div>
+    <div class="home"></div>
+  </section>
+
+  <section id="shifts" class="phone field-page">
+    <div class="status light"><span>9:41</span><span class="status-icons">■■■ ▬</span></div>
+    <div class="body">
+      <div class="pad">
+        <p class="title">המשמרות שלי</p>
+        <p class="shift-label">משמרות ממתינות לתיעוד</p>
+        <p class="sub">מברוק! אין לך עוד משמרות לתעד כרגע</p>
+        <p class="shift-label">משמרות עתידיות</p>
+        <div class="event">
+          <div class="row">
+            <div>
+              <h3>בוקר</h3>
+              <div class="sub" style="margin:4px 0">2 כוננים · 0 אירועים</div>
+              <div class="meta">18.08.2026 (ג)</div>
+            </div>
+            <span class="stamp pending">במשמרת</span>
+          </div>
+          <div class="ghost">פרטי המשמרת</div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+          האירועים שלי
+        </div>
+        <div class="tab on">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+          המשמרות שלי
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h.01M8.5 8.5c2.5-2.5 6.5-2.5 9 0M6.5 16.5c4.5 4.5 10.5 2 12-4"/></svg>
+          זמינות
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.2-3 4-4.5 7-4.5S17.8 16 19 19"/></svg>
+          פרופיל
+        </div>
+      </div>
+    </div>
+    <div class="home"></div>
+  </section>
+
+  <section id="availability" class="phone field-page">
+    <div class="status light"><span>9:41</span><span class="status-icons">■■■ ▬</span></div>
+    <div class="body">
+      <div class="pad">
+        <p class="title">זמינות</p>
+        <p class="sub">הסטטוס מוצג לאחמ״ש בשיבוץ לאירוע.</p>
+        <div class="avail-card"><span class="dot"></span>זמינות: זמין</div>
+        <div class="seg"><span class="on">זמין</span><span>לא זמין</span></div>
+        <div class="primary">שמירת זמינות</div>
+      </div>
+      <div class="tabbar">
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+          האירועים שלי
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+          המשמרות שלי
+        </div>
+        <div class="tab on">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h.01M8.5 8.5c2.5-2.5 6.5-2.5 9 0M6.5 16.5c4.5 4.5 10.5 2 12-4"/></svg>
+          זמינות
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.2-3 4-4.5 7-4.5S17.8 16 19 19"/></svg>
+          פרופיל
+        </div>
+      </div>
+    </div>
+    <div class="home"></div>
+  </section>
+
+  <section id="tracking" class="phone field-page">
+    <div class="status light"><span>9:41</span><span class="status-icons">■■■ ▬</span></div>
+    <div class="body track">
+      <p class="title">שיתוף מיקום</p>
+      <p class="sub">ממתינים לאישור מיקום…</p>
+      <div class="ghost">סגירה</div>
+    </div>
+    <div class="home"></div>
+  </section>
+
+  <script>
+    const screen = new URLSearchParams(location.search).get("screen") || "login";
+    document.querySelectorAll(".phone").forEach((el) => {
+      el.classList.toggle("active", el.id === screen);
+    });
+  </script>
+</body>
+</html>

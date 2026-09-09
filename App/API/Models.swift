@@ -1096,7 +1096,13 @@ struct UnitEventDetailResponderRow: Decodable, Identifiable, Sendable {
 }
 
 struct UnitEventDetailRespondersWrap: Decodable {
+    var sharedPlates: [EventTreatedPlateRow]
     var responders: [UnitEventDetailResponderRow]
+
+    enum CodingKeys: String, CodingKey {
+        case sharedPlates = "shared_plates"
+        case responders
+    }
 }
 
 struct SameDayPoliceEventApiRow: Decodable, Sendable {

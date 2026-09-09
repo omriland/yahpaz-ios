@@ -473,7 +473,7 @@ struct FormCheckbox: View {
 
 struct TimeField: View {
     let label: String
-    var placeholder: String = "08:00"
+    var placeholder: String? = nil
     @Binding var text: String
     var onFourDigitsComplete: (() -> Void)? = nil
 
@@ -490,7 +490,7 @@ struct TimeField: View {
                     text = next
                     if advanced { onFourDigitsComplete?() }
                 }
-            ), prompt: Text(placeholder))
+            ), prompt: placeholder.map { Text($0) })
                 .font(TypeScale.numeric)
                 .keyboardType(.numberPad)
                 .textInputAutocapitalization(.never)

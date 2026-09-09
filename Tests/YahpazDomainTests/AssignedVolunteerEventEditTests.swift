@@ -6,8 +6,12 @@ final class AssignedVolunteerEventEditTests: XCTestCase {
         XCTAssertTrue(isAssignedVolunteerEventEditBlocked(viewerId: "me", responderIds: ["a", "me"], secondaryLeadIds: []))
     }
 
-    func testBlocksWhenTheViewerIsASecondaryLeadWithoutAResponderRow() {
-        XCTAssertTrue(isAssignedVolunteerEventEditBlocked(viewerId: "me", responderIds: ["a"], secondaryLeadIds: ["me"]))
+    func testDoesNotBlockASecondaryLeadWithoutAResponderRow() {
+        XCTAssertFalse(isAssignedVolunteerEventEditBlocked(viewerId: "me", responderIds: ["a"], secondaryLeadIds: ["me"]))
+    }
+
+    func testBlocksComboAssignmentResponderAndSecondary() {
+        XCTAssertTrue(isAssignedVolunteerEventEditBlocked(viewerId: "me", responderIds: ["me"], secondaryLeadIds: ["me"]))
     }
 
     func testDoesNotBlockAMainOnlyLead() {
@@ -21,7 +25,7 @@ final class AssignedVolunteerEventEditTests: XCTestCase {
         XCTAssertFalse(isAssignedVolunteerEventEditBlocked(viewerId: "  ", responderIds: ["me"], secondaryLeadIds: []))
     }
 
-    func testDraftHelperUsesResponderAndSecondaryIds() {
+    func testDraftHelperBlocksRespondersAndAllowsSecondaryLeads() {
         let draft = EventDraft(
             eventDate: "2026-09-04",
             responders: [EventResponderDraft(responderId: "me")],
@@ -29,7 +33,7 @@ final class AssignedVolunteerEventEditTests: XCTestCase {
         )
         XCTAssertTrue(draft.blocksAssignedVolunteerEdit(viewerId: "me"))
         XCTAssertFalse(draft.blocksAssignedVolunteerEdit(viewerId: "lead"))
-        XCTAssertTrue(
+        XCTAssertFalse(
             EventDraft(
                 eventDate: "2026-09-04",
                 secondaryLeads: [SecondaryLead(userId: "sec")]

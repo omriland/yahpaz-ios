@@ -542,7 +542,7 @@ private struct UnitEventDetailSheet: View {
     let onEdit: (EventListItem) -> Void
 
     @State private var expandedIds: Set<String> = []
-    @State private var detailResponders: [UnitEventDetailResponderRow]?
+    @State private var detailRows: UnitEventDetailRespondersWrap?
     @State private var confirmDelete = false
     @State private var deleting = false
 
@@ -580,6 +580,9 @@ private struct UnitEventDetailSheet: View {
                 LedgerRow(label: "כביש", value: event.road?.name ?? "")
                 LedgerRow(label: "מיקום", value: event.location ?? "")
                 LedgerRow(label: "נת״צ", value: event.busLane ? "כן" : "לא")
+                if event.origin == "shift", let detailRows {
+                    LedgerRow(label: "מספרי כלי רכב", value: treatedPlatesLabel(shiftEventPlates(detailRows)))
+                }
                 LedgerRow(label: "סטטוס", value: stamp.label)
                 EventLeadLedgerRows(main: event.shiftLead, secondaries: event.secondaryLeads)
                 Text("מתנדבים (\(event.responders.count))")
@@ -589,11 +592,11 @@ private struct UnitEventDetailSheet: View {
                     Text("טרם שובצו מתנדבים לאירוע")
                         .font(TypeScale.caption)
                         .foregroundStyle(FieldTheme.textMuted)
-                } else if detailResponders == nil {
+                } else if detailRows == nil {
                     ProgressView("טוען מתנדבים…")
                         .frame(maxWidth: .infinity, minHeight: 44)
                 } else {
-                    ForEach(detailResponders ?? []) { row in
+                    ForEach(detailRows?.responders ?? []) { row in
                         UnitEventResponderRow(
                             row: row,
                             showTreatedPlates: event.origin != "shift",
@@ -662,7 +665,7 @@ private struct UnitEventDetailSheet: View {
         }
         .task(id: event.id) {
             expandedIds = []
-            detailResponders = try? await YahpazAPI.shared.fetchUnitEventDetailResponders(eventId: event.id)
+            detailRows = try? await YahpazAPI.shared.fetchUnitEventDetailResponders(eventId: event.id)
         }
     }
 }
@@ -783,6 +786,14 @@ private func treatedPlatesLabel(_ plates: [EventTreatedPlateRow]) -> String {
     plates.compactMap { plate in
         plate.plateNumber?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty.map(formatPlate)
     }.joined(separator: ", ")
+}
+
+private func shiftEventPlates(_ detail: UnitEventDetailRespondersWrap) -> [EventTreatedPlateRow] {
+    var seen = Set<String>()
+    return (detail.sharedPlates + detail.responders.flatMap(\.treatedPlates)).filter { row in
+        guard let plate = row.plateNumber else { return false }
+        return seen.insert(plateDigits(plate)).inserted
+    }
 }
 
 private extension Optional where Wrapped == String {

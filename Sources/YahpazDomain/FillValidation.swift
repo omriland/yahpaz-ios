@@ -153,9 +153,9 @@ public func validateResponderFillDraft(
     if errors.odometerEnd == nil,
        case let .value(startValue) = start,
        case let .value(endValue) = end,
-       endValue <= startValue
+       endValue < startValue
     {
-        errors.odometerEnd = "מד אוץ סיום חייב להיות גדול ממד אוץ התחלה"
+        errors.odometerEnd = "מד אוץ סיום אינו יכול להיות קטן ממד אוץ התחלה"
     }
 
     if let leftover = leftoverTreatedPlateError(pending: draft.treatedPlatePending, mode: mode) {
@@ -172,7 +172,7 @@ public func odometerRangeError(odometerStart: String, odometerEnd: String) -> St
     guard case let .value(start) = parseOptionalNumber(odometerStart),
           case let .value(end) = parseOptionalNumber(odometerEnd)
     else { return nil }
-    if end <= start { return "מד אוץ סיום חייב להיות גדול ממד אוץ התחלה" }
+    if end < start { return "מד אוץ סיום אינו יכול להיות קטן ממד אוץ התחלה" }
     return nil
 }
 

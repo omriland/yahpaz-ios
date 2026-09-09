@@ -470,11 +470,14 @@ actor YahpazAPI {
         }
     }
 
-    func fetchUnitEventDetailResponders(eventId: String) async throws -> [UnitEventDetailResponderRow] {
+    func fetchUnitEventDetailResponders(eventId: String) async throws -> UnitEventDetailRespondersWrap {
         let wrap: UnitEventDetailRespondersWrap = try await client
             .from("events")
             .select(
                 """
+                shared_plates:event_treated_plates!event_treated_plates_event_id_fkey(
+                  plate_number, model, color, left_where, manufacturer, logo_slug, sort_order
+                ),
                 responders:event_responders(
                   id, responder_id, started_at, ended_at, vehicle_plate, total_km,
                   odometer_start, odometer_end, route, treatment_detail, treatment_notes,
@@ -489,7 +492,7 @@ actor YahpazAPI {
             .single()
             .execute()
             .value
-        return wrap.responders
+        return wrap
     }
 
     func fetchEventLookups() async throws -> EventLookups {

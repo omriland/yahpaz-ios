@@ -681,7 +681,7 @@ private struct EventResponderDetailSheet: View {
                         .font(TypeScale.section)
                         .foregroundStyle(FieldTheme.textPrimary)
                 HStack(alignment: .top, spacing: 12) {
-                    TimeField(label: "שעת התחלה", placeholder: "08:00", text: Binding(
+                    TimeField(label: "שעת התחלה", text: Binding(
                         get: { responder.startTime },
                         set: { value in
                             var next = responder
@@ -689,7 +689,7 @@ private struct EventResponderDetailSheet: View {
                             onChange(next)
                         }
                     ))
-                    TimeField(label: "שעת סיום", placeholder: "09:30", text: Binding(
+                    TimeField(label: "שעת סיום", text: Binding(
                         get: { responder.endTime },
                         set: { value in
                             var next = responder
