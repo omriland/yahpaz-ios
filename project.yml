@@ -30,14 +30,17 @@ targets:
     resources:
       - path: App/Resources
         optional: true
+      - path: App/Resources/car-logos
+        type: folder
+        optional: true
       - path: App/Assets.xcassets
     info:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: אבן דרך
         CFBundleName: Yahpaz
-        CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "5"
+        CFBundleShortVersionString: "1.0.2"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleDevelopmentRegion: he
         CFBundleLocalizations:
           - he
@@ -50,12 +53,16 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע. אפשר לעצור בכל רגע מסך המעקב.
         NSLocationAlwaysAndWhenInUseUsageDescription: אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.
+        NSCameraUsageDescription: אבן דרך משתמש במצלמה לסריקת לוחית רישוי בעת תיעוד אירוע.
+        NSMicrophoneUsageDescription: אבן דרך משתמש במיקרופון כדי להקליט הודעת משוב. אפשר לכתוב הערה במקום.
         UIBackgroundModes:
           - location
         CFBundleURLTypes:
           - CFBundleURLName: com.yahpz.responder
             CFBundleURLSchemes:
               - yahpaz
+        LSApplicationQueriesSchemes:
+          - itms-services
         UIAppFonts:
           - IBMPlexSansHebrew-Regular.ttf
           - IBMPlexSansHebrew-Medium.ttf
@@ -79,8 +86,8 @@ targets:
         DEVELOPMENT_TEAM: 477WWCHXU7
         CODE_SIGN_IDENTITY: Apple Development
         TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 5
+        MARKETING_VERSION: 1.0.2
+        CURRENT_PROJECT_VERSION: 16
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited)
@@ -89,3 +96,32 @@ targets:
         product: YahpazDomain
       - package: supabase-swift
         product: Supabase
+      - sdk: WebKit.framework
+  YahpazUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: Yahpaz
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yahpz.responder.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 477WWCHXU7
+        TEST_TARGET_NAME: Yahpaz
+schemes:
+  Yahpaz:
+    build:
+      targets:
+        Yahpaz: all
+        YahpazUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - YahpazUITests
+    archive:
+      config: Release

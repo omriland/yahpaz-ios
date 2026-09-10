@@ -44,11 +44,13 @@ public struct MineListEvent: Equatable, Identifiable, Sendable {
     public var id: String
     public var date: String
     public var participation: ParticipationStatus
+    public var totalKm: Double?
 
-    public init(id: String, date: String, participation: ParticipationStatus) {
+    public init(id: String, date: String, participation: ParticipationStatus, totalKm: Double? = nil) {
         self.id = id
         self.date = date
         self.participation = participation
+        self.totalKm = totalKm
     }
 }
 
@@ -75,7 +77,7 @@ public func partitionMineList(
     var hasMoreLogged = false
 
     for item in items {
-        if item.participation != .done {
+        if mineInboxIsOpen(item.participation, totalKm: item.totalKm) {
             pending.append(item)
             continue
         }
@@ -134,6 +136,24 @@ public func fuelNoteNeeded(openCount: Int) -> Bool {
 
 public let FUEL_NOTE = "שימו לב! אירועים שלא תועדו במלואם לא נכללים בהחזר הדלק הרבעוני"
 
+public enum ListReloadFailure: Equatable, Sendable {
+    case ignore
+    case toast
+    case failed
+}
+
+public func listReloadFailure(hadItems: Bool, cancelled: Bool) -> ListReloadFailure {
+    if cancelled { return .ignore }
+    return hadItems ? .toast : .failed
+}
+
+public func isLoadCancellation(_ error: Error, taskCancelled: Bool = Task.isCancelled) -> Bool {
+    if taskCancelled { return true }
+    if error is CancellationError { return true }
+    let ns = error as NSError
+    return ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled
+}
+
 private let enToHe: [Character: Character] = [
     "q": "/", "w": "'", "e": "ק", "r": "ר", "t": "א", "y": "ט", "u": "ו",
     "i": "ן", "o": "ם", "p": "פ", "a": "ש", "s": "ד", "d": "ג", "f": "כ",
@@ -150,16 +170,62 @@ func searchQueryVariants(_ query: String) -> [String] {
     return mapped == trimmed ? [trimmed] : [trimmed, mapped]
 }
 
-func fieldsMatchQuery(_ fields: [String?], query: String) -> Bool {
+public func fieldsMatchQuery(_ fields: [String?], query: String) -> Bool {
     fields.contains { field in
         guard let field else { return false }
         return textIncludesQuery(field, query: query)
     }
 }
 
-func textIncludesQuery(_ haystack: String, query: String) -> Bool {
+public func textIncludesQuery(_ haystack: String, query: String) -> Bool {
     let variants = searchQueryVariants(query)
     if variants.isEmpty { return true }
     let hay = haystack.lowercased()
     return variants.contains { hay.contains($0.lowercased()) }
+}
+
+public struct TextHighlightRange: Equatable, Sendable {
+    public var start: Int
+    public var endExclusive: Int
+
+    public init(start: Int, endExclusive: Int) {
+        self.start = start
+        self.endExclusive = endExclusive
+    }
+}
+
+public func searchHighlightRanges(_ text: String, query: String) -> [TextHighlightRange] {
+    let variants = searchQueryVariants(query).map { $0.lowercased() }.filter { !$0.isEmpty }
+    if variants.isEmpty || text.isEmpty { return [] }
+    let hay = text.lowercased() as NSString
+    var raw: [TextHighlightRange] = []
+    for variant in variants {
+        let needle = variant as NSString
+        var from = 0
+        while from <= hay.length - needle.length {
+            let at = hay.range(
+                of: needle as String,
+                options: [],
+                range: NSRange(location: from, length: hay.length - from)
+            )
+            if at.location == NSNotFound { break }
+            raw.append(TextHighlightRange(start: at.location, endExclusive: at.location + at.length))
+            from = at.location + 1
+        }
+    }
+    if raw.isEmpty { return [] }
+    let ordered = raw.sorted { $0.start < $1.start }
+    var merged = [ordered[0]]
+    for range in ordered.dropFirst() {
+        let last = merged[merged.count - 1]
+        if range.start <= last.endExclusive {
+            merged[merged.count - 1] = TextHighlightRange(
+                start: last.start,
+                endExclusive: max(last.endExclusive, range.endExclusive)
+            )
+        } else {
+            merged.append(range)
+        }
+    }
+    return merged
 }

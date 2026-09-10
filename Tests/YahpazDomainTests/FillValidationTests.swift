@@ -14,7 +14,7 @@ final class FillValidationTests: XCTestCase {
         XCTAssertNil(errors.odometerEnd)
     }
 
-    func testCompleteErrorsWhenTotalKmMissingWithoutShowingTheNumber() {
+    func testCompleteAcceptsOdometersWhenLeadTotalKmMissing() {
         let errors = validateResponderFillDraft(
             draft(
                 vehiclePlate: "1234567",
@@ -27,11 +27,7 @@ final class FillValidationTests: XCTestCase {
             allowedPlates: plates,
             totalKm: nil
         )
-        XCTAssertEqual(
-            errors.odometerEnd,
-            "האחמ״ש טרם הזין קילומטרים לאירוע. לא ניתן לסיים את הדיווח."
-        )
-        XCTAssertFalse(String(describing: errors).contains("12"))
+        XCTAssertTrue(errors.isEmpty)
     }
 
     func testCompleteRequiresUserEnteredEndWhenTotalKmIsSet() {
@@ -66,14 +62,29 @@ final class FillValidationTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty)
     }
 
-    func testEndMustBeGreaterThanStart() {
-        let errors = validateResponderFillDraft(
+    func testEqualOdometersAreAllowedIncludingZeroInBoth() {
+        XCTAssertNil(validateResponderFillDraft(
             draft(odometerStart: "100", odometerEnd: "100"),
             mode: .draft,
             allowedPlates: plates,
             totalKm: nil
+        ).odometerEnd)
+        XCTAssertNil(validateResponderFillDraft(
+            draft(odometerStart: "0", odometerEnd: "0"),
+            mode: .draft,
+            allowedPlates: plates,
+            totalKm: nil
+        ).odometerEnd)
+    }
+
+    func testEndMustNotBeSmallerThanStart() {
+        let errors = validateResponderFillDraft(
+            draft(odometerStart: "100", odometerEnd: "99"),
+            mode: .draft,
+            allowedPlates: plates,
+            totalKm: nil
         )
-        XCTAssertEqual(errors.odometerEnd, "מד אוץ סיום חייב להיות גדול ממד אוץ התחלה")
+        XCTAssertEqual(errors.odometerEnd, "מד אוץ סיום אינו יכול להיות קטן ממד אוץ התחלה")
     }
 
     func testCompleteRequiresPlateFromRoster() {
@@ -104,7 +115,7 @@ final class FillValidationTests: XCTestCase {
             ),
             mode: .complete,
             allowedPlates: plates,
-            totalKm: 12
+            totalKm: nil
         )
         XCTAssertEqual(errors.treatedPlates, TREATED_PLATE_LEFTOVER_ERROR)
     }
@@ -117,6 +128,95 @@ final class FillValidationTests: XCTestCase {
             totalKm: nil
         )
         XCTAssertNil(errors.treatedPlates)
+    }
+
+    func testCompleteErrorsOnUnfinishedMediaDrafts() {
+        let errors = validateResponderFillDraft(
+            draft(
+                vehiclePlate: "1234567",
+                odometerStart: "100",
+                odometerEnd: "112",
+                route: "כביש 1",
+                treatmentDetail: "טיפול"
+            ),
+            mode: .complete,
+            allowedPlates: plates,
+            totalKm: 12,
+            unfinishedMediaDraftCount: 1
+        )
+        XCTAssertEqual(errors.eventMedia, EVENT_MEDIA_LEFTOVER_ERROR)
+    }
+
+    func testDraftIgnoresUnfinishedMediaDrafts() {
+        let errors = validateResponderFillDraft(
+            ResponderFillDraft(),
+            mode: .draft,
+            allowedPlates: plates,
+            totalKm: nil,
+            unfinishedMediaDraftCount: 2
+        )
+        XCTAssertNil(errors.eventMedia)
+    }
+
+    func testCompleteAllowsZeroTreatedPlates() {
+        let errors = validateResponderFillDraft(
+            draft(
+                vehiclePlate: "1234567",
+                odometerStart: "100",
+                odometerEnd: "112",
+                route: "כביש 1",
+                treatmentDetail: "טיפול"
+            ),
+            mode: .complete,
+            allowedPlates: plates,
+            totalKm: 12
+        )
+        XCTAssertNil(errors.treatedPlates)
+        XCTAssertTrue(errors.isEmpty)
+    }
+
+    func testCompleteOnAlreadyDoneAssignmentIsSuccess() {
+        XCTAssertEqual(
+            gateResponderFillWrite(
+                complete: true,
+                participationStatus: .done,
+                eventStatus: .inProgress
+            ),
+            .alreadyComplete
+        )
+    }
+
+    func testDraftOnAlreadyDoneAssignmentIsLocked() {
+        XCTAssertEqual(
+            gateResponderFillWrite(
+                complete: false,
+                participationStatus: .done,
+                eventStatus: .inProgress
+            ),
+            .locked
+        )
+    }
+
+    func testWriteOnDoneEventIsLocked() {
+        XCTAssertEqual(
+            gateResponderFillWrite(
+                complete: true,
+                participationStatus: .inProgress,
+                eventStatus: .done
+            ),
+            .locked
+        )
+    }
+
+    func testInProgressCompleteMayProceed() {
+        XCTAssertEqual(
+            gateResponderFillWrite(
+                complete: true,
+                participationStatus: .inProgress,
+                eventStatus: .inProgress
+            ),
+            .proceed
+        )
     }
 
     func testDeriveEventStatusKeepsDraftProgressAsInProgress() {

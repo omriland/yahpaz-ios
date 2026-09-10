@@ -5,10 +5,12 @@ public let PLATE_LOOKUP_RESOURCE_ID = "053cea08-09bc-40ec-8f7a-156f0677aff3"
 public struct PlateLookupHit: Equatable, Sendable {
     public var model: String?
     public var color: String?
+    public var manufacturer: String?
 
-    public init(model: String?, color: String?) {
+    public init(model: String?, color: String?, manufacturer: String? = nil) {
         self.model = model
         self.color = color
+        self.manufacturer = manufacturer
     }
 }
 
@@ -26,7 +28,7 @@ public func plateLookupUrl(plate: String) -> String {
     return "https://data.gov.il/api/3/action/datastore_search?"
         + "resource_id=\(PLATE_LOOKUP_RESOURCE_ID)"
         + "&filters=\(encodedFilters)"
-        + "&fields=tzeva_rechev,kinuy_mishari"
+        + "&fields=tzeva_rechev,kinuy_mishari,tozeret_nm"
         + "&limit=1"
 }
 
@@ -41,9 +43,11 @@ public func parsePlateLookupBody(_ body: String) -> PlateLookupHit? {
     else { return nil }
     let modelRaw = (row["kinuy_mishari"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let colorRaw = (row["tzeva_rechev"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let manufacturerRaw = (row["tozeret_nm"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     return PlateLookupHit(
         model: modelRaw.isEmpty ? nil : modelRaw,
-        color: colorRaw.isEmpty ? nil : colorRaw
+        color: colorRaw.isEmpty ? nil : colorRaw,
+        manufacturer: manufacturerRaw.isEmpty ? nil : manufacturerRaw
     )
 }
 

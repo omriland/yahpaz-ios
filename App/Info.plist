@@ -21,7 +21,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.2</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -34,13 +34,21 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>itms-services</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>אבן דרך משתמש במצלמה לסריקת לוחית רישוי בעת תיעוד אירוע.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע. אפשר לעצור בכל רגע מסך המעקב.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>אבן דרך משתמש במיקרופון כדי להקליט הודעת משוב. אפשר לכתוב הערה במקום.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexSansHebrew-Regular.ttf</string>

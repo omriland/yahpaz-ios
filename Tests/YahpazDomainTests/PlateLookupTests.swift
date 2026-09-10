@@ -7,6 +7,16 @@ final class PlateLookupTests: XCTestCase {
         XCTAssertEqual(plateLookupMispar("01234567"), 1234567)
     }
 
+    func testParseReadsModelColorAndManufacturer() throws {
+        let body = """
+        {"success":true,"result":{"records":[{"tzeva_rechev":"שחור","kinuy_mishari":"REXTON","tozeret_nm":"סאנגיונג ד.קור"}]}}
+        """
+        let hit = try XCTUnwrap(parsePlateLookupBody(body))
+        XCTAssertEqual(hit.model, "REXTON")
+        XCTAssertEqual(hit.color, "שחור")
+        XCTAssertEqual(hit.manufacturer, "סאנגיונג ד.קור")
+    }
+
     func testParseReadsModelAndColorFromHit() throws {
         let body = """
         {"success":true,"result":{"records":[{"tzeva_rechev":"שחור","kinuy_mishari":"REXTON"}]}}
@@ -14,6 +24,7 @@ final class PlateLookupTests: XCTestCase {
         let hit = try XCTUnwrap(parsePlateLookupBody(body))
         XCTAssertEqual(hit.model, "REXTON")
         XCTAssertEqual(hit.color, "שחור")
+        XCTAssertNil(hit.manufacturer)
     }
 
     func testParseReturnsNilOnEmptyRecords() {

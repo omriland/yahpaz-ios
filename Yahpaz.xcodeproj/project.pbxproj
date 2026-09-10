@@ -7,67 +7,239 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		004C48DB3F21B2170472A8CC /* mg.png in Resources */ = {isa = PBXBuildFile; fileRef = AA294E7BEE02B0B5276FA1F8 /* mg.png */; };
 		00E8BC6C2270157F47FF509C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2574186A5FE0C909397F34D8 /* RootView.swift */; };
 		0110E9F5BBF3E7421F7BA38C /* IBMPlexSansHebrew-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 949406EE1DD844BB4AABCA09 /* IBMPlexSansHebrew-Bold.ttf */; };
+		052158B815478D5DA09C9BBA /* geely.png in Resources */ = {isa = PBXBuildFile; fileRef = 872B2D99FE678B59DA4D7285 /* geely.png */; };
+		071912806B9B8E476FE5DB2C /* FeedbackSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6E4AA12F2E7B6D29986B65 /* FeedbackSheet.swift */; };
+		07B001E9D456BD086930436A /* seat.png in Resources */ = {isa = PBXBuildFile; fileRef = 11C645A1C8C794854C7B0290 /* seat.png */; };
+		07C1B740A25EF587AE88BE1A /* ReportsCatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 261880ABE3C67A03BCA45DC7 /* ReportsCatalogView.swift */; };
+		08890DE768D747B264F39879 /* nissan.png in Resources */ = {isa = PBXBuildFile; fileRef = 97E1A7A6A31678D967EC1CF6 /* nissan.png */; };
+		08B72D316369712BFEBD1CE8 /* volvo.png in Resources */ = {isa = PBXBuildFile; fileRef = 11B33AC17C75C05D7E91AE47 /* volvo.png */; };
+		0D6A5399022B69306790B2B1 /* dodge.png in Resources */ = {isa = PBXBuildFile; fileRef = DBB2B73F08EC19057C697AE7 /* dodge.png */; };
+		0ED9AA2BD8543E8C1AD86510 /* infiniti.png in Resources */ = {isa = PBXBuildFile; fileRef = A7EB3ECE86CE0F255637C37F /* infiniti.png */; };
 		0F3921D04288E48D59ABBF03 /* YahpazDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 429F18C51C4868F898CDA146 /* YahpazDomain */; };
+		141555C6090FF1FE337D1BDE /* LicensePlateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F47D3B774EE4227A553D2C /* LicensePlateView.swift */; };
+		146E4929386FAB4C3683F7E8 /* subaru.png in Resources */ = {isa = PBXBuildFile; fileRef = A0D7DFD0B5FB86D2911B8204 /* subaru.png */; };
 		15E3E261F351D599933DD106 /* IBMPlexSansHebrew-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CE6FB3FC3AD7CC65FE0837B1 /* IBMPlexSansHebrew-Regular.ttf */; };
 		17B4EAC88AAC44697D8E6DD1 /* YahpazAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21920944C2DB0146A29F68D /* YahpazAPI.swift */; };
 		1921DFDF4231C1E21FE4135F /* IBMPlexMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CB921B968CF788CDAC0D711F /* IBMPlexMono-Regular.ttf */; };
+		1C2672325B4E22F58E9EEEDC /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F71AFC8AF52C362668F5271 /* ContactsView.swift */; };
+		1EA8A9700F80F2AECA2F3617 /* AdminShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F3BD471EBC82059ADF298CD /* AdminShellView.swift */; };
+		1EF93696B01BEB7B44DECE3F /* bmw.png in Resources */ = {isa = PBXBuildFile; fileRef = 3415EC75317871A639841DAE /* bmw.png */; };
 		23F3C03072B4AD5F4693FAC0 /* IBMPlexMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BCE6920A7A69D4EB75444497 /* IBMPlexMono-Medium.ttf */; };
 		24FDEA766250C67AFC9071E5 /* IBMPlexSansHebrew-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A28CDDCFE8A67ED88B771DD6 /* IBMPlexSansHebrew-SemiBold.ttf */; };
+		2534D3D036631FCA5AB7EC37 /* DeepSweepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F75CF7BF94531D68F5F34C3 /* DeepSweepTests.swift */; };
+		266B09192833F9638DA47E95 /* lincoln.png in Resources */ = {isa = PBXBuildFile; fileRef = 767BA4B1801FFE14A002536B /* lincoln.png */; };
 		2950B2FC2785594EC2096F0B /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2119B064EE20C7795B4CB807 /* Models.swift */; };
+		2961442E9BA6D68BB89301A7 /* TypingVisibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */; };
+		2A864538CCC5F6EA2525A736 /* TreatedPlateModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */; };
+		2C8554BD954D31810AC0F983 /* mazda.png in Resources */ = {isa = PBXBuildFile; fileRef = E2244F10216597A8FDF0D7AB /* mazda.png */; };
+		2DAA671F9512734FBBBBAF7E /* porsche.png in Resources */ = {isa = PBXBuildFile; fileRef = E66122670E0EBC6FB863578C /* porsche.png */; };
+		33654B122309EDD6F7D8BE28 /* ComingSoonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C5F5C50355222D9D6DF0994 /* ComingSoonViews.swift */; };
+		3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752BFE6312112CAD041949AD /* InboxCardTests.swift */; };
+		3D614FC2EF6A55EFEFA44081 /* LocationPlacesField.swift in Sources */ = {isa = PBXBuildFile; fileRef = D830E2203D41414812EA0ABD /* LocationPlacesField.swift */; };
 		3E35EB166AAD1D6BFAA2627B /* AvailabilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8915303B176A0042571DFD /* AvailabilityView.swift */; };
+		3F1F9A5B3AB2EEF55557FF64 /* dacia.png in Resources */ = {isa = PBXBuildFile; fileRef = 6908AD7CEA32E546D96AA6DE /* dacia.png */; };
 		4115A779ED82ABB923ED29BB /* SuezOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */; };
 		41FF31B1846901FBA9BDC8D0 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2598AE3CB5C5538DD160252 /* AppModel.swift */; };
+		4402C71A5F3EB9B662198704 /* suzuki.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ACEE8BA593E67205C42DE27 /* suzuki.png */; };
+		443B7768A66BAC0312412DBC /* mini.png in Resources */ = {isa = PBXBuildFile; fileRef = 35F5F4074F2514B25B7215FE /* mini.png */; };
+		47D296FF6CE5B7F659037B51 /* cadillac.png in Resources */ = {isa = PBXBuildFile; fileRef = 5ED8144A8AC7CC914314B8BD /* cadillac.png */; };
+		4EC529D19C279041144BE647 /* FullSweepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */; };
+		5050CA2BBBC131556B2DA37E /* kia.png in Resources */ = {isa = PBXBuildFile; fileRef = C8D90932C77DAA3AAAD17F46 /* kia.png */; };
+		522265FB5B37CB43C9849C6C /* jaguar.png in Resources */ = {isa = PBXBuildFile; fileRef = A12B763E5909EA1037C6B341 /* jaguar.png */; };
+		523EAA203FEE7FFE3E61CECD /* mercedes-benz.png in Resources */ = {isa = PBXBuildFile; fileRef = 0631C0DD49764B99933DD0CC /* mercedes-benz.png */; };
+		5548C934098A3EC4884D0517 /* ViewAsSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DFAF114360AC0CBF14BFFD2 /* ViewAsSheets.swift */; };
+		56CEC53A1AAFC04D24551450 /* PushRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1300700D640CA6A5831717 /* PushRegistration.swift */; };
+		5BE1A094AA18B71C9BEFB3EF /* hyundai.png in Resources */ = {isa = PBXBuildFile; fileRef = 7EB01274F78616CA3F04BDC4 /* hyundai.png */; };
+		67246150EF63BE59AF8C5D9C /* skoda.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E899B2F909C0813614A33F6 /* skoda.png */; };
+		689A2B8AF8C9E41D0CCE8189 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EFE7E44232604A77B667971 /* WebKit.framework */; };
+		695CC5249E7484AB5B6D73F4 /* UnitShiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB02F0AFB85B036BF514663 /* UnitShiftsView.swift */; };
+		6B075DD19AFB83D8C71D764B /* cupra.png in Resources */ = {isa = PBXBuildFile; fileRef = AA7DC4434F87F0DCB84DFBF7 /* cupra.png */; };
+		6DFED523FC31020288E92AE9 /* GooglePlaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD9F521F978C38639A5691B /* GooglePlaces.swift */; };
+		6E1A5A9BF2F13CE5B53BCD5E /* AdminUsersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 297A35FD79E95AFD3EABD6BC /* AdminUsersView.swift */; };
+		727811E114252483B8CE8BDA /* fiat.png in Resources */ = {isa = PBXBuildFile; fileRef = F3A3D3CB81ECCCB510F5C00D /* fiat.png */; };
 		729713569D334E3157C148AB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB83D7A01555CE80B3556CDB /* Theme.swift */; };
 		73CF00F65E4913CA823C6EB9 /* IBMPlexSansHebrew-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 678DAE6BE4F304171D76FEE0 /* IBMPlexSansHebrew-Medium.ttf */; };
 		75FD527C3B0036958A94E57B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C5845FC5A3C48BCF0F298F63 /* Supabase */; };
 		77F430C6B2ACA60C6D82A7BF /* LiveTrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F73989167E600C672451F9 /* LiveTrackView.swift */; };
+		7862559E820CC3E0A9E74D38 /* EventImageCompress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7923592FB8484388B803A4 /* EventImageCompress.swift */; };
+		7A59F24E86B7D9969864FD24 /* FillMediaTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3DA49446D40C99FA0B3EA4 /* FillMediaTab.swift */; };
 		7E1F7543AF4FB5BBC68BD962 /* YahpazApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */; };
+		80BB5EE381C93428B7DD0AE8 /* mitsubishi.png in Resources */ = {isa = PBXBuildFile; fileRef = C9FA52E7666EA649E9F4653E /* mitsubishi.png */; };
+		84102FF6C29D7E9FB53D962D /* ForceUpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 378F6D10DDE0B4F7898E12A4 /* ForceUpdateView.swift */; };
+		857EBEFF3469388277CB0F94 /* FillDraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EB7730EA23456EE6951AFA /* FillDraftStore.swift */; };
 		872C34052EF7571F438053CB /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1323069FBE38F80122C6D25D /* Components.swift */; };
+		87B8A29B737200487BE6A1A1 /* land-rover.png in Resources */ = {isa = PBXBuildFile; fileRef = 1923C3E839788B32D517F732 /* land-rover.png */; };
+		8AF0ADF8CAEDAC20B9CBC59C /* AppUpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F1289CF3AEEE61C2416C945 /* AppUpdateCheck.swift */; };
+		8C3B165F2F3989EE30339FD0 /* PlateScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 350C707B8D31EB701536B82B /* PlateScanView.swift */; };
+		8CB47A90E912776D92E5F375 /* ShiftFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DFD7D4D9E6C501D232C594A /* ShiftFormView.swift */; };
+		900971E3C1D791EEB7DBA22B /* opel.png in Resources */ = {isa = PBXBuildFile; fileRef = 57E45008D42BBF9E1549AD04 /* opel.png */; };
+		94B76984BF1D6C86BF5327D1 /* ReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3FA90F6D9D8BD2D071AAEFF /* ReportView.swift */; };
 		986E66942C394796BD5B163A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218839F2643327DCE9377825 /* ProfileView.swift */; };
+		A07CB325A9F446C659B6B6A2 /* renault.png in Resources */ = {isa = PBXBuildFile; fileRef = 6A01AA9373884945AB75F02F /* renault.png */; };
+		A107974998DE02097A8ACB69 /* audi.png in Resources */ = {isa = PBXBuildFile; fileRef = B6C270B888C9E2596C815909 /* audi.png */; };
+		A3124790FF07392A25796BFD /* QAHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C2BDB6090708E4849BCDEFC /* QAHarness.swift */; };
 		A7E07EBA5713DC715C4F1E0B /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71219BA6D29D59260C134B93 /* InboxView.swift */; };
 		A88EA3E3800BA06646B93551 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F142807897FEACAC43A4F1 /* Config.swift */; };
+		ADC4CC17151E3AE58E2AA3F0 /* chrysler.png in Resources */ = {isa = PBXBuildFile; fileRef = 4D1F07DD35755DBDA8576B60 /* chrysler.png */; };
+		B01DF29CB5767835CDC045DC /* EventFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C837C249FC6D563CB9D756 /* EventFormView.swift */; };
+		B26FC9E05AFB0E17FE556CDB /* citroen.png in Resources */ = {isa = PBXBuildFile; fileRef = A48B6CD91BB7D80F9B7BF4FC /* citroen.png */; };
+		B2C1BF4520AF17404C0D98EF /* genesis.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B517AD380949BBCBC3A4D9E /* genesis.png */; };
+		B3704A24A383D4DE7158B919 /* chevrolet.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C0ADA3DA11AE080E6ED50F7 /* chevrolet.png */; };
+		B548F2BA689302D10C5BBA18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75F8853C4028B26549D66F3 /* AppDelegate.swift */; };
+		B662168F33CB96808A32218A /* CarLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36970F3B20F3C924D15358FF /* CarLogoView.swift */; };
 		BFA660E39C6243A072FCE1C4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */; };
+		C43A009FC577F4FA02A57694 /* MyShiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE6CF9B3D12241CEDBB76F9 /* MyShiftsView.swift */; };
+		C61EA3E147CF40C1218ACD17 /* isuzu.png in Resources */ = {isa = PBXBuildFile; fileRef = 95344154C35C32E2192287E2 /* isuzu.png */; };
+		C6E168839161804F1DBAC9E5 /* tesla.png in Resources */ = {isa = PBXBuildFile; fileRef = 1CD42B757B7B38F1EBE1185D /* tesla.png */; };
 		C6FD9185988F136FB9CDAFE4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A60A9BA2B4BB03C6EBA47470 /* Assets.xcassets */; };
+		C8917FC72318AAE98BE6C553 /* byd.png in Resources */ = {isa = PBXBuildFile; fileRef = B7460539F2F63AF1D961923D /* byd.png */; };
+		CB13E2915D5605776AFDFCC3 /* ford.png in Resources */ = {isa = PBXBuildFile; fileRef = C1BEF66D4BB693437DAC534A /* ford.png */; };
+		CE1C0B4DB01B77B2B88B646E /* UnitEventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35D9DC15B1B840E605C401B /* UnitEventsView.swift */; };
+		CFBB4A79D540F39853BCFB56 /* acura.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E29C4AAFB97181FBD070374 /* acura.png */; };
+		DA00E58B22C7ABD4F386EA85 /* toyota.png in Resources */ = {isa = PBXBuildFile; fileRef = 194A87AF8C117EFFBD626F61 /* toyota.png */; };
+		DAB1312EE03008FA6025E5DE /* peugeot.png in Resources */ = {isa = PBXBuildFile; fileRef = 552A21E02B1E8A72B61D2D9B /* peugeot.png */; };
+		DDFF97751C02F9A0D0BF380B /* volkswagen.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A54FE7F80D92B250990A2C5 /* volkswagen.png */; };
+		E773C966FC3AC1B5ED15F0FB /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA78E149A3F270C25CCFC476 /* PrivacyPolicyView.swift */; };
+		E81E11AC97BDC6B21E6C1FF3 /* honda.png in Resources */ = {isa = PBXBuildFile; fileRef = 11347C775768DC270261893F /* honda.png */; };
+		E8E3EA5677A7B0111BC84B9A /* lexus.png in Resources */ = {isa = PBXBuildFile; fileRef = 5894DC5F39B090DC3D901407 /* lexus.png */; };
+		EBEFDAE6EE856DDF01E38892 /* ViewAsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10C40E130BC5ED7B032B2794 /* ViewAsStore.swift */; };
+		EE8671AF8D2452AAB461585E /* FormPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50295DF0C135A7A94A111C09 /* FormPickers.swift */; };
+		EEE289260B5D06EFE3FF3418 /* alfa-romeo.png in Resources */ = {isa = PBXBuildFile; fileRef = FA65732D93D8340BE117EFE4 /* alfa-romeo.png */; };
 		F0EA93A8938B91CEF1775435 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20CBB261BAF651A391E04B62 /* LoginView.swift */; };
+		F52C6812445042CDCAD71B61 /* smart.png in Resources */ = {isa = PBXBuildFile; fileRef = 257231422FFC19F07A23417F /* smart.png */; };
 		F72F8B8E95AFD0D604B444C3 /* FillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8868B33715C1E400A912305E /* FillView.swift */; };
+		F92F8EE486173CAF42428416 /* ssangyong.png in Resources */ = {isa = PBXBuildFile; fileRef = 1F78C4AD3DA2B25E38526CFB /* ssangyong.png */; };
+		FA097FD31830F27D901C8D86 /* jeep.png in Resources */ = {isa = PBXBuildFile; fileRef = 79435B281971A8353E233202 /* jeep.png */; };
 		FBEA3195F81A3ECC6416B880 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847870FA1511E83F00BEDFED /* LocationTracker.swift */; };
-		141555C6090FF1FE337D1BDE /* LicensePlateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41F47D3B774EE4227A553D2C /* LicensePlateView.swift */; };
-		2A864538CCC5F6EA2525A736 /* TreatedPlateModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */; };
+		FED27A4526286AC80BD42FF7 /* chery.png in Resources */ = {isa = PBXBuildFile; fileRef = BCC59C530B89141135007C44 /* chery.png */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		80ACCB5320970CCCEFD40A80 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 78AD59E3D64AB719371BA52A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 97565EAE6CEC2FCF73EB9074;
+			remoteInfo = Yahpaz;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		0631C0DD49764B99933DD0CC /* mercedes-benz.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mercedes-benz.png"; sourceTree = "<group>"; };
+		0EFE7E44232604A77B667971 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		0F2832BD0B04339F96CB82A4 /* yahpaz-ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yahpaz-ios"; path = .; sourceTree = SOURCE_ROOT; };
+		0F6E4AA12F2E7B6D29986B65 /* FeedbackSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheet.swift; sourceTree = "<group>"; };
+		10C40E130BC5ED7B032B2794 /* ViewAsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewAsStore.swift; sourceTree = "<group>"; };
+		11347C775768DC270261893F /* honda.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = honda.png; sourceTree = "<group>"; };
+		11B33AC17C75C05D7E91AE47 /* volvo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = volvo.png; sourceTree = "<group>"; };
+		11C645A1C8C794854C7B0290 /* seat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seat.png; sourceTree = "<group>"; };
 		1323069FBE38F80122C6D25D /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		1923C3E839788B32D517F732 /* land-rover.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "land-rover.png"; sourceTree = "<group>"; };
+		194A87AF8C117EFFBD626F61 /* toyota.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = toyota.png; sourceTree = "<group>"; };
+		1CD42B757B7B38F1EBE1185D /* tesla.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tesla.png; sourceTree = "<group>"; };
+		1DFD7D4D9E6C501D232C594A /* ShiftFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftFormView.swift; sourceTree = "<group>"; };
+		1F78C4AD3DA2B25E38526CFB /* ssangyong.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ssangyong.png; sourceTree = "<group>"; };
 		20CBB261BAF651A391E04B62 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		2119B064EE20C7795B4CB807 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		218839F2643327DCE9377825 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		21F142807897FEACAC43A4F1 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		257231422FFC19F07A23417F /* smart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smart.png; sourceTree = "<group>"; };
 		2574186A5FE0C909397F34D8 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		261880ABE3C67A03BCA45DC7 /* ReportsCatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsCatalogView.swift; sourceTree = "<group>"; };
+		297A35FD79E95AFD3EABD6BC /* AdminUsersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminUsersView.swift; sourceTree = "<group>"; };
+		2C7923592FB8484388B803A4 /* EventImageCompress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventImageCompress.swift; sourceTree = "<group>"; };
+		2D1300700D640CA6A5831717 /* PushRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistration.swift; sourceTree = "<group>"; };
+		2F1289CF3AEEE61C2416C945 /* AppUpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateCheck.swift; sourceTree = "<group>"; };
+		2F71AFC8AF52C362668F5271 /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
+		2F75CF7BF94531D68F5F34C3 /* DeepSweepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSweepTests.swift; sourceTree = "<group>"; };
+		3415EC75317871A639841DAE /* bmw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bmw.png; sourceTree = "<group>"; };
+		350C707B8D31EB701536B82B /* PlateScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateScanView.swift; sourceTree = "<group>"; };
+		35F5F4074F2514B25B7215FE /* mini.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mini.png; sourceTree = "<group>"; };
+		36970F3B20F3C924D15358FF /* CarLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarLogoView.swift; sourceTree = "<group>"; };
+		378F6D10DDE0B4F7898E12A4 /* ForceUpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForceUpdateView.swift; sourceTree = "<group>"; };
+		37FAFC28EE9C759C07424D6A /* Yahpaz-Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Yahpaz-Debug.entitlements"; sourceTree = "<group>"; };
+		3B3DA49446D40C99FA0B3EA4 /* FillMediaTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillMediaTab.swift; sourceTree = "<group>"; };
+		3C2BDB6090708E4849BCDEFC /* QAHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAHarness.swift; sourceTree = "<group>"; };
+		3E899B2F909C0813614A33F6 /* skoda.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = skoda.png; sourceTree = "<group>"; };
+		40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatedPlateModels.swift; sourceTree = "<group>"; };
+		41F47D3B774EE4227A553D2C /* LicensePlateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensePlateView.swift; sourceTree = "<group>"; };
+		4C0ADA3DA11AE080E6ED50F7 /* chevrolet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = chevrolet.png; sourceTree = "<group>"; };
+		4C5F5C50355222D9D6DF0994 /* ComingSoonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComingSoonViews.swift; sourceTree = "<group>"; };
+		4D1F07DD35755DBDA8576B60 /* chrysler.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = chrysler.png; sourceTree = "<group>"; };
+		50295DF0C135A7A94A111C09 /* FormPickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormPickers.swift; sourceTree = "<group>"; };
+		552A21E02B1E8A72B61D2D9B /* peugeot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = peugeot.png; sourceTree = "<group>"; };
 		565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		57E45008D42BBF9E1549AD04 /* opel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = opel.png; sourceTree = "<group>"; };
+		5894DC5F39B090DC3D901407 /* lexus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lexus.png; sourceTree = "<group>"; };
+		5DD9F521F978C38639A5691B /* GooglePlaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlaces.swift; sourceTree = "<group>"; };
+		5ED8144A8AC7CC914314B8BD /* cadillac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cadillac.png; sourceTree = "<group>"; };
 		64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SuezOne-Regular.ttf"; sourceTree = "<group>"; };
 		678DAE6BE4F304171D76FEE0 /* IBMPlexSansHebrew-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Medium.ttf"; sourceTree = "<group>"; };
+		6908AD7CEA32E546D96AA6DE /* dacia.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dacia.png; sourceTree = "<group>"; };
+		6A01AA9373884945AB75F02F /* renault.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = renault.png; sourceTree = "<group>"; };
+		6DFAF114360AC0CBF14BFFD2 /* ViewAsSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewAsSheets.swift; sourceTree = "<group>"; };
+		6FE6CF9B3D12241CEDBB76F9 /* MyShiftsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyShiftsView.swift; sourceTree = "<group>"; };
 		71219BA6D29D59260C134B93 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
+		752BFE6312112CAD041949AD /* InboxCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxCardTests.swift; sourceTree = "<group>"; };
+		767BA4B1801FFE14A002536B /* lincoln.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lincoln.png; sourceTree = "<group>"; };
 		76E883F5BF0EE8F11A8EBD47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		79435B281971A8353E233202 /* jeep.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = jeep.png; sourceTree = "<group>"; };
+		7E29C4AAFB97181FBD070374 /* acura.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = acura.png; sourceTree = "<group>"; };
+		7EB01274F78616CA3F04BDC4 /* hyundai.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = hyundai.png; sourceTree = "<group>"; };
+		7F3BD471EBC82059ADF298CD /* AdminShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminShellView.swift; sourceTree = "<group>"; };
 		847870FA1511E83F00BEDFED /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
+		86C837C249FC6D563CB9D756 /* EventFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventFormView.swift; sourceTree = "<group>"; };
+		872B2D99FE678B59DA4D7285 /* geely.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = geely.png; sourceTree = "<group>"; };
 		8868B33715C1E400A912305E /* FillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillView.swift; sourceTree = "<group>"; };
+		8A54FE7F80D92B250990A2C5 /* volkswagen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = volkswagen.png; sourceTree = "<group>"; };
+		8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullSweepTests.swift; sourceTree = "<group>"; };
 		91BD24328991DAF45C72E03A /* Yahpaz.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Yahpaz.entitlements; sourceTree = "<group>"; };
 		949406EE1DD844BB4AABCA09 /* IBMPlexSansHebrew-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Bold.ttf"; sourceTree = "<group>"; };
+		95344154C35C32E2192287E2 /* isuzu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = isuzu.png; sourceTree = "<group>"; };
+		97E1A7A6A31678D967EC1CF6 /* nissan.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = nissan.png; sourceTree = "<group>"; };
+		9ACEE8BA593E67205C42DE27 /* suzuki.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = suzuki.png; sourceTree = "<group>"; };
+		9B517AD380949BBCBC3A4D9E /* genesis.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = genesis.png; sourceTree = "<group>"; };
+		9BB02F0AFB85B036BF514663 /* UnitShiftsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitShiftsView.swift; sourceTree = "<group>"; };
 		A0753CA283E13CC4A2DD6492 /* Yahpaz.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Yahpaz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0D7DFD0B5FB86D2911B8204 /* subaru.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = subaru.png; sourceTree = "<group>"; };
+		A12B763E5909EA1037C6B341 /* jaguar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = jaguar.png; sourceTree = "<group>"; };
 		A2598AE3CB5C5538DD160252 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		A28CDDCFE8A67ED88B771DD6 /* IBMPlexSansHebrew-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-SemiBold.ttf"; sourceTree = "<group>"; };
+		A48B6CD91BB7D80F9B7BF4FC /* citroen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = citroen.png; sourceTree = "<group>"; };
 		A60A9BA2B4BB03C6EBA47470 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A75F8853C4028B26549D66F3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A7EB3ECE86CE0F255637C37F /* infiniti.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = infiniti.png; sourceTree = "<group>"; };
+		AA294E7BEE02B0B5276FA1F8 /* mg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mg.png; sourceTree = "<group>"; };
+		AA7DC4434F87F0DCB84DFBF7 /* cupra.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cupra.png; sourceTree = "<group>"; };
+		B6C270B888C9E2596C815909 /* audi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = audi.png; sourceTree = "<group>"; };
+		B7460539F2F63AF1D961923D /* byd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = byd.png; sourceTree = "<group>"; };
+		BA78E149A3F270C25CCFC476 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		BB8915303B176A0042571DFD /* AvailabilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailabilityView.swift; sourceTree = "<group>"; };
+		BCC59C530B89141135007C44 /* chery.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = chery.png; sourceTree = "<group>"; };
 		BCE6920A7A69D4EB75444497 /* IBMPlexMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Medium.ttf"; sourceTree = "<group>"; };
+		C1BEF66D4BB693437DAC534A /* ford.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ford.png; sourceTree = "<group>"; };
 		C21920944C2DB0146A29F68D /* YahpazAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YahpazAPI.swift; sourceTree = "<group>"; };
+		C35D9DC15B1B840E605C401B /* UnitEventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitEventsView.swift; sourceTree = "<group>"; };
+		C8D90932C77DAA3AAAD17F46 /* kia.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kia.png; sourceTree = "<group>"; };
+		C9FA52E7666EA649E9F4653E /* mitsubishi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mitsubishi.png; sourceTree = "<group>"; };
 		CB83D7A01555CE80B3556CDB /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		CB921B968CF788CDAC0D711F /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
 		CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YahpazApp.swift; sourceTree = "<group>"; };
 		CE6FB3FC3AD7CC65FE0837B1 /* IBMPlexSansHebrew-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexSansHebrew-Regular.ttf"; sourceTree = "<group>"; };
 		D4F73989167E600C672451F9 /* LiveTrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTrackView.swift; sourceTree = "<group>"; };
-		41F47D3B774EE4227A553D2C /* LicensePlateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensePlateView.swift; sourceTree = "<group>"; };
-		40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatedPlateModels.swift; sourceTree = "<group>"; };
+		D830E2203D41414812EA0ABD /* LocationPlacesField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPlacesField.swift; sourceTree = "<group>"; };
+		D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingVisibilityTests.swift; sourceTree = "<group>"; };
+		DBB2B73F08EC19057C697AE7 /* dodge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dodge.png; sourceTree = "<group>"; };
+		E2244F10216597A8FDF0D7AB /* mazda.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mazda.png; sourceTree = "<group>"; };
+		E66122670E0EBC6FB863578C /* porsche.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = porsche.png; sourceTree = "<group>"; };
+		F3A3D3CB81ECCCB510F5C00D /* fiat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fiat.png; sourceTree = "<group>"; };
+		F3FA90F6D9D8BD2D071AAEFF /* ReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportView.swift; sourceTree = "<group>"; };
+		F505BD34F2858A4A8F306193 /* YahpazUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = YahpazUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5EB7730EA23456EE6951AFA /* FillDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillDraftStore.swift; sourceTree = "<group>"; };
+		FA65732D93D8340BE117EFE4 /* alfa-romeo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "alfa-romeo.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +249,7 @@
 			files = (
 				0F3921D04288E48D59ABBF03 /* YahpazDomain in Frameworks */,
 				75FD527C3B0036958A94E57B /* Supabase in Frameworks */,
+				689A2B8AF8C9E41D0CCE8189 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,6 +267,7 @@
 				A28CDDCFE8A67ED88B771DD6 /* IBMPlexSansHebrew-SemiBold.ttf */,
 				565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */,
 				64F23D219224CA4F36ADE861 /* SuezOne-Regular.ttf */,
+				73F9D999EC8D1C53D3AF7F30 /* car-logos */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -103,6 +277,8 @@
 			children = (
 				ABAD25819AFCDF114AB02B8F /* App */,
 				1CB207F3813D844508884F58 /* Packages */,
+				EAEDDF21C01F020EAD33FD03 /* UITests */,
+				82E646B9C1E446FA0601B42E /* Frameworks */,
 				576B18EACE6B0F93AF766887 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -119,6 +295,7 @@
 			isa = PBXGroup;
 			children = (
 				A0753CA283E13CC4A2DD6492 /* Yahpaz.app */,
+				F505BD34F2858A4A8F306193 /* YahpazUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -126,15 +303,94 @@
 		599D1EEE21BC2B4E8C85B3B5 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				7F3BD471EBC82059ADF298CD /* AdminShellView.swift */,
+				297A35FD79E95AFD3EABD6BC /* AdminUsersView.swift */,
 				BB8915303B176A0042571DFD /* AvailabilityView.swift */,
+				4C5F5C50355222D9D6DF0994 /* ComingSoonViews.swift */,
+				2F71AFC8AF52C362668F5271 /* ContactsView.swift */,
+				86C837C249FC6D563CB9D756 /* EventFormView.swift */,
+				0F6E4AA12F2E7B6D29986B65 /* FeedbackSheet.swift */,
+				3B3DA49446D40C99FA0B3EA4 /* FillMediaTab.swift */,
 				8868B33715C1E400A912305E /* FillView.swift */,
+				378F6D10DDE0B4F7898E12A4 /* ForceUpdateView.swift */,
 				71219BA6D29D59260C134B93 /* InboxView.swift */,
 				D4F73989167E600C672451F9 /* LiveTrackView.swift */,
 				20CBB261BAF651A391E04B62 /* LoginView.swift */,
+				6FE6CF9B3D12241CEDBB76F9 /* MyShiftsView.swift */,
+				350C707B8D31EB701536B82B /* PlateScanView.swift */,
+				BA78E149A3F270C25CCFC476 /* PrivacyPolicyView.swift */,
 				218839F2643327DCE9377825 /* ProfileView.swift */,
+				261880ABE3C67A03BCA45DC7 /* ReportsCatalogView.swift */,
+				F3FA90F6D9D8BD2D071AAEFF /* ReportView.swift */,
 				2574186A5FE0C909397F34D8 /* RootView.swift */,
+				1DFD7D4D9E6C501D232C594A /* ShiftFormView.swift */,
+				C35D9DC15B1B840E605C401B /* UnitEventsView.swift */,
+				9BB02F0AFB85B036BF514663 /* UnitShiftsView.swift */,
+				6DFAF114360AC0CBF14BFFD2 /* ViewAsSheets.swift */,
 			);
 			path = Screens;
+			sourceTree = "<group>";
+		};
+		73F9D999EC8D1C53D3AF7F30 /* car-logos */ = {
+			isa = PBXGroup;
+			children = (
+				7E29C4AAFB97181FBD070374 /* acura.png */,
+				FA65732D93D8340BE117EFE4 /* alfa-romeo.png */,
+				B6C270B888C9E2596C815909 /* audi.png */,
+				3415EC75317871A639841DAE /* bmw.png */,
+				B7460539F2F63AF1D961923D /* byd.png */,
+				5ED8144A8AC7CC914314B8BD /* cadillac.png */,
+				BCC59C530B89141135007C44 /* chery.png */,
+				4C0ADA3DA11AE080E6ED50F7 /* chevrolet.png */,
+				4D1F07DD35755DBDA8576B60 /* chrysler.png */,
+				A48B6CD91BB7D80F9B7BF4FC /* citroen.png */,
+				AA7DC4434F87F0DCB84DFBF7 /* cupra.png */,
+				6908AD7CEA32E546D96AA6DE /* dacia.png */,
+				DBB2B73F08EC19057C697AE7 /* dodge.png */,
+				F3A3D3CB81ECCCB510F5C00D /* fiat.png */,
+				C1BEF66D4BB693437DAC534A /* ford.png */,
+				872B2D99FE678B59DA4D7285 /* geely.png */,
+				9B517AD380949BBCBC3A4D9E /* genesis.png */,
+				11347C775768DC270261893F /* honda.png */,
+				7EB01274F78616CA3F04BDC4 /* hyundai.png */,
+				A7EB3ECE86CE0F255637C37F /* infiniti.png */,
+				95344154C35C32E2192287E2 /* isuzu.png */,
+				A12B763E5909EA1037C6B341 /* jaguar.png */,
+				79435B281971A8353E233202 /* jeep.png */,
+				C8D90932C77DAA3AAAD17F46 /* kia.png */,
+				1923C3E839788B32D517F732 /* land-rover.png */,
+				5894DC5F39B090DC3D901407 /* lexus.png */,
+				767BA4B1801FFE14A002536B /* lincoln.png */,
+				E2244F10216597A8FDF0D7AB /* mazda.png */,
+				0631C0DD49764B99933DD0CC /* mercedes-benz.png */,
+				AA294E7BEE02B0B5276FA1F8 /* mg.png */,
+				35F5F4074F2514B25B7215FE /* mini.png */,
+				C9FA52E7666EA649E9F4653E /* mitsubishi.png */,
+				97E1A7A6A31678D967EC1CF6 /* nissan.png */,
+				57E45008D42BBF9E1549AD04 /* opel.png */,
+				552A21E02B1E8A72B61D2D9B /* peugeot.png */,
+				E66122670E0EBC6FB863578C /* porsche.png */,
+				6A01AA9373884945AB75F02F /* renault.png */,
+				11C645A1C8C794854C7B0290 /* seat.png */,
+				3E899B2F909C0813614A33F6 /* skoda.png */,
+				257231422FFC19F07A23417F /* smart.png */,
+				1F78C4AD3DA2B25E38526CFB /* ssangyong.png */,
+				A0D7DFD0B5FB86D2911B8204 /* subaru.png */,
+				9ACEE8BA593E67205C42DE27 /* suzuki.png */,
+				1CD42B757B7B38F1EBE1185D /* tesla.png */,
+				194A87AF8C117EFFBD626F61 /* toyota.png */,
+				8A54FE7F80D92B250990A2C5 /* volkswagen.png */,
+				11B33AC17C75C05D7E91AE47 /* volvo.png */,
+			);
+			path = "car-logos";
+			sourceTree = "<group>";
+		};
+		82E646B9C1E446FA0601B42E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0EFE7E44232604A77B667971 /* WebKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		866208EEC3581E60BCA731D2 /* Theme */ = {
@@ -148,8 +404,11 @@
 		9F9A0B096F4E1F3372E73EB5 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				36970F3B20F3C924D15358FF /* CarLogoView.swift */,
 				1323069FBE38F80122C6D25D /* Components.swift */,
+				50295DF0C135A7A94A111C09 /* FormPickers.swift */,
 				41F47D3B774EE4227A553D2C /* LicensePlateView.swift */,
+				D830E2203D41414812EA0ABD /* LocationPlacesField.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -157,10 +416,13 @@
 		ABAD25819AFCDF114AB02B8F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				A75F8853C4028B26549D66F3 /* AppDelegate.swift */,
 				A2598AE3CB5C5538DD160252 /* AppModel.swift */,
 				A60A9BA2B4BB03C6EBA47470 /* Assets.xcassets */,
 				21F142807897FEACAC43A4F1 /* Config.swift */,
 				76E883F5BF0EE8F11A8EBD47 /* Info.plist */,
+				2D1300700D640CA6A5831717 /* PushRegistration.swift */,
+				37FAFC28EE9C759C07424D6A /* Yahpaz-Debug.entitlements */,
 				91BD24328991DAF45C72E03A /* Yahpaz.entitlements */,
 				CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */,
 				F49028005DB97F8363BFA318 /* API */,
@@ -173,11 +435,28 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		EAEDDF21C01F020EAD33FD03 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				2F75CF7BF94531D68F5F34C3 /* DeepSweepTests.swift */,
+				8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */,
+				752BFE6312112CAD041949AD /* InboxCardTests.swift */,
+				3C2BDB6090708E4849BCDEFC /* QAHarness.swift */,
+				D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
 		F49028005DB97F8363BFA318 /* API */ = {
 			isa = PBXGroup;
 			children = (
+				2F1289CF3AEEE61C2416C945 /* AppUpdateCheck.swift */,
+				2C7923592FB8484388B803A4 /* EventImageCompress.swift */,
+				F5EB7730EA23456EE6951AFA /* FillDraftStore.swift */,
+				5DD9F521F978C38639A5691B /* GooglePlaces.swift */,
 				2119B064EE20C7795B4CB807 /* Models.swift */,
 				40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */,
+				10C40E130BC5ED7B032B2794 /* ViewAsStore.swift */,
 				C21920944C2DB0146A29F68D /* YahpazAPI.swift */,
 			);
 			path = API;
@@ -194,6 +473,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0676CEC4DD57B51723F1106B /* YahpazUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2FCF09F7D85769753BDC9682 /* Build configuration list for PBXNativeTarget "YahpazUITests" */;
+			buildPhases = (
+				D4D76CF26D58F14F454F29B4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				39106EE1B45C929AF7C6BDC8 /* PBXTargetDependency */,
+			);
+			name = YahpazUITests;
+			packageProductDependencies = (
+			);
+			productName = YahpazUITests;
+			productReference = F505BD34F2858A4A8F306193 /* YahpazUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		97565EAE6CEC2FCF73EB9074 /* Yahpaz */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 22C45CA768DC4546EC5A5505 /* Build configuration list for PBXNativeTarget "Yahpaz" */;
@@ -224,6 +521,11 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					0676CEC4DD57B51723F1106B = {
+						DevelopmentTeam = 477WWCHXU7;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 97565EAE6CEC2FCF73EB9074;
+					};
 					97565EAE6CEC2FCF73EB9074 = {
 						DevelopmentTeam = 477WWCHXU7;
 						ProvisioningStyle = Automatic;
@@ -249,6 +551,7 @@
 			projectRoot = "";
 			targets = (
 				97565EAE6CEC2FCF73EB9074 /* Yahpaz */,
+				0676CEC4DD57B51723F1106B /* YahpazUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -267,6 +570,53 @@
 				24FDEA766250C67AFC9071E5 /* IBMPlexSansHebrew-SemiBold.ttf in Resources */,
 				BFA660E39C6243A072FCE1C4 /* PrivacyInfo.xcprivacy in Resources */,
 				4115A779ED82ABB923ED29BB /* SuezOne-Regular.ttf in Resources */,
+				CFBB4A79D540F39853BCFB56 /* acura.png in Resources */,
+				EEE289260B5D06EFE3FF3418 /* alfa-romeo.png in Resources */,
+				A107974998DE02097A8ACB69 /* audi.png in Resources */,
+				1EF93696B01BEB7B44DECE3F /* bmw.png in Resources */,
+				C8917FC72318AAE98BE6C553 /* byd.png in Resources */,
+				47D296FF6CE5B7F659037B51 /* cadillac.png in Resources */,
+				FED27A4526286AC80BD42FF7 /* chery.png in Resources */,
+				B3704A24A383D4DE7158B919 /* chevrolet.png in Resources */,
+				ADC4CC17151E3AE58E2AA3F0 /* chrysler.png in Resources */,
+				B26FC9E05AFB0E17FE556CDB /* citroen.png in Resources */,
+				6B075DD19AFB83D8C71D764B /* cupra.png in Resources */,
+				3F1F9A5B3AB2EEF55557FF64 /* dacia.png in Resources */,
+				0D6A5399022B69306790B2B1 /* dodge.png in Resources */,
+				727811E114252483B8CE8BDA /* fiat.png in Resources */,
+				CB13E2915D5605776AFDFCC3 /* ford.png in Resources */,
+				052158B815478D5DA09C9BBA /* geely.png in Resources */,
+				B2C1BF4520AF17404C0D98EF /* genesis.png in Resources */,
+				E81E11AC97BDC6B21E6C1FF3 /* honda.png in Resources */,
+				5BE1A094AA18B71C9BEFB3EF /* hyundai.png in Resources */,
+				0ED9AA2BD8543E8C1AD86510 /* infiniti.png in Resources */,
+				C61EA3E147CF40C1218ACD17 /* isuzu.png in Resources */,
+				522265FB5B37CB43C9849C6C /* jaguar.png in Resources */,
+				FA097FD31830F27D901C8D86 /* jeep.png in Resources */,
+				5050CA2BBBC131556B2DA37E /* kia.png in Resources */,
+				87B8A29B737200487BE6A1A1 /* land-rover.png in Resources */,
+				E8E3EA5677A7B0111BC84B9A /* lexus.png in Resources */,
+				266B09192833F9638DA47E95 /* lincoln.png in Resources */,
+				2C8554BD954D31810AC0F983 /* mazda.png in Resources */,
+				523EAA203FEE7FFE3E61CECD /* mercedes-benz.png in Resources */,
+				004C48DB3F21B2170472A8CC /* mg.png in Resources */,
+				443B7768A66BAC0312412DBC /* mini.png in Resources */,
+				80BB5EE381C93428B7DD0AE8 /* mitsubishi.png in Resources */,
+				08890DE768D747B264F39879 /* nissan.png in Resources */,
+				900971E3C1D791EEB7DBA22B /* opel.png in Resources */,
+				DAB1312EE03008FA6025E5DE /* peugeot.png in Resources */,
+				2DAA671F9512734FBBBBAF7E /* porsche.png in Resources */,
+				A07CB325A9F446C659B6B6A2 /* renault.png in Resources */,
+				07B001E9D456BD086930436A /* seat.png in Resources */,
+				67246150EF63BE59AF8C5D9C /* skoda.png in Resources */,
+				F52C6812445042CDCAD71B61 /* smart.png in Resources */,
+				F92F8EE486173CAF42428416 /* ssangyong.png in Resources */,
+				146E4929386FAB4C3683F7E8 /* subaru.png in Resources */,
+				4402C71A5F3EB9B662198704 /* suzuki.png in Resources */,
+				C6E168839161804F1DBAC9E5 /* tesla.png in Resources */,
+				DA00E58B22C7ABD4F386EA85 /* toyota.png in Resources */,
+				DDFF97751C02F9A0D0BF380B /* volkswagen.png in Resources */,
+				08B72D316369712BFEBD1CE8 /* volvo.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -277,27 +627,74 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1EA8A9700F80F2AECA2F3617 /* AdminShellView.swift in Sources */,
+				6E1A5A9BF2F13CE5B53BCD5E /* AdminUsersView.swift in Sources */,
+				B548F2BA689302D10C5BBA18 /* AppDelegate.swift in Sources */,
 				41FF31B1846901FBA9BDC8D0 /* AppModel.swift in Sources */,
+				8AF0ADF8CAEDAC20B9CBC59C /* AppUpdateCheck.swift in Sources */,
 				3E35EB166AAD1D6BFAA2627B /* AvailabilityView.swift in Sources */,
+				B662168F33CB96808A32218A /* CarLogoView.swift in Sources */,
+				33654B122309EDD6F7D8BE28 /* ComingSoonViews.swift in Sources */,
 				872C34052EF7571F438053CB /* Components.swift in Sources */,
-				141555C6090FF1FE337D1BDE /* LicensePlateView.swift in Sources */,
-				2A864538CCC5F6EA2525A736 /* TreatedPlateModels.swift in Sources */,
 				A88EA3E3800BA06646B93551 /* Config.swift in Sources */,
+				1C2672325B4E22F58E9EEEDC /* ContactsView.swift in Sources */,
+				B01DF29CB5767835CDC045DC /* EventFormView.swift in Sources */,
+				7862559E820CC3E0A9E74D38 /* EventImageCompress.swift in Sources */,
+				071912806B9B8E476FE5DB2C /* FeedbackSheet.swift in Sources */,
+				857EBEFF3469388277CB0F94 /* FillDraftStore.swift in Sources */,
+				7A59F24E86B7D9969864FD24 /* FillMediaTab.swift in Sources */,
 				F72F8B8E95AFD0D604B444C3 /* FillView.swift in Sources */,
+				84102FF6C29D7E9FB53D962D /* ForceUpdateView.swift in Sources */,
+				EE8671AF8D2452AAB461585E /* FormPickers.swift in Sources */,
+				6DFED523FC31020288E92AE9 /* GooglePlaces.swift in Sources */,
 				A7E07EBA5713DC715C4F1E0B /* InboxView.swift in Sources */,
+				141555C6090FF1FE337D1BDE /* LicensePlateView.swift in Sources */,
 				77F430C6B2ACA60C6D82A7BF /* LiveTrackView.swift in Sources */,
+				3D614FC2EF6A55EFEFA44081 /* LocationPlacesField.swift in Sources */,
 				FBEA3195F81A3ECC6416B880 /* LocationTracker.swift in Sources */,
 				F0EA93A8938B91CEF1775435 /* LoginView.swift in Sources */,
 				2950B2FC2785594EC2096F0B /* Models.swift in Sources */,
+				C43A009FC577F4FA02A57694 /* MyShiftsView.swift in Sources */,
+				8C3B165F2F3989EE30339FD0 /* PlateScanView.swift in Sources */,
+				E773C966FC3AC1B5ED15F0FB /* PrivacyPolicyView.swift in Sources */,
 				986E66942C394796BD5B163A /* ProfileView.swift in Sources */,
+				56CEC53A1AAFC04D24551450 /* PushRegistration.swift in Sources */,
+				94B76984BF1D6C86BF5327D1 /* ReportView.swift in Sources */,
+				07C1B740A25EF587AE88BE1A /* ReportsCatalogView.swift in Sources */,
 				00E8BC6C2270157F47FF509C /* RootView.swift in Sources */,
+				8CB47A90E912776D92E5F375 /* ShiftFormView.swift in Sources */,
 				729713569D334E3157C148AB /* Theme.swift in Sources */,
+				2A864538CCC5F6EA2525A736 /* TreatedPlateModels.swift in Sources */,
+				CE1C0B4DB01B77B2B88B646E /* UnitEventsView.swift in Sources */,
+				695CC5249E7484AB5B6D73F4 /* UnitShiftsView.swift in Sources */,
+				5548C934098A3EC4884D0517 /* ViewAsSheets.swift in Sources */,
+				EBEFDAE6EE856DDF01E38892 /* ViewAsStore.swift in Sources */,
 				17B4EAC88AAC44697D8E6DD1 /* YahpazAPI.swift in Sources */,
 				7E1F7543AF4FB5BBC68BD962 /* YahpazApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D4D76CF26D58F14F454F29B4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2534D3D036631FCA5AB7EC37 /* DeepSweepTests.swift in Sources */,
+				4EC529D19C279041144BE647 /* FullSweepTests.swift in Sources */,
+				3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */,
+				A3124790FF07392A25796BFD /* QAHarness.swift in Sources */,
+				2961442E9BA6D68BB89301A7 /* TypingVisibilityTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		39106EE1B45C929AF7C6BDC8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 97565EAE6CEC2FCF73EB9074 /* Yahpaz */;
+			targetProxy = 80ACCB5320970CCCEFD40A80 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		65B3E3F6F8372701600929F4 /* Release */ = {
@@ -359,6 +756,25 @@
 			};
 			name = Release;
 		};
+		89DD11EC7FBCC45CF9578F73 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 477WWCHXU7;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Yahpaz;
+			};
+			name = Release;
+		};
 		8B0D9ABC6D4E9AD9E45E64A1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -367,7 +783,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Yahpaz.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
@@ -376,12 +792,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder;
 				PRODUCT_NAME = Yahpaz;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -456,10 +872,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = App/Yahpaz.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "App/Yahpaz-Debug.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
@@ -468,12 +884,31 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder;
 				PRODUCT_NAME = Yahpaz;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		EB28F08717C410C317210AB0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 477WWCHXU7;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yahpz.responder.uitests;
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Yahpaz;
 			};
 			name = Debug;
 		};
@@ -485,6 +920,15 @@
 			buildConfigurations = (
 				EAB5F66E42F4275CCC114173 /* Debug */,
 				8B0D9ABC6D4E9AD9E45E64A1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2FCF09F7D85769753BDC9682 /* Build configuration list for PBXNativeTarget "YahpazUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EB28F08717C410C317210AB0 /* Debug */,
+				89DD11EC7FBCC45CF9578F73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -10,7 +10,7 @@ final class TreatedPlatesTests: XCTestCase {
         XCTAssertEqual(plate.plateNumber, "12-345-67")
         XCTAssertNil(plate.model)
         XCTAssertNil(plate.color)
-        XCTAssertEqual(plates, [TreatedPlate(plateNumber: "12-345-67", model: nil, color: nil)])
+        XCTAssertEqual(plates, [TreatedPlate(plateNumber: "12-345-67", model: nil, color: nil, leftWhere: nil)])
     }
 
     func testCommitFormats8DigitsWithHyphens() {
@@ -30,7 +30,7 @@ final class TreatedPlatesTests: XCTestCase {
     }
 
     func testCommitRejectsDuplicateByDigits() {
-        let existing = [TreatedPlate(plateNumber: "12-345-67", model: nil, color: nil)]
+        let existing = [TreatedPlate(plateNumber: "12-345-67", model: nil, color: nil, leftWhere: nil)]
         let result = commitTreatedPlate(pending: "1234567", plates: existing)
         guard case let .error(message) = result else {
             return XCTFail("expected error")
@@ -65,9 +65,59 @@ final class TreatedPlatesTests: XCTestCase {
 
     func testRemoveDropsByDigitMatch() {
         let plates = [
-            TreatedPlate(plateNumber: "12-345-67", model: nil, color: nil),
-            TreatedPlate(plateNumber: "713-86-301", model: "REXTON", color: "שחור"),
+            TreatedPlate(plateNumber: "12-345-67", model: nil, color: nil, leftWhere: nil),
+            TreatedPlate(plateNumber: "713-86-301", model: "REXTON", color: "שחור", leftWhere: nil),
         ]
         XCTAssertEqual(removeTreatedPlate(plates, plateDigitsKey: "1234567"), [plates[1]])
+    }
+
+    func testApplyLookupSetsManufacturerAndLogoSlug() {
+        let plates = [TreatedPlate(plateNumber: "713-86-301")]
+        let next = applyTreatedPlateLookup(
+            plates,
+            plateDigitsKey: "71386301",
+            hit: PlateLookupHit(model: "REXTON", color: "שחור", manufacturer: "סאנגיונג ד.קור")
+        )
+        XCTAssertEqual(
+            next,
+            [
+                TreatedPlate(
+                    plateNumber: "713-86-301",
+                    model: "REXTON",
+                    color: "שחור",
+                    manufacturer: "סאנגיונג ד.קור",
+                    logoSlug: "ssangyong"
+                ),
+            ]
+        )
+    }
+
+    func testMapRowsOrdersBySortOrderAndResolvesLogo() {
+        let rows = [
+            TreatedPlateRowInput(
+                plateNumber: "713-86-301",
+                model: "REXTON",
+                color: "שחור",
+                leftWhere: nil,
+                manufacturer: "סאנגיונג ד.קור",
+                logoSlug: "ssangyong",
+                sortOrder: 1
+            ),
+            TreatedPlateRowInput(plateNumber: "12-345-67", model: nil, color: nil, leftWhere: nil, sortOrder: 0),
+            TreatedPlateRowInput(plateNumber: "  ", model: nil, color: nil, sortOrder: 2),
+        ]
+        XCTAssertEqual(
+            mapTreatedPlateRows(rows),
+            [
+                TreatedPlate(plateNumber: "12-345-67"),
+                TreatedPlate(
+                    plateNumber: "713-86-301",
+                    model: "REXTON",
+                    color: "שחור",
+                    manufacturer: "סאנגיונג ד.קור",
+                    logoSlug: "ssangyong"
+                ),
+            ]
+        )
     }
 }

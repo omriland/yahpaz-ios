@@ -2,6 +2,7 @@
 .build/
 .swiftpm/
 DerivedData/
+.derivedData/
 dist/
 *.xcuserstate
 xcuserdata/
@@ -20,3 +21,4 @@ fastlane/test_output
 .env.local
 Config.local.xcconfig
 App/Secrets.plist
+*.p8

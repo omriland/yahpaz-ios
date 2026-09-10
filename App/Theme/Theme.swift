@@ -41,16 +41,27 @@ enum CommandTheme {
     static let strong = Color(hex: 0xF2F6FA).opacity(0.45)
 }
 
+/// PostScript names, not family names. CoreText resolves a family for SwiftUI `Text`, but
+/// `UIFont(name:)` returns nil for one, so anything bridged into UIKit silently loses the
+/// face. Each weight maps to its own file rather than being synthesised with `.weight()`.
 enum TypeScale {
-    static let brand = Font.custom("Suez One", size: 44)
-    static let title = Font.custom("IBM Plex Sans Hebrew", size: 22).weight(.bold)
-    static let section = Font.custom("IBM Plex Sans Hebrew", size: 17).weight(.semibold)
-    static let body = Font.custom("IBM Plex Sans Hebrew", size: 16)
-    static let bodyStrong = Font.custom("IBM Plex Sans Hebrew", size: 16).weight(.semibold)
-    static let label = Font.custom("IBM Plex Sans Hebrew", size: 13).weight(.medium)
-    static let caption = Font.custom("IBM Plex Sans Hebrew", size: 12)
-    static let stamp = Font.custom("IBM Plex Sans Hebrew", size: 12).weight(.bold)
-    static let numeric = Font.custom("IBM Plex Mono", size: 16)
+    static let brand = Font.custom("SuezOne-Regular", size: 44)
+    static let title = Font.custom("IBMPlexSansHebrew-Bold", size: 22)
+    static let section = Font.custom("IBMPlexSansHebrew-SemiBold", size: 17)
+    static let body = Font.custom("IBMPlexSansHebrew-Regular", size: 16)
+    static let bodyStrong = Font.custom("IBMPlexSansHebrew-SemiBold", size: 16)
+    static let label = Font.custom("IBMPlexSansHebrew-Medium", size: 13)
+    static let caption = Font.custom("IBMPlexSansHebrew-Regular", size: 12)
+    static let stamp = Font.custom("IBMPlexSansHebrew-Bold", size: 12)
+    static let numeric = Font.custom("IBMPlexMono-Regular", size: 16)
+}
+
+/// UIKit twins for the faces used by text input.
+enum UIFontScale {
+    static let body = UIFont(name: "IBMPlexSansHebrew-Regular", size: 16)
+        ?? .systemFont(ofSize: 16)
+    static let numeric = UIFont(name: "IBMPlexMono-Regular", size: 16)
+        ?? .monospacedSystemFont(ofSize: 16, weight: .regular)
 }
 
 extension Color {
@@ -72,6 +83,7 @@ extension StampTone {
         case .partial: return FieldTheme.partial
         case .pending: return FieldTheme.pending
         case .draft: return FieldTheme.draft
+        case .alert: return FieldTheme.alert
         }
     }
 
@@ -81,6 +93,7 @@ extension StampTone {
         case .partial: return FieldTheme.partialTint
         case .pending: return FieldTheme.accentSubtle
         case .draft: return FieldTheme.sunken
+        case .alert: return FieldTheme.alertTint
         }
     }
 }

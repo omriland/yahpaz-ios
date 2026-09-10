@@ -12,13 +12,21 @@ struct LoginView: View {
     enum Mode { case signin, reset, resetSent }
 
     var body: some View {
-        ZStack {
-            CommandTheme.page.ignoresSafeArea()
-            VStack(spacing: 32) {
-                masthead
-                card
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 32) {
+                    masthead
+                    card
+                    PrivacyPolicyLink(command: true, onOpen: { app.openPrivacy() })
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 24)
             }
-            .padding(.horizontal, 16)
+            .yahpazFormScroll()
+            .yahpazKeyboardAccessory()
+            .scrollContentBackground(.hidden)
+            .background(CommandTheme.page.ignoresSafeArea())
+            .yahpazRootNavigationBarHidden()
         }
     }
 
@@ -64,20 +72,23 @@ struct LoginView: View {
                     error = nil
                 }
             } else {
-                FormField(label: "דוא״ל", keyboard: .emailAddress, text: $email)
-                    .textContentType(.username)
-                    .environment(\.layoutDirection, .leftToRight)
+                FormField(
+                    label: "דוא״ל",
+                    keyboard: .emailAddress,
+                    ltr: true,
+                    submit: mode == .signin ? .next : .go,
+                    contentType: .username,
+                    onSubmit: { if mode != .signin { Task { await submit() } } },
+                    text: $email
+                )
                 if mode == .signin {
-                    SecureField("סיסמה", text: $password)
-                        .font(TypeScale.body)
-                        .textContentType(.password)
-                        .padding(.horizontal, 12)
-                        .frame(minHeight: 44)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .stroke(FieldTheme.strong, lineWidth: 1)
-                        )
-                        .environment(\.layoutDirection, .leftToRight)
+                    SecureFormField(
+                        label: "סיסמה",
+                        contentType: .password,
+                        submit: .go,
+                        onSubmit: { Task { await submit() } },
+                        text: $password
+                    )
                 }
                 PrimaryButton(
                     title: mode == .signin ? "כניסה" : "שליחת קישור",
@@ -105,9 +116,9 @@ struct LoginView: View {
     private func submit() async {
         busy = true
         error = nil
-        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = normalizeLoginEmail(email)
         if mode == .signin {
-            error = await app.signIn(email: trimmed, password: password)
+            error = await app.signIn(email: trimmed, password: normalizeLoginSecret(password))
         } else {
             if let message = await YahpazAPI.shared.requestPasswordReset(email: trimmed) {
                 error = message
