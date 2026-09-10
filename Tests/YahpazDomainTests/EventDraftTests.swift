@@ -163,6 +163,24 @@ final class EventDraftTests: XCTestCase {
         XCTAssertEqual(EVENT_EDIT_TITLE, "עריכת אירוע")
         XCTAssertEqual(EVENT_SAVE_TITLE, "שמירת אירוע")
         XCTAssertEqual(EVENT_SAVE_DRAFT_TITLE, "שמירת טיוטה")
+        XCTAssertEqual(EVENT_CREATE_TITLE, "יצירת אירוע")
+        XCTAssertEqual(EVENT_CREATE_DRAFT_TITLE, "שמירה כטיוטה")
+        XCTAssertEqual(eventFormPrimaryTitle(editing: false), EVENT_CREATE_TITLE)
+        XCTAssertEqual(eventFormDraftTitle(editing: false), EVENT_CREATE_DRAFT_TITLE)
+        XCTAssertEqual(eventFormPrimaryTitle(editing: true), EVENT_SAVE_TITLE)
+        XCTAssertEqual(eventFormDraftTitle(editing: true), EVENT_SAVE_DRAFT_TITLE)
+        XCTAssertEqual(EVENT_FORM_DETAILS_SECTION, "פרטי האירוע")
+        XCTAssertEqual(EVENT_FORM_RESPONDERS_SECTION, "מתנדבים")
+        XCTAssertEqual(EVENT_TIMES_FIELD_NOTE, "שימו לב! מעתה הזנת זמנים תהיה עבור האירוע כולו ולא לכל מתנדב בנפרד")
+        XCTAssertEqual(
+            EVENT_TIMES_FIELD_TOOLTIP,
+            "זמן ההתחלה יהיה זמן היציאה של המתנדב הראשון וזמן הסיום יהיה זמן העזיבה של המתנדב האחרון"
+        )
+        XCTAssertEqual(
+            PATROL_CALLSIGN_FIELD_NOTE,
+            "אתם מתבקשים להזין או\"ק מלא של הניידת כולל קידומת (אביב, חוף וכו')"
+        )
+        XCTAssertEqual(LOCATION_FIELD_NOTE, "חדש! הזנת כביש באופן אוטומטי מבוסס על המיקום הנבחר")
         XCTAssertEqual(MY_ACTIVE_EVENTS_TITLE, "האירועים הפעילים שלי")
         XCTAssertEqual(EVENT_ASSIGN_OPEN, "מתנדבים")
         XCTAssertEqual(EVENT_ASSIGN_CLOSE, "סגירת הקצאה")

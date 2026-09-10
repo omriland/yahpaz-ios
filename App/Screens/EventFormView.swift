@@ -7,7 +7,11 @@ struct EventFormView: View {
 
     @State private var eventDate = returnDateToInput(israelToday())
     @State private var policeEventId = ""
-    @State private var patrolCallsign = ""
+    @State private var patrolCallsignPrefix = ""
+    @State private var patrolCallsignNumber = ""
+    @State private var startTime = nowTimeJerusalem()
+    @State private var endTime = ""
+    @State private var createdEventId: String?
     @State private var eventTypeId = ""
     @State private var roadId = ""
     @State private var districtId = ""
@@ -44,6 +48,7 @@ struct EventFormView: View {
     @State private var detailResponderId: String?
 
     private var editing: Bool { eventId != nil }
+    private var persistedEventId: String? { eventId ?? createdEventId }
 
     private var foreignEditPending: Bool {
         editing && loaded && !loadFailed && !assignedBlocked
@@ -169,7 +174,7 @@ struct EventFormView: View {
     }
 
     private var fields: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             if editing {
                 FormCheckbox(
                     label: EVENT_CANCELLED_LABEL,
@@ -180,35 +185,79 @@ struct EventFormView: View {
                     if formError == nil { isCancelled = next }
                 }
             }
-            EventShiftLeadsFields(
-                roles: app.roles,
-                viewerId: app.userId,
-                eventExists: editing,
-                shiftLeadId: shiftLeadId,
-                shiftLeadName: shiftLeadName,
-                shiftLeadCallsign: shiftLeadCallsign,
-                secondaryLeads: secondaryLeads,
-                shiftLeadUsers: shiftLeadUsers
-            ) { mainId, mainName, mainCallsign, secondaries in
-                shiftLeadId = mainId
-                shiftLeadName = mainName
-                shiftLeadCallsign = mainCallsign
-                secondaryLeads = secondaries
+
+            EventFormSection(title: EVENT_FORM_LEADS_SECTION) {
+                EventShiftLeadsFields(
+                    roles: app.roles,
+                    viewerId: app.userId,
+                    eventExists: editing || createdEventId != nil,
+                    shiftLeadId: shiftLeadId,
+                    shiftLeadName: shiftLeadName,
+                    shiftLeadCallsign: shiftLeadCallsign,
+                    secondaryLeads: secondaryLeads,
+                    shiftLeadUsers: shiftLeadUsers
+                ) { mainId, mainName, mainCallsign, secondaries in
+                    shiftLeadId = mainId
+                    shiftLeadName = mainName
+                    shiftLeadCallsign = mainCallsign
+                    secondaryLeads = secondaries
+                }
             }
-            ReturnDateField(label: "תאריך", error: errors.eventDate, text: $eventDate)
-            HStack(alignment: .top, spacing: 12) {
-                FormField(label: "מספר אירוע", keyboard: .numberPad, mono: true, text: $policeEventId)
-                FormField(label: EVENT_PATROL_CALLSIGN_LABEL, keyboard: .numberPad, mono: true, text: $patrolCallsign)
-            }
-            HStack(alignment: .top, spacing: 12) {
-                LookupPickerField(
-                    label: "סוג אירוע",
-                    options: app.lookups.eventTypes,
-                    selectedId: eventTypeId,
-                    placeholder: "בחירת סוג",
-                    searchPlaceholder: "חיפוש סוג אירוע",
-                    error: errors.eventType
-                ) { eventTypeId = $0 }
+
+            EventFormSection(title: EVENT_FORM_DETAILS_SECTION) {
+                ReturnDateField(label: "תאריך", error: errors.eventDate, text: $eventDate)
+
+                EventFormTwoColumn {
+                    LookupPickerField(
+                        label: "סוג אירוע",
+                        options: app.lookups.eventTypes,
+                        selectedId: eventTypeId,
+                        placeholder: "בחירת סוג",
+                        searchPlaceholder: "חיפוש סוג אירוע",
+                        error: errors.eventType
+                    ) { eventTypeId = $0 }
+                } trailing: {
+                    FormField(
+                        label: "מספר אירוע",
+                        keyboard: .numberPad,
+                        mono: true,
+                        text: Binding(
+                            get: { policeEventId },
+                            set: { policeEventId = String(digitsOnly($0).prefix(7)) }
+                        )
+                    )
+                }
+
+                EventFormFieldNote(note: PATROL_CALLSIGN_FIELD_NOTE)
+                EventFormTwoColumn {
+                    FormField(
+                        label: PATROL_CALLSIGN_PREFIX_LABEL,
+                        placeholder: PATROL_CALLSIGN_PREFIX_PLACEHOLDER,
+                        text: Binding(
+                            get: { patrolCallsignPrefix },
+                            set: { patrolCallsignPrefix = patrolCallsignPrefixForInput($0) }
+                        )
+                    )
+                } trailing: {
+                    FormField(
+                        label: PATROL_CALLSIGN_NUMBER_LABEL,
+                        keyboard: .numberPad,
+                        mono: true,
+                        placeholder: PATROL_CALLSIGN_NUMBER_PLACEHOLDER,
+                        text: Binding(
+                            get: { patrolCallsignNumber },
+                            set: { patrolCallsignNumber = patrolCallsignNumberForInput($0) }
+                        )
+                    )
+                }
+
+                EventFormFieldNote(note: EVENT_TIMES_FIELD_NOTE, tooltip: EVENT_TIMES_FIELD_TOOLTIP)
+                EventFormTwoColumn {
+                    EventTimeField(label: "זמן התחלה", text: $startTime)
+                } trailing: {
+                    EventTimeField(label: "זמן סיום", text: $endTime)
+                }
+
                 LookupPickerField(
                     label: "שלוחה",
                     options: app.lookups.districts,
@@ -227,94 +276,100 @@ struct EventFormView: View {
                     station = stationAfterDistrictChange(app.lookups.districts, nextDistrictId: next, currentStation: station)
                     districtId = next
                 }
-            }
-            if districtNeedsStation(app.lookups.districts, districtId: districtId) {
-                FormField(label: EVENT_STATION_LABEL, text: Binding(
-                    get: { station },
-                    set: { station = String($0.prefix(STATION_MAX_LENGTH)) }
-                ))
-            }
-            LocationPlacesField(
-                value: LocationPinFields(
-                    location: location,
-                    locationPlaceId: locationPlaceId,
-                    locationLat: locationLat,
-                    locationLng: locationLng,
-                    locationPinSource: locationPinSource,
-                    locationPinnedAt: locationPinnedAt,
-                    locationPinnedBy: locationPinnedBy
-                ),
-                error: errors.location,
-                required: districtNeedsLocation(app.lookups.districts, districtId: districtId),
-                roadName: app.lookups.roads.first(where: { $0.id == roadId })?.name,
-                placeholder: EVENT_LOCATION_PLACEHOLDER,
-                onChange: { pin in
-                    location = pin.location
-                    locationPlaceId = pin.locationPlaceId
-                    locationLat = pin.locationLat
-                    locationLng = pin.locationLng
-                    locationPinSource = pin.locationPinSource
-                    locationPinnedAt = pin.locationPinnedAt
-                    locationPinnedBy = pin.locationPinnedBy
-                    if errors.location != nil {
-                        errors.location = nil
-                    }
-                },
-                onJunctionCommit: { junction in
-                    let nextRoadId = roadIdAfterJunctionSelection(
-                        currentRoadId: roadId,
-                        junctionRoads: junction.roads,
-                        lookups: app.lookups.roads
-                    )
-                    if !nextRoadId.isEmpty, nextRoadId != roadId {
-                        roadId = nextRoadId
-                        errors.road = nil
-                    }
-                },
-                onAutocompleteUnavailable: {
-                    app.showToast(EVENT_LOCATION_PLACES_UNAVAILABLE, tone: .pending)
+                if districtNeedsStation(app.lookups.districts, districtId: districtId) {
+                    FormField(label: EVENT_STATION_LABEL, text: Binding(
+                        get: { station },
+                        set: { station = String($0.prefix(STATION_MAX_LENGTH)) }
+                    ))
                 }
-            )
-            LookupPickerField(
-                label: "כביש",
-                options: app.lookups.roads,
-                selectedId: roadId,
-                placeholder: "בחירת כביש",
-                searchPlaceholder: "חיפוש כביש",
-                error: errors.road
-            ) { roadId = $0 }
-            CrewAssignmentSection(
-                assignOpenLabel: EVENT_ASSIGN_OPEN,
-                assignCloseLabel: EVENT_ASSIGN_CLOSE,
-                profiles: app.assignableProfiles,
-                selectedIds: responders.map(\.responderId),
-                caption: eventDraftSummary(responderCount: responders.count),
-                emptyHint: EVENT_ASSIGN_EMPTY,
-                emptyRoster: "אין משתמשים פעילים להקצאה.",
-                emptyQuery: "לא נמצאו מתנדבים להקצאה",
-                disabledIds: editing ? [] : Set([app.userId].compactMap { $0 }),
-                disabledHint: EVENT_SELF_ASSIGN_DISABLED_HINT,
-                onResponderTap: { detailResponderId = $0 }
-            ) { id in
-                if !isSelfAssignDisabledOnCreate(isCreate: !editing, currentUserId: app.userId, profileId: id) {
-                    responders = toggleEventResponder(responders, responderId: id, hasVehicle: vehicleOwnerIds.contains(id))
-                    if responders.contains(where: { $0.responderId == id }) {
-                        detailResponderId = id
-                    } else if detailResponderId == id {
-                        detailResponderId = nil
+
+                EventFormFieldNote(note: LOCATION_FIELD_NOTE, tooltip: LOCATION_FIELD_TOOLTIP)
+                LocationPlacesField(
+                    value: LocationPinFields(
+                        location: location,
+                        locationPlaceId: locationPlaceId,
+                        locationLat: locationLat,
+                        locationLng: locationLng,
+                        locationPinSource: locationPinSource,
+                        locationPinnedAt: locationPinnedAt,
+                        locationPinnedBy: locationPinnedBy
+                    ),
+                    error: errors.location,
+                    required: districtNeedsLocation(app.lookups.districts, districtId: districtId),
+                    roadName: app.lookups.roads.first(where: { $0.id == roadId })?.name,
+                    placeholder: EVENT_LOCATION_PLACEHOLDER,
+                    onChange: { pin in
+                        location = pin.location
+                        locationPlaceId = pin.locationPlaceId
+                        locationLat = pin.locationLat
+                        locationLng = pin.locationLng
+                        locationPinSource = pin.locationPinSource
+                        locationPinnedAt = pin.locationPinnedAt
+                        locationPinnedBy = pin.locationPinnedBy
+                        if errors.location != nil {
+                            errors.location = nil
+                        }
+                    },
+                    onJunctionCommit: { junction in
+                        let nextRoadId = roadIdAfterJunctionSelection(
+                            currentRoadId: roadId,
+                            junctionRoads: junction.roads,
+                            lookups: app.lookups.roads
+                        )
+                        if !nextRoadId.isEmpty, nextRoadId != roadId {
+                            roadId = nextRoadId
+                            errors.road = nil
+                        }
+                    },
+                    onAutocompleteUnavailable: {
+                        app.showToast(EVENT_LOCATION_PLACES_UNAVAILABLE, tone: .pending)
+                    }
+                )
+                LookupPickerField(
+                    label: "כביש",
+                    options: app.lookups.roads,
+                    selectedId: roadId,
+                    placeholder: "בחירת כביש",
+                    searchPlaceholder: "חיפוש כביש",
+                    error: errors.road
+                ) { roadId = $0 }
+                FormArea(label: "הערות", minHeight: 96, text: $notes)
+            }
+
+            EventFormSection(title: EVENT_FORM_RESPONDERS_SECTION) {
+                CrewAssignmentSection(
+                    assignOpenLabel: EVENT_ASSIGN_OPEN,
+                    assignCloseLabel: EVENT_ASSIGN_CLOSE,
+                    profiles: app.assignableProfiles,
+                    selectedIds: responders.map(\.responderId),
+                    caption: eventDraftSummary(responderCount: responders.count),
+                    emptyHint: EVENT_ASSIGN_EMPTY,
+                    emptyRoster: "אין משתמשים פעילים להקצאה.",
+                    emptyQuery: "לא נמצאו מתנדבים להקצאה",
+                    disabledIds: editing ? [] : Set([app.userId].compactMap { $0 }),
+                    disabledHint: EVENT_SELF_ASSIGN_DISABLED_HINT,
+                    onResponderTap: { detailResponderId = $0 }
+                ) { id in
+                    if !isSelfAssignDisabledOnCreate(isCreate: !editing, currentUserId: app.userId, profileId: id) {
+                        responders = toggleEventResponder(responders, responderId: id, hasVehicle: vehicleOwnerIds.contains(id))
+                        if responders.contains(where: { $0.responderId == id }) {
+                            detailResponderId = id
+                        } else if detailResponderId == id {
+                            detailResponderId = nil
+                        }
                     }
                 }
             }
-            FormArea(label: "הערות", minHeight: 96, text: $notes)
+
             if let formError {
                 Text(formError)
                     .font(TypeScale.caption)
                     .foregroundStyle(FieldTheme.alert)
             }
-            PrimaryButton(title: EVENT_SAVE_TITLE, busy: saving, enabled: !deleting) {
+            PrimaryButton(title: eventFormPrimaryTitle(editing: editing), busy: saving, enabled: !deleting) {
                 persist(allowPartial: false)
             }
-            GhostButton(title: EVENT_SAVE_DRAFT_TITLE, enabled: !saving && !deleting) {
+            GhostButton(title: eventFormDraftTitle(editing: editing), enabled: !saving && !deleting) {
                 persist(allowPartial: true)
             }
             if showEventDelete {
@@ -347,7 +402,7 @@ struct EventFormView: View {
         EventDraft(
             eventDate: eventDate,
             policeEventId: policeEventId,
-            patrolCallsign: patrolCallsign,
+            patrolCallsign: formatPatrolCallsign(patrolCallsignPrefix, patrolCallsignNumber),
             eventTypeId: eventTypeId,
             roadId: roadId,
             districtId: districtId,
@@ -360,11 +415,13 @@ struct EventFormView: View {
             locationPinnedBy: locationPinnedBy,
             station: station,
             notes: notes,
-            responders: responders,
+            responders: applyEventTimesToResponders(responders, startTime: startTime, endTime: endTime),
             isCancelled: isCancelled,
             busLane: busLane,
             shiftLeadId: shiftLeadId,
-            secondaryLeads: secondaryLeads
+            secondaryLeads: secondaryLeads,
+            startTime: startTime,
+            endTime: endTime
         )
     }
 
@@ -391,18 +448,28 @@ struct EventFormView: View {
             return
         }
         formError = nil
+        let stayOnForm = allowPartial && !editing
         Task {
             saving = true
-            if let eventId {
+            if let eventId = persistedEventId {
                 formError = await app.updateUnitEvent(
                     eventId,
                     draft: current,
                     previousIsCancelled: previousIsCancelled,
                     allowPartial: allowPartial,
-                    previousDraft: persistedDraft
+                    previousDraft: persistedDraft,
+                    stay: stayOnForm
                 )
+                if formError == nil && stayOnForm {
+                    persistedDraft = current
+                }
             } else {
-                formError = await app.createUnitEvent(current, allowPartial: allowPartial)
+                let outcome = await app.createUnitEvent(current, allowPartial: allowPartial, stay: stayOnForm)
+                formError = outcome.error
+                if formError == nil, stayOnForm, let id = outcome.eventId {
+                    createdEventId = id
+                    persistedDraft = current
+                }
             }
             saving = false
         }
@@ -454,7 +521,21 @@ struct EventFormView: View {
             let draft = detail.toDraft(vehicleOwnerIds: Set(vehicles.map(\.userId)))
             eventDate = draft.eventDate
             policeEventId = draft.policeEventId
-            patrolCallsign = draft.patrolCallsign
+            let callsign = resolvePatrolCallsign(
+                prefix: detail.patrolCallsignPrefix,
+                number: detail.patrolCallsignNumber,
+                legacy: draft.patrolCallsign
+            )
+            patrolCallsignPrefix = callsign.prefix
+            patrolCallsignNumber = callsign.number
+            let times = eventFormTimes(
+                eventStart: detail.startedAt,
+                eventEnd: detail.endedAt,
+                responders: draft.responders,
+                fallbackStart: nowTimeJerusalem()
+            )
+            startTime = times.start
+            endTime = times.end
             eventTypeId = draft.eventTypeId
             roadId = draft.roadId
             districtId = draft.districtId
@@ -524,6 +605,99 @@ struct EventFormView: View {
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled()
+    }
+}
+
+private struct EventFormSection<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(TypeScale.section)
+                .foregroundStyle(FieldTheme.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 4)
+                .overlay(alignment: .top) {
+                    Rectangle().fill(FieldTheme.hairline).frame(height: 1)
+                }
+                .padding(.top, 8)
+            content
+        }
+    }
+}
+
+private struct EventFormTwoColumn<Leading: View, Trailing: View>: View {
+    @ViewBuilder var leading: Leading
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            leading
+                .frame(maxWidth: .infinity, alignment: .leading)
+            trailing
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+private struct EventFormFieldNote: View {
+    let note: String
+    var tooltip: String? = nil
+    @State private var showTip = false
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 4) {
+            Text(note)
+                .font(TypeScale.caption)
+                .foregroundStyle(FieldTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let tooltip, !tooltip.isEmpty {
+                Button {
+                    showTip = true
+                } label: {
+                    Text("?")
+                        .font(TypeScale.bodyStrong)
+                        .foregroundStyle(FieldTheme.accent)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("מידע נוסף")
+                .alert("", isPresented: $showTip) {
+                    Button("סגירה", role: .cancel) {}
+                } message: {
+                    Text(tooltip)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct EventTimeField: View {
+    let label: String
+    @Binding var text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) {
+                Text(label)
+                    .font(TypeScale.label)
+                    .foregroundStyle(FieldTheme.textSecondary)
+                Spacer(minLength: 8)
+                Button("עכשיו") {
+                    text = nowTimeJerusalem()
+                }
+                .font(TypeScale.caption)
+                .foregroundStyle(FieldTheme.accent)
+                .frame(minHeight: 32)
+                .buttonStyle(.plain)
+                .accessibilityLabel("עכשיו")
+            }
+            TimeField(label: "", text: $text)
+        }
     }
 }
 

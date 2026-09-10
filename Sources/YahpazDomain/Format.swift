@@ -62,6 +62,15 @@ public func formatDate(_ value: String) -> String {
     return "\(parts[2]).\(parts[1]).\(parts[0])"
 }
 
+/// Current clock in Asia/Jerusalem as `HH:mm` (24-hour).
+public func nowTimeJerusalem(_ now: Date = Date()) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_GB")
+    formatter.timeZone = TimeZone(identifier: "Asia/Jerusalem")
+    formatter.dateFormat = "HH:mm"
+    return formatter.string(from: now)
+}
+
 /// `HH:mm` off a wall `timestamp` or ISO string, without shifting the zone.
 public func formatTime(_ value: String?) -> String? {
     let raw = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""

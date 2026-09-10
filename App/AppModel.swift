@@ -435,21 +435,22 @@ final class AppModel: ObservableObject {
         lookupsLoading = false
     }
 
-    func createUnitEvent(_ draft: EventDraft, allowPartial: Bool = false) async -> String? {
-        if let error = await YahpazAPI.shared.createUnitEvent(
+    func createUnitEvent(_ draft: EventDraft, allowPartial: Bool = false, stay: Bool = false) async -> EventSaveOutcome {
+        let outcome = await YahpazAPI.shared.createUnitEvent(
             draft,
             districts: lookups.districts,
             vehicleKinds: lookups.vehicleKinds,
             allowPartial: allowPartial
-        ) {
-            return error
-        }
+        )
+        if outcome.error != nil { return outcome }
         await reloadUnitEvents()
         Task { await reloadEvents() }
         showToast(allowPartial ? EVENT_DRAFT_PARTIAL_SAVED : EVENT_DRAFT_SAVED, tone: .done)
-        tab = .events
-        closeEventForm()
-        return nil
+        if !stay {
+            tab = .events
+            closeEventForm()
+        }
+        return outcome
     }
 
     func updateUnitEvent(
@@ -457,7 +458,8 @@ final class AppModel: ObservableObject {
         draft: EventDraft,
         previousIsCancelled: Bool,
         allowPartial: Bool = false,
-        previousDraft: EventDraft? = nil
+        previousDraft: EventDraft? = nil,
+        stay: Bool = false
     ) async -> String? {
         if let error = await YahpazAPI.shared.updateUnitEvent(
             eventId: eventId,
@@ -474,8 +476,10 @@ final class AppModel: ObservableObject {
         await reloadUnitEvents()
         Task { await reloadEvents() }
         showToast(allowPartial ? EVENT_DRAFT_PARTIAL_SAVED : EVENT_DRAFT_SAVED, tone: .done)
-        tab = .events
-        closeEventForm()
+        if !stay {
+            tab = .events
+            closeEventForm()
+        }
         return nil
     }
 

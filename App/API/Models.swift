@@ -923,6 +923,10 @@ struct EventFormDetail: Decodable, Sendable {
     var policeEventId: String?
     var districtId: String?
     var patrolCallsign: String?
+    var patrolCallsignPrefix: String?
+    var patrolCallsignNumber: String?
+    var startedAt: String?
+    var endedAt: String?
     var eventTypeId: String?
     var roadId: String?
     var location: String?
@@ -948,6 +952,10 @@ struct EventFormDetail: Decodable, Sendable {
         case policeEventId = "police_event_id"
         case districtId = "district_id"
         case patrolCallsign = "patrol_callsign"
+        case patrolCallsignPrefix = "patrol_callsign_prefix"
+        case patrolCallsignNumber = "patrol_callsign_number"
+        case startedAt = "started_at"
+        case endedAt = "ended_at"
         case eventTypeId = "event_type_id"
         case roadId = "road_id"
         case location
@@ -975,6 +983,10 @@ struct EventFormDetail: Decodable, Sendable {
         policeEventId = try c.decodeIfPresent(String.self, forKey: .policeEventId)
         districtId = try c.decodeIfPresent(String.self, forKey: .districtId)
         patrolCallsign = try c.decodeIfPresent(String.self, forKey: .patrolCallsign)
+        patrolCallsignPrefix = try c.decodeIfPresent(String.self, forKey: .patrolCallsignPrefix)
+        patrolCallsignNumber = try c.decodeIfPresent(String.self, forKey: .patrolCallsignNumber)
+        startedAt = try c.decodeIfPresent(String.self, forKey: .startedAt)
+        endedAt = try c.decodeIfPresent(String.self, forKey: .endedAt)
         eventTypeId = try c.decodeIfPresent(String.self, forKey: .eventTypeId)
         roadId = try c.decodeIfPresent(String.self, forKey: .roadId)
         location = try c.decodeIfPresent(String.self, forKey: .location)
@@ -1020,7 +1032,9 @@ struct EventFormDetail: Decodable, Sendable {
             isCancelled: isCancelled,
             busLane: busLane,
             shiftLeadId: shiftLeadId ?? "",
-            secondaryLeads: secondaryLeads.map { $0.asDomain() }
+            secondaryLeads: secondaryLeads.map { $0.asDomain() },
+            startTime: toTimeInput(startedAt),
+            endTime: toTimeInput(endedAt)
         )
     }
 }

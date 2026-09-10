@@ -489,9 +489,11 @@ struct TimeField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(TypeScale.label)
-                .foregroundStyle(FieldTheme.textSecondary)
+            if !label.isEmpty {
+                Text(label)
+                    .font(TypeScale.label)
+                    .foregroundStyle(FieldTheme.textSecondary)
+            }
             TextField("", text: Binding(
                 get: { text },
                 set: { incoming in

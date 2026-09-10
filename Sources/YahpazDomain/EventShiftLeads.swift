@@ -1,5 +1,6 @@
 import Foundation
 
+public let EVENT_FORM_LEADS_SECTION = "אחמ״ש/ים"
 public let MAIN_LEAD_LABEL = "אחמ״ש ראשי"
 public let MAIN_LEAD_LABEL_SHORT = "אחמ״ש"
 public let SECONDARY_LEAD_LABEL = "אחמ״ש משני"

@@ -127,6 +127,7 @@ final class EventShiftLeadsTests: XCTestCase {
     }
 
     func testLeadCopyAndCaption() {
+        XCTAssertEqual(EVENT_FORM_LEADS_SECTION, "אחמ״ש/ים")
         XCTAssertEqual(eventLeadFieldLabel(hasSecondaries: false), MAIN_LEAD_LABEL_SHORT)
         XCTAssertEqual(eventLeadFieldLabel(hasSecondaries: true), MAIN_LEAD_LABEL)
         XCTAssertEqual(formatLeadPerson("דנה כהן", callsign: "D1"), "דנה כהן · D1")

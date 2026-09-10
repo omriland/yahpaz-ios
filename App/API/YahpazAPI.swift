@@ -529,7 +529,8 @@ actor YahpazAPI {
             .from("events")
             .select(
                 """
-                id, event_date, police_event_id, district_id, patrol_callsign, event_type_id, road_id,
+                id, event_date, police_event_id, district_id, patrol_callsign, patrol_callsign_prefix, patrol_callsign_number,
+                started_at, ended_at, event_type_id, road_id,
                 location, location_place_id, location_lat, location_lng, location_pin_source,
                 location_pinned_at, location_pinned_by, station, notes, is_cancelled, bus_lane, status, shift_lead_id,
                 shift_lead:profiles!events_shift_lead_id_fkey(full_name, callsign),
@@ -588,18 +589,22 @@ actor YahpazAPI {
         districts: [LookupOption],
         vehicleKinds: [LookupOption],
         allowPartial: Bool = false
-    ) async -> String? {
+    ) async -> EventSaveOutcome {
         let errors = allowPartial ? validateEventDraftPartial(draft) : validateEventDraft(draft, districts: districts)
         if !errors.isEmpty {
-            return errors.eventDate ?? errors.formMessage ?? EVENT_DRAFT_FORM_ERROR
+            return .failed(errors.eventDate ?? errors.formMessage ?? EVENT_DRAFT_FORM_ERROR)
         }
-        guard let userId = await sessionUserId() else { return "יש להתחבר מחדש." }
+        guard let userId = await sessionUserId() else { return .failed("יש להתחבר מחדש.") }
         if createIncludesSelfAssign(shiftLeadId: userId, responders: draft.responders) {
-            return EVENT_SELF_ASSIGN_ON_CREATE_ERROR
+            return .failed(EVENT_SELF_ASSIGN_ON_CREATE_ERROR)
         }
-        guard let eventDate = normalizeReturnDate(draft.eventDate) else { return EVENT_DRAFT_DATE_ERROR }
+        guard let eventDate = normalizeReturnDate(draft.eventDate) else { return .failed(EVENT_DRAFT_DATE_ERROR) }
         let mainLeadId = draft.shiftLeadId.isEmpty ? userId : draft.shiftLeadId
         let pin = buildLocationPayload(draft)
+        let overnight = isOvernightEnd(startTime: draft.startTime, endTime: draft.endTime)
+        let eventStartedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.startTime, dayOffset: 0)
+        let eventEndedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.endTime, dayOffset: overnight ? 1 : 0)
+        let callsign = resolvePatrolCallsign(legacy: draft.patrolCallsign)
         do {
             let nextStatus = deriveEventStatusFromDraft(draft.responders)
             let inserted: IdRow = try await client
@@ -610,6 +615,10 @@ actor YahpazAPI {
                         policeEventId: draft.policeEventId.nilIfEmpty,
                         districtId: draft.districtId.nilIfEmpty,
                         patrolCallsign: draft.patrolCallsign.nilIfEmpty,
+                        patrolCallsignPrefix: callsign.prefix.nilIfEmpty,
+                        patrolCallsignNumber: callsign.number.nilIfEmpty,
+                        startedAt: eventStartedAt,
+                        endedAt: eventEndedAt,
                         eventTypeId: draft.eventTypeId.nilIfEmpty,
                         roadId: draft.roadId.nilIfEmpty,
                         location: pin.location,
@@ -638,23 +647,30 @@ actor YahpazAPI {
                 vehicleKinds: vehicleKinds,
                 isCancelled: draft.isCancelled
             ) {
-                return error
+                return EventSaveOutcome(error: error, eventId: inserted.id)
             }
-            return await syncEventSecondaryLeads(
+            if let error = await syncEventSecondaryLeads(
                 eventId: inserted.id,
                 desired: draft.secondaryLeads,
                 creatorSecondary: createTimeCreatorSecondary(creatorId: userId, mainLeadId: mainLeadId),
                 mainLeadId: mainLeadId
-            )
+            ) {
+                return EventSaveOutcome(error: error, eventId: inserted.id)
+            }
+            return .saved(inserted.id)
         } catch {
-            return await recoverOwnCreatedEvent(
+            let recovered = await recoverOwnCreatedEvent(
                 draft: draft,
                 eventDate: eventDate,
                 mainLeadId: mainLeadId,
                 districts: districts,
                 vehicleKinds: vehicleKinds,
                 allowPartial: allowPartial
-            ) ?? EVENT_DRAFT_SAVE_FAILED
+            )
+            if recovered.eventId != nil || recovered.error != nil {
+                return recovered
+            }
+            return .failed(EVENT_DRAFT_SAVE_FAILED)
         }
     }
 
@@ -665,9 +681,9 @@ actor YahpazAPI {
         districts: [LookupOption],
         vehicleKinds: [LookupOption],
         allowPartial: Bool
-    ) async -> String? {
+    ) async -> EventSaveOutcome {
         let policeId = digitsOnly(draft.policeEventId)
-        if policeId.isEmpty { return nil }
+        if policeId.isEmpty { return EventSaveOutcome() }
         let existing: [SameDayPoliceEventApiRow] = (try? await client
             .from("events")
             .select("id, shift_lead_id, is_cancelled, police_event_id")
@@ -683,8 +699,8 @@ actor YahpazAPI {
             existing: matches.map {
                 SameDayPoliceEventRow(id: $0.id, shiftLeadId: $0.shiftLeadId, isCancelled: $0.isCancelled)
             }
-        ) else { return nil }
-        return await updateUnitEvent(
+        ) else { return EventSaveOutcome() }
+        if let error = await updateUnitEvent(
             eventId: recovered,
             draft: draft,
             districts: districts,
@@ -692,7 +708,10 @@ actor YahpazAPI {
             viewerIsAdmin: false,
             previousIsCancelled: false,
             allowPartial: allowPartial
-        )
+        ) {
+            return EventSaveOutcome(error: error, eventId: recovered)
+        }
+        return .saved(recovered)
     }
 
     func updateUnitEvent(
@@ -725,6 +744,10 @@ actor YahpazAPI {
         let mainLeadId = draft.shiftLeadId.trimmingCharacters(in: .whitespacesAndNewlines)
         if mainLeadId.isEmpty { return "אין אחמ״ש ראשי." }
         let pin = buildLocationPayload(draft)
+        let overnight = isOvernightEnd(startTime: draft.startTime, endTime: draft.endTime)
+        let eventStartedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.startTime, dayOffset: 0)
+        let eventEndedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.endTime, dayOffset: overnight ? 1 : 0)
+        let callsign = resolvePatrolCallsign(legacy: draft.patrolCallsign)
         do {
             let nextStatus = deriveEventStatusFromDraft(draft.responders)
             let updated: [IdRow] = try await client
@@ -735,6 +758,10 @@ actor YahpazAPI {
                         policeEventId: draft.policeEventId.nilIfEmpty,
                         districtId: draft.districtId.nilIfEmpty,
                         patrolCallsign: draft.patrolCallsign.nilIfEmpty,
+                        patrolCallsignPrefix: callsign.prefix.nilIfEmpty,
+                        patrolCallsignNumber: callsign.number.nilIfEmpty,
+                        startedAt: eventStartedAt,
+                        endedAt: eventEndedAt,
                         eventTypeId: draft.eventTypeId.nilIfEmpty,
                         roadId: draft.roadId.nilIfEmpty,
                         location: pin.location,
@@ -2843,6 +2870,10 @@ private struct EventInsert: Encodable {
     var policeEventId: String?
     var districtId: String?
     var patrolCallsign: String?
+    var patrolCallsignPrefix: String?
+    var patrolCallsignNumber: String?
+    var startedAt: String?
+    var endedAt: String?
     var eventTypeId: String?
     var roadId: String?
     var location: String?
@@ -2865,6 +2896,10 @@ private struct EventInsert: Encodable {
         case policeEventId = "police_event_id"
         case districtId = "district_id"
         case patrolCallsign = "patrol_callsign"
+        case patrolCallsignPrefix = "patrol_callsign_prefix"
+        case patrolCallsignNumber = "patrol_callsign_number"
+        case startedAt = "started_at"
+        case endedAt = "ended_at"
         case eventTypeId = "event_type_id"
         case roadId = "road_id"
         case location
@@ -2888,6 +2923,10 @@ private struct EventUpdateWrite: Encodable {
     var policeEventId: String?
     var districtId: String?
     var patrolCallsign: String?
+    var patrolCallsignPrefix: String?
+    var patrolCallsignNumber: String?
+    var startedAt: String?
+    var endedAt: String?
     var eventTypeId: String?
     var roadId: String?
     var location: String?
@@ -2910,6 +2949,10 @@ private struct EventUpdateWrite: Encodable {
         case policeEventId = "police_event_id"
         case districtId = "district_id"
         case patrolCallsign = "patrol_callsign"
+        case patrolCallsignPrefix = "patrol_callsign_prefix"
+        case patrolCallsignNumber = "patrol_callsign_number"
+        case startedAt = "started_at"
+        case endedAt = "ended_at"
         case eventTypeId = "event_type_id"
         case roadId = "road_id"
         case location
@@ -2933,6 +2976,10 @@ private struct EventUpdateWrite: Encodable {
         try encodeNull(&c, policeEventId, .policeEventId)
         try encodeNull(&c, districtId, .districtId)
         try encodeNull(&c, patrolCallsign, .patrolCallsign)
+        try encodeNull(&c, patrolCallsignPrefix, .patrolCallsignPrefix)
+        try encodeNull(&c, patrolCallsignNumber, .patrolCallsignNumber)
+        try encodeNull(&c, startedAt, .startedAt)
+        try encodeNull(&c, endedAt, .endedAt)
         try encodeNull(&c, eventTypeId, .eventTypeId)
         try encodeNull(&c, roadId, .roadId)
         try encodeNull(&c, location, .location)

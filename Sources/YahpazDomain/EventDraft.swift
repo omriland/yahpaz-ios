@@ -12,6 +12,19 @@ public let EVENT_NEW_TITLE = "אירוע חדש"
 public let EVENT_EDIT_TITLE = "עריכת אירוע"
 public let EVENT_SAVE_TITLE = "שמירת אירוע"
 public let EVENT_SAVE_DRAFT_TITLE = "שמירת טיוטה"
+public let EVENT_CREATE_TITLE = "יצירת אירוע"
+public let EVENT_CREATE_DRAFT_TITLE = "שמירה כטיוטה"
+public let EVENT_FORM_DETAILS_SECTION = "פרטי האירוע"
+public let EVENT_FORM_RESPONDERS_SECTION = "מתנדבים"
+public let EVENT_TIMES_FIELD_NOTE =
+    "שימו לב! מעתה הזנת זמנים תהיה עבור האירוע כולו ולא לכל מתנדב בנפרד"
+public let EVENT_TIMES_FIELD_TOOLTIP =
+    "זמן ההתחלה יהיה זמן היציאה של המתנדב הראשון וזמן הסיום יהיה זמן העזיבה של המתנדב האחרון"
+public let PATROL_CALLSIGN_FIELD_NOTE =
+    "אתם מתבקשים להזין או\"ק מלא של הניידת כולל קידומת (אביב, חוף וכו')"
+public let LOCATION_FIELD_NOTE = "חדש! הזנת כביש באופן אוטומטי מבוסס על המיקום הנבחר"
+public let LOCATION_FIELD_TOOLTIP =
+    "מיקמנו את שדה 'מיקום' ראשון כדי להקל עליכם והטמענו הזנה אוטומטית של מספר הכביש. במקרה של כביש וק\"מ או מיקום שאינו נמצא, תוכלו עדין להזין מספר כביש באופן ידני"
 public let EVENT_DRAFT_PARTIAL_SAVED = "הטיוטה נשמרה."
 public let EVENT_PATROL_CALLSIGN_LABEL = "או״ק ניידת"
 public let EVENT_LOCATION_PLACEHOLDER = "למשל: מחלף שורק"
@@ -111,6 +124,8 @@ public struct EventDraft: Equatable, Sendable {
     public var busLane: Bool
     public var shiftLeadId: String
     public var secondaryLeads: [SecondaryLead]
+    public var startTime: String
+    public var endTime: String
 
     public init(
         eventDate: String,
@@ -132,7 +147,9 @@ public struct EventDraft: Equatable, Sendable {
         isCancelled: Bool = false,
         busLane: Bool = false,
         shiftLeadId: String = "",
-        secondaryLeads: [SecondaryLead] = []
+        secondaryLeads: [SecondaryLead] = [],
+        startTime: String = "",
+        endTime: String = ""
     ) {
         self.eventDate = eventDate
         self.policeEventId = policeEventId
@@ -154,6 +171,8 @@ public struct EventDraft: Equatable, Sendable {
         self.busLane = busLane
         self.shiftLeadId = shiftLeadId
         self.secondaryLeads = secondaryLeads
+        self.startTime = startTime
+        self.endTime = endTime
     }
 
     public var locationPin: LocationPinFields {
