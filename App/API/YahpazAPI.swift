@@ -6,7 +6,9 @@ private let EVENT_SECONDARY_LEADS_EMBED =
     "secondary_leads:event_secondary_leads(user_id, locked, added_at, profile:profiles!event_secondary_leads_user_id_fkey(full_name, callsign))"
 
 private let eventListSelect = """
-id, event_date, police_event_id, patrol_callsign, location, status, is_cancelled, bus_lane, origin, shift_lead_id, shift_id,
+id, event_date, police_event_id, patrol_callsign, patrol_callsign_prefix, patrol_callsign_number,
+started_at, ended_at, created_at,
+location, status, is_cancelled, bus_lane, origin, shift_lead_id, shift_id,
 frozen_over_60km, frozen_suspicious_duplicate,
 district:districts(name),
 event_type:event_types(name),
@@ -251,9 +253,9 @@ actor YahpazAPI {
         if let strength = passwordStrengthError(password) { return strength }
         do {
             try await client.auth.update(user: UserAttributes(password: password))
-            try? await client.rpc("clear_must_change_password").execute()
+            _ = try? await client.rpc("clear_must_change_password").execute()
             if let userId = await sessionUserId() {
-                try? await client
+                _ = try? await client
                     .from("profiles")
                     .update(InviteClearRow(updatedAt: ISO8601DateFormatter().string(from: Date())))
                     .eq("id", value: userId)
@@ -447,26 +449,11 @@ actor YahpazAPI {
     func deleteUnitEvent(eventId: String) async -> String? {
         do {
             try await client
-                .from("events")
-                .delete()
-                .eq("id", value: eventId)
+                .rpc("delete_event", params: ["p_event_id": eventId])
                 .execute()
-            let stillThere: [EventOwnerRow] = try await client
-                .from("events")
-                .select("id, shift_lead_id")
-                .eq("id", value: eventId)
-                .limit(1)
-                .execute()
-                .value
-            if stillThere.isEmpty { return nil }
-            let viewerId = await sessionUserId()
-            let ownerId = stillThere.first?.shiftLeadId
-            if let viewerId, let ownerId, ownerId != viewerId {
-                return EVENT_DELETE_OTHER_LEAD
-            }
-            return EVENT_DELETE_FAILED
+            return nil
         } catch {
-            return EVENT_DELETE_FAILED
+            return String(describing: error).contains("אחמ״ש אחר") ? EVENT_DELETE_OTHER_LEAD : EVENT_DELETE_FAILED
         }
     }
 
@@ -530,7 +517,7 @@ actor YahpazAPI {
             .select(
                 """
                 id, event_date, police_event_id, district_id, patrol_callsign, patrol_callsign_prefix, patrol_callsign_number,
-                started_at, ended_at, event_type_id, road_id,
+                started_at, ended_at, created_at, event_type_id, road_id,
                 location, location_place_id, location_lat, location_lng, location_pin_source,
                 location_pinned_at, location_pinned_by, station, notes, is_cancelled, bus_lane, status, shift_lead_id,
                 shift_lead:profiles!events_shift_lead_id_fkey(full_name, callsign),
@@ -600,13 +587,24 @@ actor YahpazAPI {
         }
         guard let eventDate = normalizeReturnDate(draft.eventDate) else { return .failed(EVENT_DRAFT_DATE_ERROR) }
         let mainLeadId = draft.shiftLeadId.isEmpty ? userId : draft.shiftLeadId
+        if let collision = await sameDayPoliceEventIdCollision(
+            eventDate: eventDate,
+            policeEventId: draft.policeEventId,
+            currentEventId: nil
+        ) {
+            return .failed(collision)
+        }
         let pin = buildLocationPayload(draft)
         let overnight = isOvernightEnd(startTime: draft.startTime, endTime: draft.endTime)
         let eventStartedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.startTime, dayOffset: 0)
         let eventEndedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.endTime, dayOffset: overnight ? 1 : 0)
-        let callsign = resolvePatrolCallsign(legacy: draft.patrolCallsign)
+        let callsign = resolvePatrolCallsign(
+            prefix: draft.patrolCallsignPrefix,
+            number: draft.patrolCallsignNumber,
+            legacy: draft.patrolCallsign
+        )
+        let nextStatus = deriveEventStatusFromDraft(draft.responders)
         do {
-            let nextStatus = deriveEventStatusFromDraft(draft.responders)
             let inserted: IdRow = try await client
                 .from("events")
                 .insert(
@@ -614,7 +612,7 @@ actor YahpazAPI {
                         eventDate: eventDate,
                         policeEventId: draft.policeEventId.nilIfEmpty,
                         districtId: draft.districtId.nilIfEmpty,
-                        patrolCallsign: draft.patrolCallsign.nilIfEmpty,
+                        patrolCallsign: formatPatrolCallsign(callsign.prefix, callsign.number).nilIfEmpty,
                         patrolCallsignPrefix: callsign.prefix.nilIfEmpty,
                         patrolCallsignNumber: callsign.number.nilIfEmpty,
                         startedAt: eventStartedAt,
@@ -631,7 +629,7 @@ actor YahpazAPI {
                         station: stationForSave(districts, districtId: draft.districtId, station: draft.station),
                         notes: draft.notes.nilIfEmpty,
                         busLane: draft.busLane,
-                        status: nextStatus.rawValue,
+                        status: eventStatusForRowWriteBeforeResponders(nextStatus).rawValue,
                         shiftLeadId: mainLeadId,
                         updatedAt: nowIso()
                     )
@@ -642,11 +640,16 @@ actor YahpazAPI {
                 .value
             if let error = await syncEventResponders(
                 eventId: inserted.id,
-                eventDate: eventDate,
                 responders: draft.responders,
+                previousResponders: nil,
                 vehicleKinds: vehicleKinds,
-                isCancelled: draft.isCancelled
+                isCancelled: draft.isCancelled,
+                eventStartedAt: eventStartedAt,
+                eventEndedAt: eventEndedAt
             ) {
+                return EventSaveOutcome(error: error, eventId: inserted.id)
+            }
+            if let error = await promoteEventToDoneIfNeeded(eventId: inserted.id, nextStatus: nextStatus) {
                 return EventSaveOutcome(error: error, eventId: inserted.id)
             }
             if let error = await syncEventSecondaryLeads(
@@ -670,7 +673,7 @@ actor YahpazAPI {
             if recovered.eventId != nil || recovered.error != nil {
                 return recovered
             }
-            return .failed(EVENT_DRAFT_SAVE_FAILED)
+            return .failed(policeEventIdDuplicateOrSaveFailed(error))
         }
     }
 
@@ -706,6 +709,7 @@ actor YahpazAPI {
             districts: districts,
             vehicleKinds: vehicleKinds,
             viewerIsAdmin: false,
+            viewerRoles: [],
             previousIsCancelled: false,
             allowPartial: allowPartial
         ) {
@@ -714,12 +718,15 @@ actor YahpazAPI {
         return .saved(recovered)
     }
 
+    /// Writes only the columns that changed since `previousDraft`, so entering KM
+    /// cannot null location, notes, or anything else this form did not touch.
     func updateUnitEvent(
         eventId: String,
         draft: EventDraft,
         districts: [LookupOption],
         vehicleKinds: [LookupOption],
         viewerIsAdmin: Bool,
+        viewerRoles: [String],
         previousIsCancelled: Bool,
         allowPartial: Bool = false,
         previousDraft: EventDraft? = nil
@@ -740,59 +747,75 @@ actor YahpazAPI {
         if assignmentSource.blocksAssignedVolunteerEdit(viewerId: await sessionUserId()) {
             return ASSIGNED_VOLUNTEER_EVENT_EDIT_ERROR
         }
+        if isEventEditAgeLocked(createdAt: draft.createdAt, roles: viewerRoles) {
+            return EVENT_EDIT_LOCKED_TOOLTIP
+        }
         guard let eventDate = normalizeReturnDate(draft.eventDate) else { return EVENT_DRAFT_DATE_ERROR }
         let mainLeadId = draft.shiftLeadId.trimmingCharacters(in: .whitespacesAndNewlines)
         if mainLeadId.isEmpty { return "אין אחמ״ש ראשי." }
-        let pin = buildLocationPayload(draft)
+        if let collision = await sameDayPoliceEventIdCollision(
+            eventDate: eventDate,
+            policeEventId: draft.policeEventId,
+            currentEventId: eventId
+        ) {
+            return collision
+        }
+        let nextStatus = deriveEventStatusFromDraft(draft.responders)
         let overnight = isOvernightEnd(startTime: draft.startTime, endTime: draft.endTime)
         let eventStartedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.startTime, dayOffset: 0)
         let eventEndedAt = wallTimestamp(eventDate: eventDate, timeHm: draft.endTime, dayOffset: overnight ? 1 : 0)
-        let callsign = resolvePatrolCallsign(legacy: draft.patrolCallsign)
+        let nextColumns = eventPersistColumns(draft, districts: districts, mainLeadId: mainLeadId)
+        var eventPatch = nextColumns
+        if let previousDraft {
+            let previousLead = previousDraft.shiftLeadId.trimmingCharacters(in: .whitespacesAndNewlines)
+            eventPatch = changedPersistColumns(
+                previous: eventPersistColumns(
+                    previousDraft,
+                    districts: districts,
+                    mainLeadId: previousLead.isEmpty ? mainLeadId : previousLead
+                ),
+                next: nextColumns
+            )
+        }
         do {
-            let nextStatus = deriveEventStatusFromDraft(draft.responders)
-            let updated: [IdRow] = try await client
-                .from("events")
-                .update(
-                    EventUpdateWrite(
-                        eventDate: eventDate,
-                        policeEventId: draft.policeEventId.nilIfEmpty,
-                        districtId: draft.districtId.nilIfEmpty,
-                        patrolCallsign: draft.patrolCallsign.nilIfEmpty,
-                        patrolCallsignPrefix: callsign.prefix.nilIfEmpty,
-                        patrolCallsignNumber: callsign.number.nilIfEmpty,
-                        startedAt: eventStartedAt,
-                        endedAt: eventEndedAt,
-                        eventTypeId: draft.eventTypeId.nilIfEmpty,
-                        roadId: draft.roadId.nilIfEmpty,
-                        location: pin.location,
-                        locationPlaceId: pin.locationPlaceId,
-                        locationLat: pin.locationLat,
-                        locationLng: pin.locationLng,
-                        locationPinSource: pin.locationPinSource,
-                        locationPinnedAt: pin.locationPinnedAt,
-                        locationPinnedBy: pin.locationPinnedBy,
-                        station: stationForSave(districts, districtId: draft.districtId, station: draft.station),
-                        notes: draft.notes.nilIfEmpty,
-                        isCancelled: draft.isCancelled,
-                        busLane: draft.busLane,
-                        status: nextStatus.rawValue,
-                        shiftLeadId: mainLeadId,
-                        updatedAt: nowIso()
-                    )
+            if !eventPatch.isEmpty {
+                var body = eventPatch
+                body["updated_at"] = .string(nowIso())
+                let updated: [IdRow] = try await client
+                    .from("events")
+                    .update(body)
+                    .eq("id", value: eventId)
+                    .select("id")
+                    .execute()
+                    .value
+                if updated.isEmpty { return "אין הרשאה לעדכן את האירוע." }
+            }
+            let previousTimes = previousDraft.map { previous -> (String?, String?) in
+                let date = normalizeReturnDate(previous.eventDate) ?? previous.eventDate
+                let previousOvernight = isOvernightEnd(startTime: previous.startTime, endTime: previous.endTime)
+                return (
+                    wallTimestamp(eventDate: date, timeHm: previous.startTime, dayOffset: 0),
+                    wallTimestamp(eventDate: date, timeHm: previous.endTime, dayOffset: previousOvernight ? 1 : 0)
                 )
-                .eq("id", value: eventId)
-                .select("id")
-                .execute()
-                .value
-            if updated.isEmpty { return "אין הרשאה לעדכן את האירוע." }
+            }
             if let error = await syncEventResponders(
                 eventId: eventId,
-                eventDate: eventDate,
                 responders: draft.responders,
+                previousResponders: previousDraft?.responders,
                 vehicleKinds: vehicleKinds,
-                isCancelled: draft.isCancelled
+                isCancelled: draft.isCancelled,
+                eventStartedAt: eventStartedAt,
+                eventEndedAt: eventEndedAt,
+                previousStartedAt: previousTimes?.0,
+                previousEndedAt: previousTimes?.1
             ) {
                 return error
+            }
+            if let error = await promoteEventToDoneIfNeeded(eventId: eventId, nextStatus: nextStatus) {
+                return error
+            }
+            if let previousDraft, secondaryLeadsUnchanged(previous: previousDraft.secondaryLeads, next: draft.secondaryLeads) {
+                return nil
             }
             return await syncEventSecondaryLeads(
                 eventId: eventId,
@@ -801,7 +824,67 @@ actor YahpazAPI {
                 mainLeadId: mainLeadId
             )
         } catch {
+            return policeEventIdDuplicateOrSaveFailed(error)
+        }
+    }
+
+    /// Same מספר אירוע on the same day is refused before anything is written.
+    private func sameDayPoliceEventIdCollision(
+        eventDate: String,
+        policeEventId: String,
+        currentEventId: String?
+    ) async -> String? {
+        let policeId = digitsOnly(policeEventId)
+        if policeId.isEmpty { return nil }
+        do {
+            let rows: [SameDayPoliceEventApiRow] = try await client
+                .from("events")
+                .select("id, event_date, police_event_id, is_cancelled, shift_lead_id")
+                .eq("event_date", value: eventDate)
+                .eq("police_event_id", value: policeId)
+                .eq("is_cancelled", value: false)
+                .execute()
+                .value
+            let existing = rows.map {
+                SameDayPoliceEventRow(
+                    id: $0.id,
+                    shiftLeadId: $0.shiftLeadId,
+                    isCancelled: $0.isCancelled,
+                    eventDate: $0.eventDate,
+                    policeEventId: $0.policeEventId
+                )
+            }
+            return sameDayPoliceEventIdCollides(
+                eventDate: eventDate,
+                policeEventId: policeId,
+                currentEventId: currentEventId,
+                existing: existing
+            ) ? POLICE_EVENT_ID_DUPLICATE_ERROR : nil
+        } catch {
             return EVENT_DRAFT_SAVE_FAILED
+        }
+    }
+
+    private func policeEventIdDuplicateOrSaveFailed(_ error: Error) -> String {
+        let raw = String(describing: error)
+        if raw.contains(POLICE_EVENT_ID_DUPLICATE_ERROR) || isUniqueViolation(error) {
+            return POLICE_EVENT_ID_DUPLICATE_ERROR
+        }
+        return eventPersistFailure(raw)
+    }
+
+    /// `done` goes on only after every assignment's KM is in, or the DB guard refuses it.
+    private func promoteEventToDoneIfNeeded(eventId: String, nextStatus: EventStatus) async -> String? {
+        guard nextStatus == .done else { return nil }
+        do {
+            try await client
+                .from("events")
+                .update(["status": PersistValue.string(EventStatus.done.rawValue), "updated_at": .string(nowIso())])
+                .eq("id", value: eventId)
+                .execute()
+            return nil
+        } catch {
+            return policeEventIdDuplicateOrSaveFailed(error)
         }
     }
 
@@ -875,15 +958,19 @@ actor YahpazAPI {
 
     private func syncEventResponders(
         eventId: String,
-        eventDate: String,
         responders: [EventResponderDraft],
+        previousResponders: [EventResponderDraft]?,
         vehicleKinds: [LookupOption],
-        isCancelled: Bool
+        isCancelled: Bool,
+        eventStartedAt: String?,
+        eventEndedAt: String?,
+        previousStartedAt: String? = nil,
+        previousEndedAt: String? = nil
     ) async -> String? {
         do {
             let existing: [EventFormResponderRow] = try await client
                 .from("event_responders")
-                .select("id, responder_id, status, total_km")
+                .select("id, responder_id, status, total_km, ended_at")
                 .eq("event_id", value: eventId)
                 .execute()
                 .value
@@ -906,35 +993,34 @@ actor YahpazAPI {
                 {
                     return "קילומטרים חייבים להיות מספר."
                 }
-                let overnight = isOvernightEnd(startTime: responder.startTime, endTime: responder.endTime)
-                let startedAt = wallTimestamp(eventDate: eventDate, timeHm: responder.startTime, dayOffset: 0)
-                let endedAt = wallTimestamp(
-                    eventDate: eventDate,
-                    timeHm: responder.endTime,
-                    dayOffset: overnight ? 1 : 0
-                )
                 let assignmentId = responder.assignmentId.isEmpty
                     ? existingByResponder[responder.responderId]
                     : responder.assignmentId
-                let now = nowIso()
+                let previousRow = previousResponders?.first(where: { $0.responderId == responder.responderId })
+                let leadPatch = responderLeadPatch(
+                    previous: previousRow,
+                    next: responder,
+                    startedAt: eventStartedAt,
+                    endedAt: eventEndedAt,
+                    previousStartedAt: previousStartedAt,
+                    previousEndedAt: previousEndedAt
+                )
                 let resolvedId: String
                 if let assignmentId {
-                    let updated: [IdRow] = try await client
-                        .from("event_responders")
-                        .update(
-                            EventResponderLeadWrite(
-                                startedAt: startedAt,
-                                endedAt: endedAt,
-                                totalKm: km,
-                                emergencyMeans: responder.emergencyMeans,
-                                updatedAt: now
-                            )
-                        )
-                        .eq("id", value: assignmentId)
-                        .select("id")
-                        .execute()
-                        .value
-                    resolvedId = updated.first?.id ?? assignmentId
+                    if leadPatch.isEmpty {
+                        resolvedId = assignmentId
+                    } else {
+                        var body = leadPatch
+                        body["updated_at"] = .string(nowIso())
+                        let updated: [IdRow] = try await client
+                            .from("event_responders")
+                            .update(body)
+                            .eq("id", value: assignmentId)
+                            .select("id")
+                            .execute()
+                            .value
+                        resolvedId = updated.first?.id ?? assignmentId
+                    }
                 } else {
                     let inserted: IdRow = try await client
                         .from("event_responders")
@@ -942,8 +1028,8 @@ actor YahpazAPI {
                             EventResponderInsert(
                                 eventId: eventId,
                                 responderId: responder.responderId,
-                                startedAt: startedAt,
-                                endedAt: endedAt,
+                                startedAt: eventStartedAt,
+                                endedAt: eventEndedAt,
                                 totalKm: km,
                                 emergencyMeans: responder.emergencyMeans,
                                 status: responder.status.rawValue
@@ -956,6 +1042,9 @@ actor YahpazAPI {
                     resolvedId = inserted.id
                 }
                 nextKmRows.append(FillReadyNextRow(assignmentId: resolvedId, totalKm: km))
+                let rewriteTreated = isCancelled
+                    || shouldRewriteTreatedVehicles(previous: previousRow?.treated, next: responder.treated)
+                if !rewriteTreated { continue }
                 try await client
                     .from("event_treated_vehicles")
                     .delete()
@@ -990,7 +1079,7 @@ actor YahpazAPI {
             }
             return nil
         } catch {
-            return EVENT_DRAFT_SAVE_FAILED
+            return policeEventIdDuplicateOrSaveFailed(error)
         }
     }
 
@@ -1283,7 +1372,7 @@ actor YahpazAPI {
                     }
                 )
                 .execute()
-            try? await client
+            _ = try? await client
                 .rpc("sync_shift_born_events", params: SyncShiftBornEventsCall(shiftId: inserted.id))
                 .execute()
             return nil
@@ -1336,7 +1425,7 @@ actor YahpazAPI {
                 .execute()
                 .value
             if updated.isEmpty { return "אין הרשאה לעדכן את המשמרת." }
-            try? await client
+            _ = try? await client
                 .rpc("sync_shift_born_events", params: SyncShiftBornEventsCall(shiftId: shiftId))
                 .execute()
             return nil
@@ -1350,6 +1439,65 @@ actor YahpazAPI {
             .rpc("list_unit_contacts")
             .execute()
             .value
+    }
+
+    /// Every active member's saved addresses for the מפה tab (admin / training statuses filtered out).
+    func fetchUnitMapPins() async throws -> [MapPin] {
+        let rows: [UnitMapPinRowDto] = try await client
+            .rpc("list_unit_map_pins")
+            .execute()
+            .value
+        return mapPinsFromUnitRows(rows.map {
+            UnitMapPinRow(
+                userId: $0.userId,
+                fullName: $0.fullName ?? "",
+                callsign: $0.callsign ?? "",
+                kind: AddressKind.fromRaw($0.kind),
+                label: $0.label,
+                formattedAddress: $0.formattedAddress ?? "",
+                lat: $0.lat ?? 0,
+                lng: $0.lng ?? 0,
+                volunteerStatus: VolunteerStatus.fromRaw($0.volunteerStatus),
+                availability: AvailabilityStatus(rawValue: $0.availability ?? "") ?? .available,
+                availableFrom: $0.availableFrom
+            )
+        })
+    }
+
+    /// Responders en route right now (open assignments only), for leads on the מפה tab.
+    func fetchLiveMapPins() async throws -> [LiveMapPin] {
+        let rows: [LiveLocationRowDto] = try await client
+            .from("event_responder_live_locations")
+            .select(
+                """
+                event_responder_id, lat, lng, recorded_at,
+                assignment:event_responders!inner(
+                  ended_at,
+                  responder:profiles!event_responders_responder_id_fkey(full_name, callsign),
+                  event:events!event_responders_event_id_fkey(location, event_type:event_types(name), road:roads(name))
+                )
+                """
+            )
+            .execute()
+            .value
+        return rows.compactMap { row in
+            guard let assignment = row.assignment,
+                  assignment.endedAt?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+            else { return nil }
+            let line = liveEventLine(
+                eventType: assignment.event?.eventType?.name,
+                road: assignment.event?.road?.name,
+                location: assignment.event?.location
+            )
+            return LiveMapPin(
+                assignmentId: row.eventResponderId,
+                lat: row.lat,
+                lng: row.lng,
+                label: livePinLabel(callsign: assignment.responder?.callsign, fullName: assignment.responder?.fullName ?? "מתנדב"),
+                tooltip: livePinTooltip(eventLine: line, recordedAtClock: jerusalemClock(row.recordedAt)),
+                recordedAt: row.recordedAt
+            )
+        }
     }
 
     func fetchFillContext(eventId: String) async throws -> FillContext? {
@@ -2861,6 +3009,79 @@ private struct MyActiveEventPrefWrite: Encodable {
     }
 }
 
+private struct UnitMapPinRowDto: Decodable {
+    var userId: String
+    var fullName: String?
+    var callsign: String?
+    var kind: String?
+    var label: String?
+    var formattedAddress: String?
+    var lat: Double?
+    var lng: Double?
+    var volunteerStatus: String?
+    var availability: String?
+    var availableFrom: String?
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case fullName = "full_name"
+        case callsign, kind, label
+        case formattedAddress = "formatted_address"
+        case lat, lng
+        case volunteerStatus = "volunteer_status"
+        case availability
+        case availableFrom = "available_from"
+    }
+}
+
+private struct LiveLocationRowDto: Decodable {
+    var eventResponderId: String
+    var lat: Double
+    var lng: Double
+    var recordedAt: String
+    var assignment: LiveAssignmentDto?
+
+    enum CodingKeys: String, CodingKey {
+        case eventResponderId = "event_responder_id"
+        case lat, lng
+        case recordedAt = "recorded_at"
+        case assignment
+    }
+}
+
+private struct LiveAssignmentDto: Decodable {
+    var endedAt: String?
+    var responder: PersonName?
+    var event: LiveEventDto?
+
+    enum CodingKeys: String, CodingKey {
+        case endedAt = "ended_at"
+        case responder, event
+    }
+}
+
+private struct LiveEventDto: Decodable {
+    var location: String?
+    var eventType: Named?
+    var road: Named?
+
+    enum CodingKeys: String, CodingKey {
+        case location
+        case eventType = "event_type"
+        case road
+    }
+}
+
+/// `HH:mm` in Israel for a `timestamptz` ping.
+private func jerusalemClock(_ iso: String) -> String {
+    let withFraction = ISO8601DateFormatter()
+    withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let date = withFraction.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) else {
+        return formatTime(iso) ?? ""
+    }
+    return nowTimeJerusalem(date)
+}
+
 private struct JunctionSearchParams: Encodable, Sendable {
     var q: String
 }
@@ -2918,111 +3139,6 @@ private struct EventInsert: Encodable {
     }
 }
 
-private struct EventUpdateWrite: Encodable {
-    var eventDate: String
-    var policeEventId: String?
-    var districtId: String?
-    var patrolCallsign: String?
-    var patrolCallsignPrefix: String?
-    var patrolCallsignNumber: String?
-    var startedAt: String?
-    var endedAt: String?
-    var eventTypeId: String?
-    var roadId: String?
-    var location: String?
-    var locationPlaceId: String?
-    var locationLat: Double?
-    var locationLng: Double?
-    var locationPinSource: String?
-    var locationPinnedAt: String?
-    var locationPinnedBy: String?
-    var station: String?
-    var notes: String?
-    var isCancelled: Bool
-    var busLane: Bool
-    var status: String
-    var shiftLeadId: String?
-    var updatedAt: String
-
-    enum CodingKeys: String, CodingKey {
-        case eventDate = "event_date"
-        case policeEventId = "police_event_id"
-        case districtId = "district_id"
-        case patrolCallsign = "patrol_callsign"
-        case patrolCallsignPrefix = "patrol_callsign_prefix"
-        case patrolCallsignNumber = "patrol_callsign_number"
-        case startedAt = "started_at"
-        case endedAt = "ended_at"
-        case eventTypeId = "event_type_id"
-        case roadId = "road_id"
-        case location
-        case locationPlaceId = "location_place_id"
-        case locationLat = "location_lat"
-        case locationLng = "location_lng"
-        case locationPinSource = "location_pin_source"
-        case locationPinnedAt = "location_pinned_at"
-        case locationPinnedBy = "location_pinned_by"
-        case station, notes
-        case isCancelled = "is_cancelled"
-        case busLane = "bus_lane"
-        case status
-        case shiftLeadId = "shift_lead_id"
-        case updatedAt = "updated_at"
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(eventDate, forKey: .eventDate)
-        try encodeNull(&c, policeEventId, .policeEventId)
-        try encodeNull(&c, districtId, .districtId)
-        try encodeNull(&c, patrolCallsign, .patrolCallsign)
-        try encodeNull(&c, patrolCallsignPrefix, .patrolCallsignPrefix)
-        try encodeNull(&c, patrolCallsignNumber, .patrolCallsignNumber)
-        try encodeNull(&c, startedAt, .startedAt)
-        try encodeNull(&c, endedAt, .endedAt)
-        try encodeNull(&c, eventTypeId, .eventTypeId)
-        try encodeNull(&c, roadId, .roadId)
-        try encodeNull(&c, location, .location)
-        try encodeNull(&c, locationPlaceId, .locationPlaceId)
-        try encodeNullDouble(&c, locationLat, .locationLat)
-        try encodeNullDouble(&c, locationLng, .locationLng)
-        try encodeNull(&c, locationPinSource, .locationPinSource)
-        try encodeNull(&c, locationPinnedAt, .locationPinnedAt)
-        try encodeNull(&c, locationPinnedBy, .locationPinnedBy)
-        try encodeNull(&c, station, .station)
-        try encodeNull(&c, notes, .notes)
-        try c.encode(isCancelled, forKey: .isCancelled)
-        try c.encode(busLane, forKey: .busLane)
-        try c.encode(status, forKey: .status)
-        try encodeNull(&c, shiftLeadId, .shiftLeadId)
-        try c.encode(updatedAt, forKey: .updatedAt)
-    }
-}
-
-private func encodeNull<K: CodingKey>(
-    _ c: inout KeyedEncodingContainer<K>,
-    _ value: String?,
-    _ key: K
-) throws {
-    if let value {
-        try c.encode(value, forKey: key)
-    } else {
-        try c.encodeNil(forKey: key)
-    }
-}
-
-private func encodeNullDouble<K: CodingKey>(
-    _ c: inout KeyedEncodingContainer<K>,
-    _ value: Double?,
-    _ key: K
-) throws {
-    if let value {
-        try c.encode(value, forKey: key)
-    } else {
-        try c.encodeNil(forKey: key)
-    }
-}
-
 private struct EventSecondaryLeadInsert: Encodable {
     var eventId: String
     var userId: String
@@ -3054,31 +3170,6 @@ private struct EventResponderInsert: Encodable {
         case totalKm = "total_km"
         case emergencyMeans = "emergency_means"
         case status
-    }
-}
-
-private struct EventResponderLeadWrite: Encodable {
-    var startedAt: String?
-    var endedAt: String?
-    var totalKm: Double?
-    var emergencyMeans: Bool
-    var updatedAt: String
-
-    enum CodingKeys: String, CodingKey {
-        case startedAt = "started_at"
-        case endedAt = "ended_at"
-        case totalKm = "total_km"
-        case emergencyMeans = "emergency_means"
-        case updatedAt = "updated_at"
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        if let startedAt { try c.encode(startedAt, forKey: .startedAt) } else { try c.encodeNil(forKey: .startedAt) }
-        if let endedAt { try c.encode(endedAt, forKey: .endedAt) } else { try c.encodeNil(forKey: .endedAt) }
-        if let totalKm { try c.encode(totalKm, forKey: .totalKm) } else { try c.encodeNil(forKey: .totalKm) }
-        try c.encode(emergencyMeans, forKey: .emergencyMeans)
-        try c.encode(updatedAt, forKey: .updatedAt)
     }
 }
 

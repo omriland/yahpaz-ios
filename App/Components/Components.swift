@@ -593,16 +593,18 @@ struct PrivacyPolicyLink: View {
 struct LedgerRow: View {
     let label: String
     let value: String
+    /// A lead-owned field that is still empty: label and value turn alert red.
+    var missing = false
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(label)
                 .font(TypeScale.label)
-                .foregroundStyle(FieldTheme.textSecondary)
+                .foregroundStyle(missing ? FieldTheme.alert : FieldTheme.textSecondary)
             Spacer(minLength: 12)
             Text(value.isEmpty ? "—" : value)
                 .font(TypeScale.body)
-                .foregroundStyle(FieldTheme.textPrimary)
+                .foregroundStyle(missing ? FieldTheme.alert : FieldTheme.textPrimary)
                 .multilineTextAlignment(.trailing)
         }
         .padding(.vertical, 6)

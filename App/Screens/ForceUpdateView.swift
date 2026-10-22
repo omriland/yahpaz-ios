@@ -17,13 +17,31 @@ struct ForceUpdateView: View {
                         .foregroundStyle(CommandTheme.textSecondary)
                         .multilineTextAlignment(.center)
                 }
-                InAppUpdateActions(
-                    manifestUrl: update.manifestUrl,
-                    updateTitle: "הורדה והתקנה",
-                    command: true
-                )
+                if isStoreInstall() {
+                    StoreUpdateAction(appStoreUrl: update.appStoreUrl)
+                } else {
+                    InAppUpdateActions(
+                        manifestUrl: update.manifestUrl,
+                        updateTitle: "הורדה והתקנה",
+                        command: true
+                    )
+                }
             }
             .padding(24)
+        }
+    }
+}
+
+/// Store installs update from the App Store page (or the App Store app when the page is not known yet).
+private struct StoreUpdateAction: View {
+    let appStoreUrl: String?
+
+    var body: some View {
+        PrimaryButton(title: "עדכון גרסה", command: true) {
+            let page = appStoreUrl.flatMap { $0.isEmpty ? nil : URL(string: $0) }
+            if let url = page ?? URL(string: "itms-apps://apps.apple.com") {
+                UIApplication.shared.open(url)
+            }
         }
     }
 }

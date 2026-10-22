@@ -8,6 +8,7 @@ struct AvailabilityView: View {
     @State private var returnDate = ""
     @State private var error: String?
     @State private var busy = false
+    @State private var autoSaved = false
     private var locked: Bool { app.impersonating }
 
     var body: some View {
@@ -52,14 +53,14 @@ struct AvailabilityView: View {
                         selected: status == .available,
                         enabled: !locked
                     ) {
-                        status = .available
+                        select(.available)
                     }
                     AvailabilityChoice(
                         label: "לא זמין",
                         selected: status == .unavailable,
                         enabled: !locked
                     ) {
-                        status = .unavailable
+                        select(.unavailable)
                     }
                 }
                 if status == .unavailable {
@@ -69,6 +70,11 @@ struct AvailabilityView: View {
                             .font(TypeScale.caption)
                             .foregroundStyle(FieldTheme.textMuted)
                     }
+                }
+                if autoSaved && error == nil {
+                    Text("השינויים נשמרים אוטומטית.")
+                        .font(TypeScale.caption)
+                        .foregroundStyle(FieldTheme.done)
                 }
                 if let error {
                     Text(error)
@@ -85,6 +91,7 @@ struct AvailabilityView: View {
         .yahpazKeyboardAccessory()
         .background(FieldTheme.page.ignoresSafeArea())
         .onAppear { syncFromProfile() }
+        .task(id: returnDate) { await autosaveReturnDate() }
         .onChange(of: app.profile?.id) { _, _ in syncFromProfile() }
         .onChange(of: app.profile?.availability) { _, _ in syncFromProfile() }
         .onChange(of: app.profile?.availableFrom) { _, _ in syncFromProfile() }
@@ -94,6 +101,37 @@ struct AvailabilityView: View {
         guard let profile = app.profile else { return }
         status = profile.availability
         returnDate = returnDateToInput(profile.availableFrom ?? "")
+    }
+
+    private var matchesProfile: Bool {
+        guard let profile = app.profile else { return false }
+        let iso = returnDate.isEmpty ? nil : normalizeReturnDate(returnDate)
+        return profile.availability == status && (status == .available || profile.availableFrom == iso)
+    }
+
+    /// Picking זמין / לא זמין is the save.
+    private func select(_ next: AvailabilityStatus) {
+        if locked || status == next { return }
+        status = next
+        error = nil
+        Task {
+            busy = true
+            let date = next == .unavailable && !returnDate.isEmpty ? returnDate : nil
+            let failure = await app.saveAvailability(status: next, availableFrom: date)
+            busy = false
+            if let failure { error = failure } else { autoSaved = true }
+        }
+    }
+
+    /// A complete return date saves 800 ms after the last keystroke.
+    private func autosaveReturnDate() async {
+        guard !locked, status == .unavailable, !returnDate.isEmpty else { return }
+        try? await Task.sleep(nanoseconds: 800_000_000)
+        guard !Task.isCancelled, normalizeReturnDate(returnDate) != nil, !matchesProfile else { return }
+        if await app.saveAvailability(status: status, availableFrom: returnDate) == nil {
+            autoSaved = true
+            error = nil
+        }
     }
 
     private func save() async {

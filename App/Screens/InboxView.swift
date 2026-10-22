@@ -208,6 +208,7 @@ struct InboxView: View {
     private var pending: [EventListItem] {
         app.events.filter { event in
             guard let userId = app.userId else { return false }
+            if !event.releasedToResponders() { return false }
             return mineInboxIsOpen(
                 event.ownParticipation(userId: userId),
                 totalKm: event.ownTotalKm(userId: userId)
@@ -236,7 +237,9 @@ struct InboxView: View {
 
     private var logged: [EventListItem] {
         let ids = Set(loggedWindow.logged.map(\.id))
-        return app.events.filter { ids.contains($0.id) }.sorted { $0.eventDate > $1.eventDate }
+        return app.events
+            .filter { ids.contains($0.id) && $0.releasedToResponders() }
+            .sorted { $0.eventDate > $1.eventDate }
     }
 
     private var hasMoreLogged: Bool { loggedWindow.hasMoreLogged }
@@ -331,7 +334,10 @@ struct EventCardView: View {
 
     var body: some View {
         let mine = userId.flatMap { event.ownParticipation(userId: $0) } ?? .pending
-        let stamp = event.isCancelled ? cancelledStamp() : participationStamp(mine, isViewer: true)
+        let ownKm = userId.flatMap { event.ownTotalKm(userId: $0) }
+        let stamp = event.isCancelled
+            ? cancelledStamp()
+            : mineParticipationStamp(mine, totalKm: ownKm, missingLeadDetails: event.missingLeadDoneDetails)
         let overdue = isMineFillOverdue(
             isCancelled: event.isCancelled,
             participationStatus: mine,
@@ -365,7 +371,14 @@ struct EventCardView: View {
                     Spacer()
                     StampWithNote(
                         stamp: stamp,
-                        note: userId.flatMap { leadKmPendingNote(mine, totalKm: event.ownTotalKm(userId: $0)) }
+                        note: userId.map { _ in
+                            leadKmPendingNote(
+                                mine,
+                                totalKm: ownKm,
+                                origin: event.origin,
+                                missingLeadDetails: event.missingLeadDoneDetails
+                            )
+                        } ?? nil
                     )
                 }
                 // `.plain` draws no background, so without an explicit shape the Spacer
@@ -473,11 +486,17 @@ struct LoggedRow: View {
                 }
             }
             Spacer()
+            let ownKm = userId.flatMap { event.ownTotalKm(userId: $0) }
             StampWithNote(
-                stamp: participationStamp(.done, isViewer: true),
-                note: userId.flatMap {
-                    leadKmPendingNote(.done, totalKm: event.ownTotalKm(userId: $0))
-                }
+                stamp: mineParticipationStamp(.done, totalKm: ownKm, missingLeadDetails: event.missingLeadDoneDetails),
+                note: userId.map { _ in
+                    leadKmPendingNote(
+                        .done,
+                        totalKm: ownKm,
+                        origin: event.origin,
+                        missingLeadDetails: event.missingLeadDoneDetails
+                    )
+                } ?? nil
             )
         }
         .padding(16)
@@ -495,15 +514,16 @@ struct EventSummarySheet: View {
 
     var body: some View {
         let mine = userId.flatMap { event.ownParticipation(userId: $0) } ?? .pending
+        let missing = missingEventFields(event.asIncompleteSnapshot())
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 0) {
                         LedgerRow(label: "תאריך", value: formatDate(event.eventDate))
-                        LedgerRow(label: "מספר אירוע", value: event.policeEventId ?? "")
-                        LedgerRow(label: "סוג אירוע", value: event.typeLabel)
-                        LedgerRow(label: "כביש", value: event.road?.name ?? "")
-                        LedgerRow(label: "מיקום", value: event.location ?? "")
+                        LedgerRow(label: "מספר אירוע", value: event.policeEventId ?? "", missing: missing.contains(.policeEventId))
+                        LedgerRow(label: "סוג אירוע", value: event.typeLabel, missing: missing.contains(.eventType))
+                        LedgerRow(label: "כביש", value: event.road?.name ?? "", missing: missing.contains(.road))
+                        LedgerRow(label: "מיקום", value: event.location ?? "", missing: missing.contains(.location))
                         LedgerRow(label: "אחמ״ש", value: event.shiftLead?.display ?? "")
                     }
                     VStack(alignment: .leading, spacing: 8) {
@@ -517,12 +537,20 @@ struct EventSummarySheet: View {
                                     .foregroundStyle(FieldTheme.textPrimary)
                                 Spacer()
                                 StampWithNote(
-                                    stamp: participationStamp(
-                                        row.status,
-                                        isViewer: row.responderId == userId
-                                    ),
+                                    stamp: row.responderId == userId
+                                        ? mineParticipationStamp(
+                                            row.status,
+                                            totalKm: row.totalKm,
+                                            missingLeadDetails: event.missingLeadDoneDetails
+                                        )
+                                        : participationStamp(row.status, isViewer: false),
                                     note: row.responderId == userId
-                                        ? leadKmPendingNote(row.status, totalKm: row.totalKm)
+                                        ? leadKmPendingNote(
+                                            row.status,
+                                            totalKm: row.totalKm,
+                                            origin: event.origin,
+                                            missingLeadDetails: event.missingLeadDoneDetails
+                                        )
                                         : nil
                                 )
                             }

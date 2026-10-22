@@ -29,10 +29,17 @@ struct FillView: View {
     @State private var localSavedAt: Int64 = 0
     @State private var restoredFromDevice = false
     @State private var stashTask: Task<Void, Never>?
+    /// What the server holds for this fill; autosave writes only when the draft moved past it.
+    @State private var serverDraft: ResponderFillDraft?
+    @State private var photoNotifyOk = false
+    @State private var missingPhotoPlates: [TreatedPlate] = []
+    @State private var pendingPhotoSaveComplete: Bool?
 
     var body: some View {
         Group {
-            if loading {
+            if app.isHeldFromResponders(eventId) {
+                EmptyState(title: RESPONDERS_HELD_FOR_POLICE_ID_NOTE, actionTitle: "חזרה") { dismiss() }
+            } else if loading {
                 ProgressView("טוען את הדיווח…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if failed || context == nil {
@@ -59,14 +66,14 @@ struct FillView: View {
         .yahpazKeyboardAccessory()
         .safeAreaInset(edge: .top, spacing: 0) {
             if let context, !isReadOnly(context), localSavedAt > 0 {
-                Text("נשמר במכשיר \(fillDraftSavedLabel(savedAtMillis: localSavedAt))")
+                Text("נשמר אוטומטית במכשיר \(fillDraftSavedLabel(savedAtMillis: localSavedAt))")
                     .font(TypeScale.caption)
                     .foregroundStyle(FieldTheme.textMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 4)
             } else if let context, !isReadOnly(context) {
-                Text("הפרטים נשמרים במכשיר עד לשליחה.")
+                Text("הפרטים נשמרים אוטומטית במכשיר ובענן עד לשליחה.")
                     .font(TypeScale.caption)
                     .foregroundStyle(FieldTheme.textMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -92,17 +99,28 @@ struct FillView: View {
                 try? await Task.sleep(nanoseconds: fillStashDebounceNs)
                 if Task.isCancelled { return }
                 persistLocalDraft()
+                await autosaveToServer()
             }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background || phase == .inactive {
                 persistLocalDraft()
+                flushToServer()
             }
         }
         .onAppear { app.fillEventId = eventId }
         .onDisappear {
             persistLocalDraft()
+            flushToServer()
             if app.fillEventId == eventId { app.fillEventId = nil }
+        }
+        .sheet(isPresented: Binding(
+            get: { !missingPhotoPlates.isEmpty },
+            set: { if !$0 { cancelPhotoPrompt() } }
+        )) {
+            missingPhotosSheet
+                .environment(\.layoutDirection, .rightToLeft)
+                .environment(\.locale, Locale(identifier: "he"))
         }
         .fullScreenCover(isPresented: $plateScanOpen) {
             PlateScanView(
@@ -199,7 +217,7 @@ struct FillView: View {
                 }
                 if readOnly {
                     StampWithNote(
-                        stamp: participationStamp(context.participationStatus, isViewer: true),
+                        stamp: mineParticipationStamp(context.participationStatus, totalKm: context.totalKm),
                         note: leadKmPendingNote(context.participationStatus, totalKm: context.totalKm)
                     )
                     if let updated = context.updatedAt {
@@ -438,6 +456,77 @@ struct FillView: View {
         localSavedAt = now
     }
 
+    /// Draft as the server sees it: the half-typed plate never leaves the device.
+    private func serverComparable(_ value: ResponderFillDraft) -> ResponderFillDraft {
+        var copy = value
+        copy.treatedPlatePending = ""
+        return copy
+    }
+
+    private var hasUnsavedServerChanges: Bool {
+        guard let serverDraft else { return false }
+        return serverComparable(draft) != serverComparable(serverDraft)
+    }
+
+    private var draftSavable: Bool {
+        validateResponderFillDraft(
+            draft,
+            mode: .draft,
+            allowedPlates: context?.vehicles.map(\.plate) ?? [],
+            totalKm: context?.totalKm,
+            unfinishedMediaDraftCount: unfinishedMediaDrafts
+        ).isEmpty
+    }
+
+    /// Debounced cloud copy of the draft. Opening a fill and leaving it untouched writes nothing.
+    private func autosaveToServer() async {
+        guard let fill = context, !isReadOnly(fill), !savingDraft, !completing else { return }
+        guard hasUnsavedServerChanges, draftSavable else { return }
+        let snapshot = draft
+        if await YahpazAPI.shared.saveFill(context: fill, draft: snapshot, complete: false) == nil {
+            serverDraft = snapshot
+        }
+    }
+
+    private func flushToServer() {
+        guard let fill = context, !isReadOnly(fill), !completing else { return }
+        guard hasUnsavedServerChanges, draftSavable else { return }
+        app.flushFillDraft(context: fill, draft: draft)
+        serverDraft = draft
+    }
+
+    private var missingPhotosSheet: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(VEHICLE_PHOTOS_TITLE)
+                    .font(TypeScale.section)
+                    .foregroundStyle(FieldTheme.textPrimary)
+                ForEach(missingPhotoPlates, id: \.plateNumber) { plate in
+                    treatedPlateRow(plate, removable: false)
+                }
+                GhostButton(title: VEHICLE_PHOTOS_BACK) { cancelPhotoPrompt() }
+                PrimaryButton(title: VEHICLE_PHOTOS_PROCEED) {
+                    let complete = pendingPhotoSaveComplete
+                    photoNotifyOk = true
+                    missingPhotoPlates = []
+                    pendingPhotoSaveComplete = nil
+                    if let complete {
+                        Task { await save(complete: complete) }
+                    }
+                }
+            }
+            .padding(16)
+        }
+        .background(FieldTheme.page.ignoresSafeArea())
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    private func cancelPhotoPrompt() {
+        missingPhotoPlates = []
+        pendingPhotoSaveComplete = nil
+    }
+
     private func onFillBack() {
         switch decideFillBack(onMediaPane: pane == .media, unfinishedMediaDraftCount: unfinishedMediaDrafts) {
         case .dropUnfinishedPhoto:
@@ -496,6 +585,7 @@ struct FillView: View {
         do {
             let next = try await YahpazAPI.shared.fetchFillContext(eventId: eventId)
             context = next
+            serverDraft = next?.draft
             if let next {
                 let now = nowMillis()
                 let live = FillDraftStore.liveDraft(assignmentId: next.assignmentId)
@@ -537,26 +627,47 @@ struct FillView: View {
             unfinishedMediaDraftCount: unfinishedMediaDrafts
         )
         errors = nextErrors
-        if nextErrors.eventMedia != nil {
-            pane = .media
+        if !nextErrors.isEmpty {
+            if nextErrors.eventMedia != nil {
+                pane = .media
+            }
+            return
+        }
+        if !photoNotifyOk {
+            async let media = YahpazAPI.shared.listEventMedia(eventId: context.eventId)
+            async let plates = YahpazAPI.shared.listEventMediaPlates(eventId: context.eventId)
+            let missing = vehiclesMissingPhotos(
+                myPlates: draft.treatedPlates,
+                coveredDigits: coveredPlateDigits(media: await media, plates: coveragePlatesFromOptions(await plates))
+            )
+            if !missing.isEmpty {
+                missingPhotoPlates = missing
+                pendingPhotoSaveComplete = complete
+                return
+            }
         }
         if complete { completing = true } else { savingDraft = true }
+        let snapshot = draft
         let error = await YahpazAPI.shared.saveFill(
             context: context,
-            draft: draft,
+            draft: snapshot,
             complete: complete,
             unfinishedMediaDraftCount: unfinishedMediaDrafts
         )
         completing = false
         savingDraft = false
         if let error {
-            formError = error
             if error == errors.eventMedia {
                 pane = .media
             }
-            app.showToast(error, tone: .pending)
+            // Field-level leftover plate copy already sits under the plate input.
+            if error != errors.treatedPlates {
+                formError = error
+                app.showToast(error, tone: .pending)
+            }
             return
         }
+        serverDraft = snapshot
         if complete {
             FillDraftStore.clear(assignmentId: context.assignmentId)
         }

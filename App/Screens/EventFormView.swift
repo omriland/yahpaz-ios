@@ -11,6 +11,7 @@ struct EventFormView: View {
     @State private var patrolCallsignNumber = ""
     @State private var startTime = nowTimeJerusalem()
     @State private var endTime = ""
+    @State private var createdAt = ""
     @State private var createdEventId: String?
     @State private var eventTypeId = ""
     @State private var roadId = ""
@@ -46,9 +47,21 @@ struct EventFormView: View {
     @State private var deleteHint: String?
     @State private var vehicleOwnerIds: Set<String> = []
     @State private var detailResponderId: String?
+    @State private var removeResponderId: String?
+    @State private var quietSaving = false
+    @State private var quietPending = false
+    @State private var pendingSave: Bool?
+    @State private var stashRestored = false
+    @State private var formSession = UUID().uuidString
 
     private var editing: Bool { eventId != nil }
     private var persistedEventId: String? { eventId ?? createdEventId }
+    private var ageLocked: Bool { editing && isEventEditAgeLocked(createdAt: createdAt, roles: app.roles) }
+
+    /// Nothing may be written while the form is still loading, blocked, or waiting for the foreign-lead ack.
+    private var writesBlocked: Bool {
+        assignedBlocked || foreignEditPending || (editing && !loaded) || loadFailed || ageLocked
+    }
 
     private var foreignEditPending: Bool {
         editing && loaded && !loadFailed && !assignedBlocked
@@ -81,7 +94,7 @@ struct EventFormView: View {
                 Button(EVENT_DELETE_ACTION, role: .destructive) { performEventDelete() }
                 Button("ביטול", role: .cancel) {}
             } message: {
-                Text(EVENT_DELETE_CONFIRM)
+                Text(responders.isEmpty ? EVENT_DELETE_CONFIRM : EVENT_DELETE_CONFIRM_WITH_RESPONDERS)
             }
         }
         .task(id: app.userId) {
@@ -99,6 +112,29 @@ struct EventFormView: View {
         }
         .task(id: eventId) {
             await loadDetail()
+        }
+        .task {
+            restoreStashedDraft()
+        }
+        .task(id: currentDraft()) {
+            await autosave()
+        }
+        .onDisappear {
+            flushOnLeave()
+        }
+        .confirmationDialog(
+            eventResponderRemoveConfirm(removeResponderName),
+            isPresented: Binding(
+                get: { removeResponderId != nil },
+                set: { if !$0 { removeResponderId = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(EVENT_ASSIGN_REMOVE, role: .destructive) {
+                if let id = removeResponderId { dropResponder(id) }
+                removeResponderId = nil
+            }
+            Button(EVENT_ASSIGN_REMOVE_CANCEL, role: .cancel) { removeResponderId = nil }
         }
         .task(id: responders.map(\.responderId).sorted().joined(separator: ",")) {
             await refreshVehicleOwners()
@@ -156,6 +192,8 @@ struct EventFormView: View {
             EmptyState(title: ASSIGNED_VOLUNTEER_EVENT_EDIT_ERROR, actionTitle: "חזרה") {
                 app.closeEventForm()
             }
+        } else if ageLocked {
+            lockedState
         } else if foreignEditPending {
             Color.clear.frame(height: 1)
         } else if app.lookupsFailed && app.lookups.isEmpty {
@@ -221,9 +259,13 @@ struct EventFormView: View {
                         label: "מספר אירוע",
                         keyboard: .numberPad,
                         mono: true,
+                        error: formError == POLICE_EVENT_ID_DUPLICATE_ERROR ? formError : nil,
                         text: Binding(
                             get: { policeEventId },
-                            set: { policeEventId = String(digitsOnly($0).prefix(7)) }
+                            set: {
+                                policeEventId = policeEventIdForInput($0)
+                                if formError == POLICE_EVENT_ID_DUPLICATE_ERROR { formError = nil }
+                            }
                         )
                     )
                 }
@@ -232,7 +274,6 @@ struct EventFormView: View {
                 EventFormTwoColumn {
                     FormField(
                         label: PATROL_CALLSIGN_PREFIX_LABEL,
-                        placeholder: PATROL_CALLSIGN_PREFIX_PLACEHOLDER,
                         text: Binding(
                             get: { patrolCallsignPrefix },
                             set: { patrolCallsignPrefix = patrolCallsignPrefixForInput($0) }
@@ -243,7 +284,6 @@ struct EventFormView: View {
                         label: PATROL_CALLSIGN_NUMBER_LABEL,
                         keyboard: .numberPad,
                         mono: true,
-                        placeholder: PATROL_CALLSIGN_NUMBER_PLACEHOLDER,
                         text: Binding(
                             get: { patrolCallsignNumber },
                             set: { patrolCallsignNumber = patrolCallsignNumberForInput($0) }
@@ -253,9 +293,9 @@ struct EventFormView: View {
 
                 EventFormFieldNote(note: EVENT_TIMES_FIELD_NOTE, tooltip: EVENT_TIMES_FIELD_TOOLTIP)
                 EventFormTwoColumn {
-                    EventTimeField(label: "זמן התחלה", text: $startTime)
+                    EventTimeField(label: EVENT_START_TIME_LABEL, text: $startTime)
                 } trailing: {
-                    EventTimeField(label: "זמן סיום", text: $endTime)
+                    EventTimeField(label: EVENT_END_TIME_LABEL, text: $endTime)
                 }
 
                 LookupPickerField(
@@ -297,7 +337,7 @@ struct EventFormView: View {
                     error: errors.location,
                     required: districtNeedsLocation(app.lookups.districts, districtId: districtId),
                     roadName: app.lookups.roads.first(where: { $0.id == roadId })?.name,
-                    placeholder: EVENT_LOCATION_PLACEHOLDER,
+                    placeholder: "",
                     onChange: { pin in
                         location = pin.location
                         locationPlaceId = pin.locationPlaceId
@@ -348,7 +388,17 @@ struct EventFormView: View {
                     emptyQuery: "לא נמצאו מתנדבים להקצאה",
                     disabledIds: editing ? [] : Set([app.userId].compactMap { $0 }),
                     disabledHint: EVENT_SELF_ASSIGN_DISABLED_HINT,
-                    onResponderTap: { detailResponderId = $0 }
+                    onResponderTap: { detailResponderId = $0 },
+                    rowCaptions: Dictionary(uniqueKeysWithValues: responders.map {
+                        ($0.responderId, assignedResponderCaption(totalKm: $0.totalKm, hasVehicle: $0.hasVehicle))
+                    }),
+                    onRemove: { id in
+                        if let row = responders.first(where: { $0.responderId == id }), eventResponderHasFilledFields(row) {
+                            removeResponderId = id
+                        } else {
+                            dropResponder(id)
+                        }
+                    }
                 ) { id in
                     if !isSelfAssignDisabledOnCreate(isCreate: !editing, currentUserId: app.userId, profileId: id) {
                         responders = toggleEventResponder(responders, responderId: id, hasVehicle: vehicleOwnerIds.contains(id))
@@ -361,10 +411,26 @@ struct EventFormView: View {
                 }
             }
 
-            if let formError {
+            if !eventReleasedToResponders(
+                origin: "manual",
+                policeEventId: policeEventId,
+                patrolCallsignNumber: patrolCallsignNumber,
+                hasRoad: !roadId.isEmpty,
+                patrolCallsignPrefix: patrolCallsignPrefix
+            ) {
+                Text(RESPONDERS_HELD_FOR_POLICE_ID_NOTE)
+                    .font(TypeScale.caption)
+                    .foregroundStyle(FieldTheme.textMuted)
+            }
+            if let formError, formError != POLICE_EVENT_ID_DUPLICATE_ERROR {
                 Text(formError)
                     .font(TypeScale.caption)
                     .foregroundStyle(FieldTheme.alert)
+            }
+            if formError == nil, let status = saveStatus {
+                Text(status)
+                    .font(TypeScale.caption)
+                    .foregroundStyle(FieldTheme.textMuted)
             }
             PrimaryButton(title: eventFormPrimaryTitle(editing: editing), busy: saving, enabled: !deleting) {
                 persist(allowPartial: false)
@@ -403,6 +469,11 @@ struct EventFormView: View {
             eventDate: eventDate,
             policeEventId: policeEventId,
             patrolCallsign: formatPatrolCallsign(patrolCallsignPrefix, patrolCallsignNumber),
+            patrolCallsignPrefix: patrolCallsignPrefix,
+            patrolCallsignNumber: patrolCallsignNumber,
+            startTime: startTime,
+            endTime: endTime,
+            createdAt: createdAt,
             eventTypeId: eventTypeId,
             roadId: roadId,
             districtId: districtId,
@@ -415,20 +486,48 @@ struct EventFormView: View {
             locationPinnedBy: locationPinnedBy,
             station: station,
             notes: notes,
-            responders: applyEventTimesToResponders(responders, startTime: startTime, endTime: endTime),
+            responders: responders,
             isCancelled: isCancelled,
             busLane: busLane,
             shiftLeadId: shiftLeadId,
-            secondaryLeads: secondaryLeads,
-            startTime: startTime,
-            endTime: endTime
+            secondaryLeads: secondaryLeads
         )
     }
 
-    private func persist(allowPartial: Bool) {
-        if deleting || saving { return }
+    private var removeResponderName: String {
+        guard let id = removeResponderId else { return "" }
+        return app.assignableProfiles.first(where: { $0.id == id })?.fullName ?? ""
+    }
+
+    private func dropResponder(_ id: String) {
+        responders = toggleEventResponder(responders, responderId: id)
+        if detailResponderId == id { detailResponderId = nil }
+    }
+
+    /// `שומר…` while a write is queued, then the autosave promise.
+    private var saveStatus: String? {
+        if persistedEventId != nil {
+            let pending = persistedDraft?.forPersistCompare() != currentDraft().forPersistCompare()
+            return saving || quietSaving || pending ? "שומר…" : "השינויים נשמרים אוטומטית."
+        }
+        if currentDraft().hasDetailBeyondOpen() {
+            return saving || quietSaving ? "שומר…" : "הטיוטה נשמרת אוטומטית במכשיר."
+        }
+        return nil
+    }
+
+    private func persist(allowPartial: Bool, quiet: Bool = false) {
+        if deleting { return }
+        if saving || quietSaving {
+            if quiet { quietPending = true } else { pendingSave = allowPartial }
+            return
+        }
         if assignedBlocked {
-            formError = ASSIGNED_VOLUNTEER_EVENT_EDIT_ERROR
+            if !quiet { formError = ASSIGNED_VOLUNTEER_EVENT_EDIT_ERROR }
+            return
+        }
+        if ageLocked {
+            if !quiet { formError = EVENT_EDIT_LOCKED_TOOLTIP }
             return
         }
         if isForeignShiftLeadEvent(viewerId: app.userId, shiftLeadId: shiftLeadId) && !foreignEditAcked {
@@ -436,42 +535,153 @@ struct EventFormView: View {
         }
         let current = currentDraft()
         if !editing && createIncludesSelfAssign(shiftLeadId: app.userId ?? "", responders: current.responders) {
-            formError = EVENT_SELF_ASSIGN_ON_CREATE_ERROR
+            if !quiet { formError = EVENT_SELF_ASSIGN_ON_CREATE_ERROR }
             return
         }
-        let next = allowPartial
+        if current.responders.contains(where: {
+            $0.hasVehicle && !$0.totalKm.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && leadKmForSave(hasVehicle: $0.hasVehicle, totalKm: $0.totalKm) == nil
+        }) {
+            if !quiet { formError = "קילומטרים חייבים להיות מספר." }
+            return
+        }
+        let partial = allowPartial || quiet
+        let next = partial
             ? validateEventDraftPartial(current)
             : validateEventDraft(current, districts: app.lookups.districts)
-        errors = next
         if !next.isEmpty {
-            formError = next.eventDate ?? next.formMessage
+            if !quiet {
+                errors = next
+                formError = next.eventDate ?? next.formMessage
+            }
             return
         }
-        formError = nil
-        let stayOnForm = allowPartial && !editing
+        if !quiet {
+            errors = next
+            formError = nil
+        }
         Task {
-            saving = true
+            if quiet { quietSaving = true } else { saving = true }
             if let eventId = persistedEventId {
-                formError = await app.updateUnitEvent(
+                let error = await app.updateUnitEvent(
                     eventId,
                     draft: current,
                     previousIsCancelled: previousIsCancelled,
-                    allowPartial: allowPartial,
+                    allowPartial: partial,
                     previousDraft: persistedDraft,
-                    stay: stayOnForm
+                    stay: (allowPartial && !editing) || quiet,
+                    quiet: quiet
                 )
-                if formError == nil && stayOnForm {
-                    persistedDraft = current
-                }
+                if !quiet { formError = error }
+                if error == nil { persistedDraft = current }
             } else {
-                let outcome = await app.createUnitEvent(current, allowPartial: allowPartial, stay: stayOnForm)
-                formError = outcome.error
-                if formError == nil, stayOnForm, let id = outcome.eventId {
+                let outcome = await app.createUnitEvent(
+                    current,
+                    allowPartial: partial,
+                    stay: partial,
+                    quiet: quiet,
+                    formSession: formSession
+                )
+                if !quiet { formError = outcome.error }
+                // A full create closes the form too: record the row so the leave-flush
+                // does not stash the event it just created as a new device draft.
+                if outcome.error == nil, let id = outcome.eventId {
                     createdEventId = id
                     persistedDraft = current
+                    EventDraftStore.clear()
                 }
             }
-            saving = false
+            if quiet { quietSaving = false } else { saving = false }
+            if let explicit = pendingSave {
+                pendingSave = nil
+                quietPending = false
+                persist(allowPartial: explicit)
+            } else if quietPending {
+                quietPending = false
+                persist(allowPartial: true, quiet: true)
+            }
+        }
+    }
+
+    /// 800 ms after the last change: stash a new event on the device, then save quietly.
+    private func autosave() async {
+        try? await Task.sleep(nanoseconds: 800_000_000)
+        if Task.isCancelled || writesBlocked || deleting { return }
+        let draft = currentDraft()
+        if persistedEventId == nil {
+            guard draft.hasDetailBeyondOpen() else { return }
+            EventDraftStore.stash(draft)
+        }
+        if let stored = persistedDraft, stored.forPersistCompare() == draft.forPersistCompare() { return }
+        persist(allowPartial: true, quiet: true)
+    }
+
+    private func restoreStashedDraft() {
+        guard !editing, createdEventId == nil, !stashRestored else { return }
+        stashRestored = true
+        guard let stashed = EventDraftStore.read(), stashed.hasDetailBeyondOpen() else { return }
+        if !stashed.eventDate.isEmpty { eventDate = stashed.eventDate }
+        policeEventId = stashed.policeEventId
+        patrolCallsignPrefix = stashed.patrolCallsignPrefix
+        patrolCallsignNumber = stashed.patrolCallsignNumber
+        if !stashed.startTime.isEmpty { startTime = stashed.startTime }
+        endTime = stashed.endTime
+        eventTypeId = stashed.eventTypeId
+        roadId = stashed.roadId
+        districtId = stashed.districtId
+        location = stashed.location
+        locationPlaceId = stashed.locationPlaceId
+        locationLat = stashed.locationLat
+        locationLng = stashed.locationLng
+        locationPinSource = stashed.locationPinSource
+        locationPinnedAt = stashed.locationPinnedAt
+        locationPinnedBy = stashed.locationPinnedBy
+        station = stashed.station
+        notes = stashed.notes
+        responders = stashed.responders
+        isCancelled = stashed.isCancelled
+        busLane = stashed.busLane
+        secondaryLeads = stashed.secondaryLeads
+    }
+
+    /// The form is closing: keep a new draft on the device and send the last keystrokes.
+    private func flushOnLeave() {
+        let draft = currentDraft()
+        if !editing && persistedEventId == nil && draft.hasDetailBeyondOpen() {
+            EventDraftStore.stash(draft)
+        }
+        if writesBlocked { return }
+        app.flushEventForm(
+            formSession: formSession,
+            eventId: persistedEventId,
+            draft: draft,
+            previousDraft: persistedDraft,
+            previousIsCancelled: previousIsCancelled,
+            replaceExisting: !editing
+        )
+    }
+
+    /// Past the 7-day lock the form only explains why, and still lets the owner or an admin delete.
+    private var lockedState: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EmptyState(title: EVENT_EDIT_LOCKED_TOOLTIP, actionTitle: "חזרה") {
+                app.closeEventForm()
+            }
+            if canDeleteUnassignedEvent(
+                canManageUnit: app.canManageUnit,
+                viewerIsAdmin: app.canAdmin,
+                viewerId: app.userId,
+                shiftLeadId: shiftLeadId
+            ) {
+                if let formError {
+                    Text(formError)
+                        .font(TypeScale.caption)
+                        .foregroundStyle(FieldTheme.alert)
+                }
+                GhostButton(title: EVENT_DELETE_TITLE, enabled: !deleting, danger: true) {
+                    confirmDelete = true
+                }
+            }
         }
     }
 
@@ -518,24 +728,15 @@ struct EventFormView: View {
         do {
             let detail = try await YahpazAPI.shared.fetchEventFormDetail(eventId: eventId)
             let vehicles = try await YahpazAPI.shared.fetchVehiclesForResponders(detail.responders.map(\.responderId))
-            let draft = detail.toDraft(vehicleOwnerIds: Set(vehicles.map(\.userId)))
+            let ownerIds = Set(vehicles.map(\.userId))
+            let draft = detail.toDraft(vehicleOwnerIds: ownerIds)
             eventDate = draft.eventDate
             policeEventId = draft.policeEventId
-            let callsign = resolvePatrolCallsign(
-                prefix: detail.patrolCallsignPrefix,
-                number: detail.patrolCallsignNumber,
-                legacy: draft.patrolCallsign
-            )
-            patrolCallsignPrefix = callsign.prefix
-            patrolCallsignNumber = callsign.number
-            let times = eventFormTimes(
-                eventStart: detail.startedAt,
-                eventEnd: detail.endedAt,
-                responders: draft.responders,
-                fallbackStart: nowTimeJerusalem()
-            )
-            startTime = times.start
-            endTime = times.end
+            patrolCallsignPrefix = draft.patrolCallsignPrefix
+            patrolCallsignNumber = draft.patrolCallsignNumber
+            startTime = draft.startTime
+            endTime = draft.endTime
+            createdAt = draft.createdAt
             eventTypeId = draft.eventTypeId
             roadId = draft.roadId
             districtId = draft.districtId
@@ -556,7 +757,7 @@ struct EventFormView: View {
             shiftLeadName = detail.shiftLead?.fullName ?? ""
             shiftLeadCallsign = detail.shiftLead?.callsign ?? ""
             secondaryLeads = draft.secondaryLeads
-            persistedDraft = draft
+            persistedDraft = detail.toPersistedDraft(vehicleOwnerIds: ownerIds)
             foreignEditAcked = false
             assignedBlocked = draft.blocksAssignedVolunteerEdit(viewerId: app.userId)
             loaded = true
@@ -687,14 +888,14 @@ private struct EventTimeField: View {
                     .font(TypeScale.label)
                     .foregroundStyle(FieldTheme.textSecondary)
                 Spacer(minLength: 8)
-                Button("עכשיו") {
+                Button(TIME_NOW_LABEL) {
                     text = nowTimeJerusalem()
                 }
                 .font(TypeScale.caption)
                 .foregroundStyle(FieldTheme.accent)
                 .frame(minHeight: 32)
                 .buttonStyle(.plain)
-                .accessibilityLabel("עכשיו")
+                .accessibilityLabel(TIME_NOW_LABEL)
             }
             TimeField(label: "", text: $text)
         }
@@ -905,24 +1106,6 @@ private struct EventResponderDetailSheet: View {
                     Text(profile.display)
                         .font(TypeScale.section)
                         .foregroundStyle(FieldTheme.textPrimary)
-                HStack(alignment: .top, spacing: 12) {
-                    TimeField(label: "שעת התחלה", text: Binding(
-                        get: { responder.startTime },
-                        set: { value in
-                            var next = responder
-                            next.startTime = value
-                            onChange(next)
-                        }
-                    ))
-                    TimeField(label: "שעת סיום", text: Binding(
-                        get: { responder.endTime },
-                        set: { value in
-                            var next = responder
-                            next.endTime = value
-                            onChange(next)
-                        }
-                    ))
-                }
                 FormField(
                     label: "קילומטרים",
                     keyboard: .decimalPad,

@@ -135,6 +135,11 @@ struct EventListItem: Decodable, Hashable, Identifiable, Sendable {
     var eventDate: String
     var policeEventId: String?
     var patrolCallsign: String?
+    var patrolCallsignPrefix: String?
+    var patrolCallsignNumber: String?
+    var startedAt: String?
+    var endedAt: String?
+    var createdAt: String?
     var location: String?
     var status: EventStatus
     var isCancelled: Bool
@@ -157,6 +162,11 @@ struct EventListItem: Decodable, Hashable, Identifiable, Sendable {
         case eventDate = "event_date"
         case policeEventId = "police_event_id"
         case patrolCallsign = "patrol_callsign"
+        case patrolCallsignPrefix = "patrol_callsign_prefix"
+        case patrolCallsignNumber = "patrol_callsign_number"
+        case startedAt = "started_at"
+        case endedAt = "ended_at"
+        case createdAt = "created_at"
         case location
         case status
         case isCancelled = "is_cancelled"
@@ -181,6 +191,11 @@ struct EventListItem: Decodable, Hashable, Identifiable, Sendable {
         eventDate = try c.decode(String.self, forKey: .eventDate)
         policeEventId = try c.decodeIfPresent(String.self, forKey: .policeEventId)
         patrolCallsign = try c.decodeIfPresent(String.self, forKey: .patrolCallsign)
+        patrolCallsignPrefix = try c.decodeIfPresent(String.self, forKey: .patrolCallsignPrefix)
+        patrolCallsignNumber = try c.decodeIfPresent(String.self, forKey: .patrolCallsignNumber)
+        startedAt = try c.decodeIfPresent(String.self, forKey: .startedAt)
+        endedAt = try c.decodeIfPresent(String.self, forKey: .endedAt)
+        createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
         location = try c.decodeIfPresent(String.self, forKey: .location)
         status = try c.decode(EventStatus.self, forKey: .status)
         isCancelled = try c.decodeIfPresent(Bool.self, forKey: .isCancelled) ?? false
@@ -270,10 +285,35 @@ struct EventListItem: Decodable, Hashable, Identifiable, Sendable {
         )
     }
 
+    var callsignDisplay: String {
+        let callsign = resolvePatrolCallsign(prefix: patrolCallsignPrefix, number: patrolCallsignNumber, legacy: patrolCallsign)
+        return formatPatrolCallsign(callsign.prefix, callsign.number)
+    }
+
+    /// Lead still owes the end time (non-shift), so the responder's own stamp stays partial.
+    var missingLeadDoneDetails: Bool {
+        origin != "shift" && eventMissingLeadDoneDetails(endedAt: endedAt)
+    }
+
+    func releasedToResponders() -> Bool {
+        eventReleasedToResponders(
+            origin: origin,
+            policeEventId: policeEventId,
+            patrolCallsignNumber: patrolCallsignNumber,
+            hasRoad: road != nil,
+            patrolCallsignLegacy: patrolCallsign,
+            patrolCallsignPrefix: patrolCallsignPrefix
+        )
+    }
+
     func asIncompleteSnapshot() -> IncompleteEventSnapshot {
         IncompleteEventSnapshot(
+            origin: origin,
             policeEventId: policeEventId,
             patrolCallsign: patrolCallsign,
+            patrolCallsignNumber: patrolCallsignNumber,
+            startedAt: startedAt,
+            endedAt: endedAt,
             hasDistrict: district != nil,
             hasEventType: eventType != nil,
             hasRoad: road != nil,
@@ -906,8 +946,6 @@ struct EventFormResponderRow: Decodable, Sendable {
         EventResponderDraft(
             responderId: responderId,
             assignmentId: id,
-            startTime: toTimeInput(startedAt),
-            endTime: toTimeInput(endedAt),
             totalKm: totalKm.map { formatNumber($0) } ?? "",
             emergencyMeans: emergencyMeans,
             treated: treated.map { TreatedVehicleDraft(vehicleKindId: $0.vehicleKindId, quantity: $0.quantity) },
@@ -927,6 +965,7 @@ struct EventFormDetail: Decodable, Sendable {
     var patrolCallsignNumber: String?
     var startedAt: String?
     var endedAt: String?
+    var createdAt: String?
     var eventTypeId: String?
     var roadId: String?
     var location: String?
@@ -956,6 +995,7 @@ struct EventFormDetail: Decodable, Sendable {
         case patrolCallsignNumber = "patrol_callsign_number"
         case startedAt = "started_at"
         case endedAt = "ended_at"
+        case createdAt = "created_at"
         case eventTypeId = "event_type_id"
         case roadId = "road_id"
         case location
@@ -987,6 +1027,7 @@ struct EventFormDetail: Decodable, Sendable {
         patrolCallsignNumber = try c.decodeIfPresent(String.self, forKey: .patrolCallsignNumber)
         startedAt = try c.decodeIfPresent(String.self, forKey: .startedAt)
         endedAt = try c.decodeIfPresent(String.self, forKey: .endedAt)
+        createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
         eventTypeId = try c.decodeIfPresent(String.self, forKey: .eventTypeId)
         roadId = try c.decodeIfPresent(String.self, forKey: .roadId)
         location = try c.decodeIfPresent(String.self, forKey: .location)
@@ -1012,10 +1053,24 @@ struct EventFormDetail: Decodable, Sendable {
     }
 
     func toDraft(vehicleOwnerIds: Set<String>) -> EventDraft {
-        EventDraft(
+        let callsign = resolvePatrolCallsign(prefix: patrolCallsignPrefix, number: patrolCallsignNumber, legacy: patrolCallsign)
+        let formatted = formatPatrolCallsign(callsign.prefix, callsign.number)
+        let times = eventFormTimes(
+            eventStart: startedAt,
+            eventEnd: endedAt,
+            responderStarts: responders.map(\.startedAt),
+            responderEnds: responders.map(\.endedAt),
+            fallbackStart: nowTimeJerusalem()
+        )
+        return EventDraft(
             eventDate: returnDateToInput(eventDate),
             policeEventId: policeEventId ?? "",
-            patrolCallsign: patrolCallsign ?? "",
+            patrolCallsign: formatted.isEmpty ? (patrolCallsign ?? "") : formatted,
+            patrolCallsignPrefix: callsign.prefix,
+            patrolCallsignNumber: callsign.number,
+            startTime: times.start,
+            endTime: times.end,
+            createdAt: createdAt ?? "",
             eventTypeId: eventTypeId ?? "",
             roadId: roadId ?? "",
             districtId: districtId ?? "",
@@ -1032,9 +1087,19 @@ struct EventFormDetail: Decodable, Sendable {
             isCancelled: isCancelled,
             busLane: busLane,
             shiftLeadId: shiftLeadId ?? "",
-            secondaryLeads: secondaryLeads.map { $0.asDomain() },
-            startTime: toTimeInput(startedAt),
-            endTime: toTimeInput(endedAt)
+            secondaryLeads: secondaryLeads.map { $0.asDomain() }
+        )
+    }
+
+    /// What the `events` row actually stores, so a time the form prefilled from a
+    /// responder still counts as a change and gets written.
+    func toPersistedDraft(vehicleOwnerIds: Set<String>) -> EventDraft {
+        persistedEventDraftForRow(
+            uiDraft: toDraft(vehicleOwnerIds: vehicleOwnerIds),
+            storedStartedAt: startedAt,
+            storedEndedAt: endedAt,
+            responderStartedAts: responders.map(\.startedAt),
+            shiftLeadId: shiftLeadId ?? ""
         )
     }
 }
@@ -1147,12 +1212,14 @@ struct SameDayPoliceEventApiRow: Decodable, Sendable {
     var id: String
     var shiftLeadId: String?
     var isCancelled: Bool
+    var eventDate: String
     var policeEventId: String?
 
     enum CodingKeys: String, CodingKey {
         case id
         case shiftLeadId = "shift_lead_id"
         case isCancelled = "is_cancelled"
+        case eventDate = "event_date"
         case policeEventId = "police_event_id"
     }
 
@@ -1161,17 +1228,8 @@ struct SameDayPoliceEventApiRow: Decodable, Sendable {
         id = try c.decode(String.self, forKey: .id)
         shiftLeadId = try c.decodeIfPresent(String.self, forKey: .shiftLeadId)
         isCancelled = try c.decodeIfPresent(Bool.self, forKey: .isCancelled) ?? false
+        eventDate = try c.decodeIfPresent(String.self, forKey: .eventDate) ?? ""
         policeEventId = try c.decodeIfPresent(String.self, forKey: .policeEventId)
-    }
-}
-
-struct EventOwnerRow: Decodable, Sendable {
-    var id: String
-    var shiftLeadId: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case shiftLeadId = "shift_lead_id"
     }
 }
 

@@ -18,6 +18,9 @@ struct ShiftFormView: View {
     @State private var errors = ShiftDraftErrors()
     @State private var formError: String?
     @State private var saving = false
+    @State private var quietSaving = false
+    @State private var persistedDraft: ShiftDraft?
+    @State private var stashRestored = false
 
     private var editing: Bool { shiftId != nil }
     private var identityLocked: Bool { !canEditShiftIdentity(app.roles) }
@@ -61,6 +64,15 @@ struct ShiftFormView: View {
         }
         .task(id: shiftId) {
             await loadDetail()
+        }
+        .task {
+            restoreStashedDraft()
+        }
+        .task(id: currentDraft()) {
+            await autosave()
+        }
+        .onDisappear {
+            flushOnLeave()
         }
         .task(id: responderIds.joined(separator: ",")) {
             await loadCrewVehicles()
@@ -147,6 +159,11 @@ struct ShiftFormView: View {
                     .font(TypeScale.caption)
                     .foregroundStyle(FieldTheme.alert)
             }
+            if formError == nil, let status = saveStatus {
+                Text(status)
+                    .font(TypeScale.caption)
+                    .foregroundStyle(FieldTheme.textMuted)
+            }
             PrimaryButton(title: SHIFT_SAVE_TITLE, busy: saving, action: save)
         }
     }
@@ -176,9 +193,63 @@ struct ShiftFormView: View {
             if let shiftId {
                 formError = await app.updateUnitShift(shiftId, draft: draft)
             } else {
-                formError = await app.createUnitShift(draft)
+                let error = await app.createUnitShift(draft)
+                if error == nil { ShiftDraftStore.clear() }
+                formError = error
             }
             saving = false
+        }
+    }
+
+    private var saveStatus: String? {
+        if editing && loaded {
+            return saving || quietSaving || persistedDraft != currentDraft() ? "שומר…" : "השינויים נשמרים אוטומטית."
+        }
+        if !editing && shiftDraftHasDetail(currentDraft()) {
+            return "הטיוטה נשמרת אוטומטית במכשיר."
+        }
+        return nil
+    }
+
+    /// New shift: device copy after 600 ms. Existing shift: quiet save after 800 ms when valid.
+    private func autosave() async {
+        let draft = currentDraft()
+        guard let shiftId else {
+            guard shiftDraftHasDetail(draft) else { return }
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            if !Task.isCancelled { ShiftDraftStore.stash(draft) }
+            return
+        }
+        guard loaded, let stored = persistedDraft, stored != draft, validateShiftDraft(draft).isEmpty else { return }
+        try? await Task.sleep(nanoseconds: 800_000_000)
+        if Task.isCancelled || saving { return }
+        quietSaving = true
+        if await app.autoSaveUnitShift(shiftId, draft: draft) == nil {
+            persistedDraft = draft
+        }
+        quietSaving = false
+    }
+
+    private func restoreStashedDraft() {
+        guard !editing, !stashRestored else { return }
+        stashRestored = true
+        guard let stashed = ShiftDraftStore.read() else { return }
+        if !stashed.shiftDate.isEmpty { shiftDate = stashed.shiftDate }
+        shiftKind = stashed.shiftKind
+        vehicleType = stashed.vehicleType
+        personalVehicleId = stashed.personalVehicleId
+        notes = stashed.notes
+        responderIds = stashed.responderIds
+    }
+
+    private func flushOnLeave() {
+        let draft = currentDraft()
+        if let shiftId {
+            if loaded, let persistedDraft, persistedDraft != draft {
+                app.flushShiftForm(shiftId, draft: draft)
+            }
+        } else if shiftDraftHasDetail(draft) {
+            ShiftDraftStore.stash(draft)
         }
     }
 
@@ -199,6 +270,7 @@ struct ShiftFormView: View {
             personalVehicleId = draft.personalVehicleId
             notes = draft.notes
             responderIds = draft.responderIds
+            persistedDraft = draft
             loaded = true
         } catch {
             loadFailed = true

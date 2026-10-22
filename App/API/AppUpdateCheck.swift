@@ -7,11 +7,14 @@ struct IosVersionManifest: Decodable {
     var latestVersionName: String?
     var manifestUrl: String?
     var messageHe: String?
+    /// App Store page for store installs; added to yahpz.com/ios/version.json once the app is live.
+    var appStoreUrl: String?
 }
 
 struct ForceUpdateRequired: Equatable {
     var messageHe: String
     var manifestUrl: String
+    var appStoreUrl: String?
 }
 
 struct OptionalUpdateAvailable: Equatable {
@@ -44,6 +47,16 @@ enum OptionalUpdatePrefs {
     }
 }
 
+/// App Store and TestFlight builds carry no embedded provisioning profile; Ad Hoc and dev builds do.
+/// A store install must update through the App Store, never through the Ad Hoc OTA link.
+func isStoreInstall(bundle: Bundle = .main) -> Bool {
+    #if targetEnvironment(simulator)
+    return false
+    #else
+    return bundle.path(forResource: "embedded", ofType: "mobileprovision") == nil
+    #endif
+}
+
 func installedBuildNumber(
     bundle: Bundle = .main
 ) -> Int {
@@ -71,12 +84,14 @@ func checkSideloadUpdates(currentBuild: Int) async -> SideloadUpdateCheck {
         return SideloadUpdateCheck(
             force: ForceUpdateRequired(
                 messageHe: message.isEmpty ? DEFAULT_FORCE_UPDATE_MESSAGE : message,
-                manifestUrl: manifestUrl
+                manifestUrl: manifestUrl,
+                appStoreUrl: manifest.appStoreUrl?.trimmingCharacters(in: .whitespacesAndNewlines)
             )
         )
     }
     let latestBuild = manifest.latestBuild ?? manifest.minBuild
-    if needsOptionalUpdate(currentBuild: currentBuild, minBuild: manifest.minBuild, latestBuild: latestBuild) {
+    // The App Store updates store installs itself; the OTA prompt is for Ad Hoc phones only.
+    if !isStoreInstall() && needsOptionalUpdate(currentBuild: currentBuild, minBuild: manifest.minBuild, latestBuild: latestBuild) {
         let named = manifest.latestVersionName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let message = named.isEmpty
             ? DEFAULT_OPTIONAL_UPDATE_MESSAGE

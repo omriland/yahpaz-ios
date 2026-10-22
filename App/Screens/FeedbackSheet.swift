@@ -30,6 +30,7 @@ func feedbackPagePathForUi(
     case .mine: tabName = "inbox"
     case .myShifts: tabName = "my_shifts"
     case .contacts: tabName = "contacts"
+    case .map: tabName = "map"
     case .events: tabName = "events"
     case .shifts: tabName = "shifts"
     case .users: tabName = "users"

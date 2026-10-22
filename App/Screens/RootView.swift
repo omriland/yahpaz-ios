@@ -261,6 +261,8 @@ struct RootView: View {
                 MyShiftsView()
             case .contacts:
                 ContactsView()
+            case .map:
+                MapView()
             case .events:
                 UnitEventsView()
             case .shifts:
@@ -447,6 +449,7 @@ private func iconForMobileView(_ view: String) -> String {
     case "mine": return "list.bullet.rectangle"
     case "my_shifts": return "calendar"
     case "contacts": return "person.crop.rectangle.stack"
+    case "map": return "map"
     case "events": return "note.text"
     case "shifts": return "clock"
     case "reports": return "chart.bar.doc.horizontal"

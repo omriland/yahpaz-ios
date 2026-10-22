@@ -301,6 +301,10 @@ struct UnitEventsView: View {
             assignedEditBlocked = true
             return
         }
+        if isEventEditAgeLocked(createdAt: event.createdAt, roles: app.roles) {
+            app.showToast(EVENT_EDIT_LOCKED_TOOLTIP, tone: .pending)
+            return
+        }
         app.openEditEvent(event.id)
     }
 
@@ -374,7 +378,7 @@ private struct UnitEventRow: View {
     let onOpen: () -> Void
 
     private var incompleteFields: [String] {
-        incompleteFieldLabels(missingEventFields(event.asIncompleteSnapshot()))
+        incompleteLeadNoticeLabels(event.asIncompleteSnapshot())
     }
 
     private var stamp: StampDescriptor {
@@ -439,7 +443,7 @@ private struct UnitEventRow: View {
                     if !incompleteFields.isEmpty {
                         IncompleteFieldsNotice(
                             fields: incompleteFields,
-                            spoken: incompleteNoticeLabel(missingEventFields(event.asIncompleteSnapshot()))
+                            spoken: "חסרים: \(incompleteFields.joined(separator: " · "))"
                         )
                     }
                 }
@@ -574,11 +578,23 @@ private struct UnitEventDetailSheet: View {
                         Spacer(minLength: 8)
                         StampChip(stamp: stamp)
                     }
+                let missing = missingEventFields(event.asIncompleteSnapshot())
                 LedgerRow(label: "תאריך", value: formatDate(event.eventDate))
-                LedgerRow(label: "מספר אירוע", value: event.policeEventId ?? "")
-                LedgerRow(label: "סוג אירוע", value: event.typeLabel)
-                LedgerRow(label: "כביש", value: event.road?.name ?? "")
-                LedgerRow(label: "מיקום", value: event.location ?? "")
+                LedgerRow(label: "מספר אירוע", value: event.policeEventId ?? "", missing: missing.contains(.policeEventId))
+                LedgerRow(label: "אוק", value: event.callsignDisplay, missing: missing.contains(.patrolCallsign))
+                LedgerRow(
+                    label: "שעת התחלה",
+                    value: formatTime(event.startedAt) ?? "",
+                    missing: event.startedAt?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+                )
+                LedgerRow(
+                    label: "שעת סיום",
+                    value: formatTime(event.endedAt) ?? "",
+                    missing: event.endedAt?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+                )
+                LedgerRow(label: "סוג אירוע", value: event.typeLabel, missing: missing.contains(.eventType))
+                LedgerRow(label: "כביש", value: event.road?.name ?? "", missing: missing.contains(.road))
+                LedgerRow(label: "מיקום", value: event.location ?? "", missing: missing.contains(.location))
                 LedgerRow(label: "נת״צ", value: event.busLane ? "כן" : "לא")
                 if event.origin == "shift", let detailRows {
                     LedgerRow(label: "מספרי כלי רכב", value: treatedPlatesLabel(shiftEventPlates(detailRows)))
@@ -588,6 +604,11 @@ private struct UnitEventDetailSheet: View {
                 Text("מתנדבים (\(event.responders.count))")
                     .font(TypeScale.section)
                     .foregroundStyle(FieldTheme.textPrimary)
+                if !event.releasedToResponders() {
+                    Text(RESPONDERS_HELD_FOR_POLICE_ID_NOTE)
+                        .font(TypeScale.caption)
+                        .foregroundStyle(FieldTheme.textMuted)
+                }
                 if event.responders.isEmpty {
                     Text("טרם שובצו מתנדבים לאירוע")
                         .font(TypeScale.caption)
@@ -600,6 +621,8 @@ private struct UnitEventDetailSheet: View {
                         UnitEventResponderRow(
                             row: row,
                             showTreatedPlates: event.origin != "shift",
+                            showLeadKm: responderCardShowsLeadKm(hasLeadRole: managesUnit(app.roles)),
+                            missingLeadDetails: event.missingLeadDoneDetails,
                             isViewer: row.responderId == app.userId,
                             expanded: expandedIds.contains(row.id)
                         ) {
@@ -611,15 +634,20 @@ private struct UnitEventDetailSheet: View {
                         }
                     }
                 }
-                if let mine, let label = mineFillCtaLabel(mine) {
+                if let mine, event.releasedToResponders(), let label = mineFillCtaLabel(mine) {
                     PrimaryButton(title: label) { onFill(event.id) }
                 }
                 if app.canManageUnit {
-                    PrimaryButton(title: EVENT_EDIT_TITLE) { onEdit(event) }
+                    let ageLocked = isEventEditAgeLocked(createdAt: event.createdAt, roles: app.roles)
+                    PrimaryButton(title: EVENT_EDIT_TITLE, enabled: !ageLocked) { onEdit(event) }
+                    if ageLocked {
+                        Text(EVENT_EDIT_LOCKED_TOOLTIP)
+                            .font(TypeScale.caption)
+                            .foregroundStyle(FieldTheme.textMuted)
+                    }
                 }
                 if canDeleteUnassignedEvent(
                     canManageUnit: app.canManageUnit,
-                    responderCount: event.responders.count,
                     viewerIsAdmin: app.canAdmin,
                     viewerId: app.userId,
                     shiftLeadId: event.shiftLeadId
@@ -661,7 +689,7 @@ private struct UnitEventDetailSheet: View {
             }
             Button("ביטול", role: .cancel) {}
         } message: {
-            Text(EVENT_DELETE_CONFIRM)
+            Text(event.responders.isEmpty ? EVENT_DELETE_CONFIRM : EVENT_DELETE_CONFIRM_WITH_RESPONDERS)
         }
         .task(id: event.id) {
             expandedIds = []
@@ -689,6 +717,8 @@ private struct EventLeadLedgerRows: View {
 private struct UnitEventResponderRow: View {
     let row: UnitEventDetailResponderRow
     var showTreatedPlates: Bool
+    var showLeadKm: Bool
+    var missingLeadDetails: Bool
     var isViewer: Bool
     var expanded: Bool
     let onToggle: () -> Void
@@ -711,18 +741,24 @@ private struct UnitEventResponderRow: View {
                     }
                     Spacer(minLength: 8)
                     StampWithNote(
-                        stamp: participationStamp(row.status, isViewer: isViewer),
-                        note: isViewer ? leadKmPendingNote(row.status, totalKm: row.totalKm) : nil
+                        stamp: isViewer
+                            ? mineParticipationStamp(row.status, totalKm: row.totalKm, missingLeadDetails: missingLeadDetails)
+                            : participationStamp(row.status, isViewer: false),
+                        note: isViewer
+                            ? leadKmPendingNote(row.status, totalKm: row.totalKm, missingLeadDetails: missingLeadDetails)
+                            : nil
                     )
                     Image(systemName: expanded ? "chevron.down" : "chevron.left")
                         .foregroundStyle(FieldTheme.accent)
                 }
                 if expanded {
                     VStack(alignment: .leading, spacing: 0) {
-                        LedgerRow(label: "זמן התחלה", value: formatTime(row.startedAt) ?? "")
-                        LedgerRow(label: "זמן סיום", value: formatTime(row.endedAt) ?? "")
-                        if let km = row.totalKm {
-                            LedgerRow(label: "קילומטרים", value: "\(formatNumber(km)) ק״מ")
+                        if showLeadKm {
+                            LedgerRow(
+                                label: LEAD_KM_VIEW_LABEL,
+                                value: row.totalKm.map { "\(formatNumber($0)) ק״מ" } ?? "",
+                                missing: row.totalKm == nil
+                            )
                         }
                         LedgerRow(label: "אמצעים", value: row.emergencyMeans ? "כן" : "לא")
                         let treated = treatedVehiclesLabel(row.treated)

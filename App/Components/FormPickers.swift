@@ -246,6 +246,10 @@ struct CrewAssignmentSection: View {
     var disabledIds: Set<String> = []
     var disabledHint: String = EVENT_SELF_ASSIGN_DISABLED_HINT
     var onResponderTap: ((String) -> Void)? = nil
+    /// Caption under a tappable assigned row (event form: its KM).
+    var rowCaptions: [String: String] = [:]
+    /// Remove tapped on an assigned row; defaults to `onToggle`.
+    var onRemove: ((String) -> Void)? = nil
     let onToggle: (String) -> Void
 
     @State private var open = false
@@ -284,21 +288,40 @@ struct CrewAssignmentSection: View {
                 FieldCard {
                     ForEach(Array(selectedPeople.enumerated()), id: \.element.id) { index, person in
                         HStack {
+                            let pressable = onResponderTap != nil
+                            let rowCaption = rowCaptions[person.id] ?? EVENT_ASSIGN_EDIT_HINT
                             Button {
                                 if let onResponderTap {
                                     onResponderTap(person.id)
                                 }
                             } label: {
-                                Text(person.display)
-                                    .font(TypeScale.body)
-                                    .foregroundStyle(FieldTheme.textPrimary)
+                                HStack(spacing: 8) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(person.display)
+                                            .font(TypeScale.body)
+                                            .foregroundStyle(FieldTheme.textPrimary)
+                                        if pressable {
+                                            Text(rowCaption)
+                                                .font(TypeScale.caption)
+                                                .foregroundStyle(FieldTheme.textMuted)
+                                        }
+                                    }
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(Rectangle())
+                                    if pressable {
+                                        Image(systemName: "chevron.left")
+                                            .foregroundStyle(FieldTheme.accent)
+                                    }
+                                }
+                                .padding(.vertical, 8)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
-                            .disabled(onResponderTap == nil)
+                            .disabled(!pressable)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(pressable ? "\(person.display). \(rowCaption)" : person.display)
+                            .accessibilityAddTraits(pressable ? .isButton : [])
                             Button {
-                                onToggle(person.id)
+                                if let onRemove { onRemove(person.id) } else { onToggle(person.id) }
                             } label: {
                                 VStack(spacing: 2) {
                                     Image(systemName: "xmark")

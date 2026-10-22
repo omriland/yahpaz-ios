@@ -8,6 +8,7 @@ final class AppModel: ObservableObject {
         case mine
         case myShifts = "my_shifts"
         case contacts
+        case map
         case events
         case shifts
         case reports
@@ -158,7 +159,13 @@ final class AppModel: ObservableObject {
     }
 
     func onForeground() {
-        Task { await reportSessionIfDue() }
+        Task {
+            await reportSessionIfDue()
+            let check = await checkSideloadUpdates(currentBuild: installedBuildNumber())
+            if let force = check.force, forceUpdate == nil {
+                forceUpdate = force
+            }
+        }
     }
 
     func applyIncomingURL(_ url: URL) {
@@ -435,18 +442,50 @@ final class AppModel: ObservableObject {
         lookupsLoading = false
     }
 
-    func createUnitEvent(_ draft: EventDraft, allowPartial: Bool = false, stay: Bool = false) async -> EventSaveOutcome {
-        let outcome = await YahpazAPI.shared.createUnitEvent(
-            draft,
-            districts: lookups.districts,
-            vehicleKinds: lookups.vehicleKinds,
-            allowPartial: allowPartial
-        )
+    /// Event writes run one at a time, outside the form's own task, so an older
+    /// snapshot cannot land on top of a newer one and closing the form does not
+    /// cancel the last save.
+    private var eventWriteTail: Task<Void, Never>?
+    /// Rows an autosave created for a form session that has not seen the id yet.
+    private var autosavedEventIds: [String: String] = [:]
+
+    private func serializedEventWrite<T: Sendable>(_ work: @escaping @MainActor () async -> T) async -> T {
+        let previous = eventWriteTail
+        let task = Task { @MainActor () -> T in
+            await previous?.value
+            return await work()
+        }
+        eventWriteTail = Task { _ = await task.value }
+        return await task.value
+    }
+
+    func createUnitEvent(
+        _ draft: EventDraft,
+        allowPartial: Bool = false,
+        stay: Bool = false,
+        quiet: Bool = false,
+        formSession: String? = nil
+    ) async -> EventSaveOutcome {
+        let districts = lookups.districts
+        let vehicleKinds = lookups.vehicleKinds
+        let outcome = await serializedEventWrite {
+            await YahpazAPI.shared.createUnitEvent(
+                draft,
+                districts: districts,
+                vehicleKinds: vehicleKinds,
+                allowPartial: allowPartial
+            )
+        }
         if outcome.error != nil { return outcome }
+        if let formSession, let id = outcome.eventId {
+            autosavedEventIds[formSession] = id
+        }
         await reloadUnitEvents()
         Task { await reloadEvents() }
-        showToast(allowPartial ? EVENT_DRAFT_PARTIAL_SAVED : EVENT_DRAFT_SAVED, tone: .done)
-        if !stay {
+        if !quiet {
+            showToast(allowPartial ? EVENT_DRAFT_PARTIAL_SAVED : EVENT_DRAFT_SAVED, tone: .done)
+        }
+        if !stay && !quiet {
             tab = .events
             closeEventForm()
         }
@@ -459,28 +498,94 @@ final class AppModel: ObservableObject {
         previousIsCancelled: Bool,
         allowPartial: Bool = false,
         previousDraft: EventDraft? = nil,
-        stay: Bool = false
+        stay: Bool = false,
+        quiet: Bool = false
     ) async -> String? {
-        if let error = await YahpazAPI.shared.updateUnitEvent(
-            eventId: eventId,
-            draft: draft,
-            districts: lookups.districts,
-            vehicleKinds: lookups.vehicleKinds,
-            viewerIsAdmin: canManageUnit,
-            previousIsCancelled: previousIsCancelled,
-            allowPartial: allowPartial,
-            previousDraft: previousDraft
-        ) {
-            return error
+        let districts = lookups.districts
+        let vehicleKinds = lookups.vehicleKinds
+        let viewerIsAdmin = canManageUnit
+        let viewerRoles = roles
+        let error = await serializedEventWrite {
+            await YahpazAPI.shared.updateUnitEvent(
+                eventId: eventId,
+                draft: draft,
+                districts: districts,
+                vehicleKinds: vehicleKinds,
+                viewerIsAdmin: viewerIsAdmin,
+                viewerRoles: viewerRoles,
+                previousIsCancelled: previousIsCancelled,
+                allowPartial: allowPartial,
+                previousDraft: previousDraft
+            )
         }
+        if let error { return error }
         await reloadUnitEvents()
         Task { await reloadEvents() }
-        showToast(allowPartial ? EVENT_DRAFT_PARTIAL_SAVED : EVENT_DRAFT_SAVED, tone: .done)
-        if !stay {
+        if !quiet {
+            showToast(allowPartial ? EVENT_DRAFT_PARTIAL_SAVED : EVENT_DRAFT_SAVED, tone: .done)
+        }
+        if !stay && !quiet {
             tab = .events
             closeEventForm()
         }
         return nil
+    }
+
+    /// Last keystrokes after the form is gone, queued behind any save still running.
+    func flushEventForm(
+        formSession: String,
+        eventId: String?,
+        draft: EventDraft,
+        previousDraft: EventDraft?,
+        previousIsCancelled: Bool,
+        replaceExisting: Bool
+    ) {
+        let districts = lookups.districts
+        let vehicleKinds = lookups.vehicleKinds
+        let viewerIsAdmin = canManageUnit
+        let viewerRoles = roles
+        Task {
+            let wrote = await serializedEventWrite { [self] () -> Bool in
+                if let target = eventId ?? autosavedEventIds[formSession] {
+                    if previousDraft == nil && !replaceExisting { return false }
+                    if let previousDraft, previousDraft.forPersistCompare() == draft.forPersistCompare() { return false }
+                    let error = await YahpazAPI.shared.updateUnitEvent(
+                        eventId: target,
+                        draft: draft,
+                        districts: districts,
+                        vehicleKinds: vehicleKinds,
+                        viewerIsAdmin: viewerIsAdmin,
+                        viewerRoles: viewerRoles,
+                        previousIsCancelled: previousIsCancelled,
+                        allowPartial: true,
+                        previousDraft: previousDraft
+                    )
+                    return error == nil
+                }
+                if !draft.hasDetailBeyondOpen() || !validateEventDraftPartial(draft).isEmpty { return false }
+                let outcome = await YahpazAPI.shared.createUnitEvent(
+                    draft,
+                    districts: districts,
+                    vehicleKinds: vehicleKinds,
+                    allowPartial: true
+                )
+                guard outcome.error == nil, let created = outcome.eventId else { return false }
+                autosavedEventIds[formSession] = created
+                return true
+            }
+            if wrote { await reloadUnitEvents() }
+        }
+    }
+
+    /// The fill screen is gone; its last draft still goes to the server.
+    func flushFillDraft(context: FillContext, draft: ResponderFillDraft) {
+        Task { _ = await YahpazAPI.shared.saveFill(context: context, draft: draft, complete: false) }
+    }
+
+    /// Fill must not open on a manual event the lead has not released yet.
+    func isHeldFromResponders(_ eventId: String) -> Bool {
+        let known = (events + unitEvents + myActiveUnitEvents + myActivePinnedEvents).first { $0.id == eventId }
+        return known.map { !$0.releasedToResponders() } ?? false
     }
 
     func deleteUnitEvent(_ eventId: String) async -> String? {
@@ -550,6 +655,27 @@ final class AppModel: ObservableObject {
         tab = .shifts
         closeShiftForm()
         return nil
+    }
+
+    /// Quiet edit autosave: no toast, no navigation.
+    func autoSaveUnitShift(_ shiftId: String, draft: ShiftDraft) async -> String? {
+        let error = await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft)
+        if error == nil {
+            await reloadUnitShifts()
+            Task { await reloadShifts() }
+        }
+        return error
+    }
+
+    /// Edits still on screen when the shift form closes.
+    func flushShiftForm(_ shiftId: String, draft: ShiftDraft) {
+        guard validateShiftDraft(draft).isEmpty else { return }
+        Task {
+            if await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft) == nil {
+                await reloadUnitShifts()
+                await reloadShifts()
+            }
+        }
     }
 
     func updateUnitShift(_ shiftId: String, draft: ShiftDraft) async -> String? {

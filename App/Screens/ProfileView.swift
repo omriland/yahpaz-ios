@@ -240,6 +240,7 @@ private struct VehiclesSection: View {
         .onChange(of: app.vehicles) { _, vehicles in
             syncDrafts(from: vehicles)
         }
+        .onDisappear { flushEditingVehicle() }
         .sheet(item: $confirm) { vehicle in
             confirmSheet(vehicle)
                 .environment(\.layoutDirection, .rightToLeft)
@@ -508,6 +509,25 @@ private struct VehiclesSection: View {
             app.showToast("הרכב נשמר.", tone: .done)
         }
         await app.reloadVehicles()
+    }
+
+    /// Leaving the profile with a row still open saves it if plate and model are valid.
+    private func flushEditingVehicle() {
+        guard let key = editingKey, let vehicle = drafts.first(where: { $0.key == key }), !vehicle.archived else { return }
+        guard case let .ok(plate, model) = vehicleFieldsForSave(plateNumber: vehicle.plate, model: vehicle.model) else {
+            return
+        }
+        let stored = vehicle.rowId.flatMap { id in app.vehicles.first(where: { $0.rowId == id }) }
+        if let stored, stored.plate == plate, stored.model == model { return }
+        let app = app
+        Task {
+            if let id = vehicle.rowId {
+                _ = await app.updateOwnVehicle(vehicleId: id, plateNumber: plate, model: model)
+            } else {
+                _ = await app.createOwnVehicle(plateNumber: plate, model: model)
+            }
+            await app.reloadVehicles()
+        }
     }
 
     private func requestRemove(_ vehicle: ProfileVehicleDraft) async {
