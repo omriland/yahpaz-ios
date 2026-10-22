@@ -52,6 +52,16 @@ xcodebuild -scheme Yahpaz -destination 'platform=iOS Simulator,name=iPhone 17' -
 For a distributable build see "Cutting a release" above — `build-ipa.sh` produced an
 unsigned IPA for AltStore and has been removed.
 
+Command-line dev builds and the App Store pipeline run through `scripts/deploy-xtool.sh`
+(xtool for simulator and device, Xcode for archive / validate / upload). See
+[docs/xtool-deploy.md](docs/xtool-deploy.md).
+
+```bash
+scripts/deploy-xtool.sh doctor
+scripts/deploy-xtool.sh sim              # xtool build → simulator
+scripts/deploy-xtool.sh archive --dry-run
+```
+
 Bundle ID: `com.yahpz.responder`
 
 ## Domain tests

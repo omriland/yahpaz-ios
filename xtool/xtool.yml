@@ -1,0 +1,21 @@
+# xtool packing for dev builds (simulator and device). Generated inputs live in
+# .generated/ and are written by scripts/deploy-xtool.sh before every build.
+version: 1
+bundleID: com.yahpz.responder
+product: Yahpaz
+infoPath: .generated/Info.plist
+iconPath: Sources/YahpazApp/Assets.xcassets/AppIcon.appiconset/AppIcon.png
+skipLSP: true
+resources:
+  - .generated/Assets.car
+  - Sources/YahpazApp/Resources/PrivacyInfo.xcprivacy
+  - Sources/YahpazApp/Resources/car-logos
+  - Sources/YahpazApp/Resources/map/mile-posts.json
+  - Sources/YahpazApp/Resources/map/police-station-boundaries.geojson
+  - Sources/YahpazApp/Resources/IBMPlexSansHebrew-Regular.ttf
+  - Sources/YahpazApp/Resources/IBMPlexSansHebrew-Medium.ttf
+  - Sources/YahpazApp/Resources/IBMPlexSansHebrew-SemiBold.ttf
+  - Sources/YahpazApp/Resources/IBMPlexSansHebrew-Bold.ttf
+  - Sources/YahpazApp/Resources/IBMPlexMono-Regular.ttf
+  - Sources/YahpazApp/Resources/IBMPlexMono-Medium.ttf
+  - Sources/YahpazApp/Resources/SuezOne-Regular.ttf

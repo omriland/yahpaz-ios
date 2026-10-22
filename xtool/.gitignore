@@ -1,0 +1,5 @@
+.build/
+.generated/
+.bsp/
+/xtool/
+Package.resolved
