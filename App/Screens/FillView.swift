@@ -31,6 +31,8 @@ struct FillView: View {
     @State private var stashTask: Task<Void, Never>?
     /// What the server holds for this fill; autosave writes only when the draft moved past it.
     @State private var serverDraft: ResponderFillDraft?
+    /// Snapshot already queued for the server, so `.inactive` bursts do not queue it again.
+    @State private var queuedServerDraft: ResponderFillDraft?
     @State private var photoNotifyOk = false
     @State private var missingPhotoPlates: [TreatedPlate] = []
     @State private var pendingPhotoSaveComplete: Bool?
@@ -465,7 +467,9 @@ struct FillView: View {
 
     private var hasUnsavedServerChanges: Bool {
         guard let serverDraft else { return false }
-        return serverComparable(draft) != serverComparable(serverDraft)
+        let current = serverComparable(draft)
+        if let queuedServerDraft, serverComparable(queuedServerDraft) == current { return false }
+        return current != serverComparable(serverDraft)
     }
 
     private var draftSavable: Bool {
@@ -480,19 +484,23 @@ struct FillView: View {
 
     /// Debounced cloud copy of the draft. Opening a fill and leaving it untouched writes nothing.
     private func autosaveToServer() async {
-        guard let fill = context, !isReadOnly(fill), !savingDraft, !completing else { return }
-        guard hasUnsavedServerChanges, draftSavable else { return }
-        let snapshot = draft
-        if await YahpazAPI.shared.saveFill(context: fill, draft: snapshot, complete: false) == nil {
-            serverDraft = snapshot
-        }
+        await queueServerDraft()
     }
 
+    /// Leaving or backgrounding: the write runs in AppModel's fill queue, so it survives the screen.
     private func flushToServer() {
+        Task { await queueServerDraft() }
+    }
+
+    /// Queues the draft behind any fill write already running; `serverDraft` moves only once it lands.
+    private func queueServerDraft() async {
         guard let fill = context, !isReadOnly(fill), !completing else { return }
         guard hasUnsavedServerChanges, draftSavable else { return }
-        app.flushFillDraft(context: fill, draft: draft)
-        serverDraft = draft
+        let snapshot = draft
+        queuedServerDraft = snapshot
+        let error = await app.saveFill(context: fill, draft: snapshot, complete: false)
+        if queuedServerDraft == snapshot { queuedServerDraft = nil }
+        if error == nil { serverDraft = snapshot }
     }
 
     private var missingPhotosSheet: some View {
@@ -579,6 +587,11 @@ struct FillView: View {
     }
 
     private func load() async {
+        // A held event shows only the hold note: no load, so nothing can autosave underneath it.
+        if app.isHeldFromResponders(eventId) {
+            loading = false
+            return
+        }
         loading = true
         failed = false
         restoredFromDevice = false
@@ -648,7 +661,7 @@ struct FillView: View {
         }
         if complete { completing = true } else { savingDraft = true }
         let snapshot = draft
-        let error = await YahpazAPI.shared.saveFill(
+        let error = await app.saveFill(
             context: context,
             draft: snapshot,
             complete: complete,

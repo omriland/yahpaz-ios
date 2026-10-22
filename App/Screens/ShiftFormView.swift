@@ -21,6 +21,7 @@ struct ShiftFormView: View {
     @State private var quietSaving = false
     @State private var persistedDraft: ShiftDraft?
     @State private var stashRestored = false
+    @State private var created = false
 
     private var editing: Bool { shiftId != nil }
     private var identityLocked: Bool { !canEditShiftIdentity(app.roles) }
@@ -194,7 +195,11 @@ struct ShiftFormView: View {
                 formError = await app.updateUnitShift(shiftId, draft: draft)
             } else {
                 let error = await app.createUnitShift(draft)
-                if error == nil { ShiftDraftStore.clear() }
+                if error == nil {
+                    // Set before the sheet's onDisappear, which would otherwise stash the shift it just created.
+                    created = true
+                    ShiftDraftStore.clear()
+                }
                 formError = error
             }
             saving = false
@@ -217,7 +222,7 @@ struct ShiftFormView: View {
         guard let shiftId else {
             guard shiftDraftHasDetail(draft) else { return }
             try? await Task.sleep(nanoseconds: 600_000_000)
-            if !Task.isCancelled { ShiftDraftStore.stash(draft) }
+            if !Task.isCancelled && !created { ShiftDraftStore.stash(draft, userId: app.userId) }
             return
         }
         guard loaded, let stored = persistedDraft, stored != draft, validateShiftDraft(draft).isEmpty else { return }
@@ -233,7 +238,7 @@ struct ShiftFormView: View {
     private func restoreStashedDraft() {
         guard !editing, !stashRestored else { return }
         stashRestored = true
-        guard let stashed = ShiftDraftStore.read() else { return }
+        guard let stashed = ShiftDraftStore.read(userId: app.userId) else { return }
         if !stashed.shiftDate.isEmpty { shiftDate = stashed.shiftDate }
         shiftKind = stashed.shiftKind
         vehicleType = stashed.vehicleType
@@ -248,8 +253,8 @@ struct ShiftFormView: View {
             if loaded, let persistedDraft, persistedDraft != draft {
                 app.flushShiftForm(shiftId, draft: draft)
             }
-        } else if shiftDraftHasDetail(draft) {
-            ShiftDraftStore.stash(draft)
+        } else if !created && shiftDraftHasDetail(draft) {
+            ShiftDraftStore.stash(draft, userId: app.userId)
         }
     }
 

@@ -52,15 +52,25 @@ struct EventFormView: View {
     @State private var quietPending = false
     @State private var pendingSave: Bool?
     @State private var stashRestored = false
+    @State private var deleted = false
     @State private var formSession = UUID().uuidString
 
     private var editing: Bool { eventId != nil }
     private var persistedEventId: String? { eventId ?? createdEventId }
     private var ageLocked: Bool { editing && isEventEditAgeLocked(createdAt: createdAt, roles: app.roles) }
 
-    /// Nothing may be written while the form is still loading, blocked, or waiting for the foreign-lead ack.
+    /// Nothing may be written while the form is still loading, blocked, waiting for the
+    /// foreign-lead ack, or after the event was deleted.
     private var writesBlocked: Bool {
-        assignedBlocked || foreignEditPending || (editing && !loaded) || loadFailed || ageLocked
+        assignedBlocked || foreignEditPending || (editing && !loaded) || loadFailed || ageLocked || deleted
+    }
+
+    /// Re-arms the autosave on a field change and on whatever unblocks writing.
+    private struct AutosaveKey: Equatable {
+        var draft: EventDraft
+        var loaded: Bool
+        var foreignEditAcked: Bool
+        var assignedBlocked: Bool
     }
 
     private var foreignEditPending: Bool {
@@ -116,7 +126,12 @@ struct EventFormView: View {
         .task {
             restoreStashedDraft()
         }
-        .task(id: currentDraft()) {
+        .task(id: AutosaveKey(
+            draft: currentDraft(),
+            loaded: loaded,
+            foreignEditAcked: foreignEditAcked,
+            assignedBlocked: assignedBlocked
+        )) {
             await autosave()
         }
         .onDisappear {
@@ -530,7 +545,8 @@ struct EventFormView: View {
             if !quiet { formError = EVENT_EDIT_LOCKED_TOOLTIP }
             return
         }
-        if isForeignShiftLeadEvent(viewerId: app.userId, shiftLeadId: shiftLeadId) && !foreignEditAcked {
+        // The foreign-lead ack is about editing another lead's event; creating one for them needs none.
+        if editing && isForeignShiftLeadEvent(viewerId: app.userId, shiftLeadId: shiftLeadId) && !foreignEditAcked {
             return
         }
         let current = currentDraft()
@@ -560,8 +576,9 @@ struct EventFormView: View {
             errors = next
             formError = nil
         }
+        // Set before the task starts so a second persist() in the same turn queues instead of racing.
+        if quiet { quietSaving = true } else { saving = true }
         Task {
-            if quiet { quietSaving = true } else { saving = true }
             if let eventId = persistedEventId {
                 let error = await app.updateUnitEvent(
                     eventId,
@@ -583,12 +600,14 @@ struct EventFormView: View {
                     formSession: formSession
                 )
                 if !quiet { formError = outcome.error }
-                // A full create closes the form too: record the row so the leave-flush
-                // does not stash the event it just created as a new device draft.
-                if outcome.error == nil, let id = outcome.eventId {
+                // The row exists whenever an id came back, even if a later step failed:
+                // the next save must update it, not insert another event.
+                if let id = outcome.eventId {
                     createdEventId = id
-                    persistedDraft = current
                     EventDraftStore.clear()
+                    // Without a baseline the next save rewrites the whole row, which is what a
+                    // half-written create needs.
+                    if outcome.error == nil { persistedDraft = current }
                 }
             }
             if quiet { quietSaving = false } else { saving = false }
@@ -610,7 +629,7 @@ struct EventFormView: View {
         let draft = currentDraft()
         if persistedEventId == nil {
             guard draft.hasDetailBeyondOpen() else { return }
-            EventDraftStore.stash(draft)
+            EventDraftStore.stash(draft, session: formSession, userId: app.userId)
         }
         if let stored = persistedDraft, stored.forPersistCompare() == draft.forPersistCompare() { return }
         persist(allowPartial: true, quiet: true)
@@ -619,7 +638,11 @@ struct EventFormView: View {
     private func restoreStashedDraft() {
         guard !editing, createdEventId == nil, !stashRestored else { return }
         stashRestored = true
-        guard let stashed = EventDraftStore.read(), stashed.hasDetailBeyondOpen() else { return }
+        guard let stash = EventDraftStore.read(userId: app.userId),
+              !app.eventRowExists(forSession: stash.session),
+              stash.draft.hasDetailBeyondOpen()
+        else { return }
+        let stashed = stash.draft
         if !stashed.eventDate.isEmpty { eventDate = stashed.eventDate }
         policeEventId = stashed.policeEventId
         patrolCallsignPrefix = stashed.patrolCallsignPrefix
@@ -646,9 +669,10 @@ struct EventFormView: View {
 
     /// The form is closing: keep a new draft on the device and send the last keystrokes.
     private func flushOnLeave() {
+        if deleted { return }
         let draft = currentDraft()
         if !editing && persistedEventId == nil && draft.hasDetailBeyondOpen() {
-            EventDraftStore.stash(draft)
+            EventDraftStore.stash(draft, session: formSession, userId: app.userId)
         }
         if writesBlocked { return }
         app.flushEventForm(
@@ -708,6 +732,7 @@ struct EventFormView: View {
         Task {
             deleting = true
             let error = await app.deleteUnitEvent(eventId)
+            if error == nil { deleted = true }
             deleting = false
             if let error {
                 formError = error
@@ -774,7 +799,10 @@ struct EventFormView: View {
             vehicleOwnerIds = []
             return
         }
-        let owners = Set((try? await YahpazAPI.shared.fetchVehiclesForResponders(ids))?.map(\.userId) ?? [])
+        // A failed or superseded lookup must not mark everyone vehicle-less: the next save would
+        // then null every responder's lead KM.
+        guard let rows = try? await YahpazAPI.shared.fetchVehiclesForResponders(ids), !Task.isCancelled else { return }
+        let owners = Set(rows.map(\.userId))
         vehicleOwnerIds = owners
         let updated = responders.map { row in
             var copy = row

@@ -1,42 +1,64 @@
 import Foundation
 import YahpazDomain
 
+struct StashedEventForm {
+    var draft: EventDraft
+    /// The form session that wrote it; once that session's row exists the stash is stale.
+    var session: String
+}
+
 /// Device copy of a new event the lead has not saved yet, so a closed form,
 /// a killed app, or a dead network does not lose typed notes, road, location
-/// or assigned crew. Same 24-hour window as Android `EventDraftStore`.
+/// or assigned crew. Same 24-hour window as Android `EventDraftStore`; scoped to
+/// the user who typed it so the next person on the phone never inherits it.
 @MainActor
 enum EventDraftStore {
     private static let key = "yahpaz_event_draft.new_event_draft"
     private static let maxAgeMs: Int64 = 24 * 60 * 60 * 1000
     private static let defaults = UserDefaults.standard
 
-    static func stash(_ draft: EventDraft, now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) {
-        guard let data = try? JSONEncoder().encode(StashedEventPayload(savedAt: now, draft: StashedEventDraft(draft))) else {
-            return
-        }
+    static func stash(
+        _ draft: EventDraft,
+        session: String,
+        userId: String?,
+        now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)
+    ) {
+        let payload = StashedEventPayload(savedAt: now, session: session, userId: userId, draft: StashedEventDraft(draft))
+        guard let data = try? JSONEncoder().encode(payload) else { return }
         defaults.set(data, forKey: key)
     }
 
-    static func read(now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) -> EventDraft? {
+    static func read(userId: String?, now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) -> StashedEventForm? {
         guard let data = defaults.data(forKey: key) else { return nil }
         guard let parsed = try? JSONDecoder().decode(StashedEventPayload.self, from: data) else {
             clear()
             return nil
         }
-        if now - parsed.savedAt > maxAgeMs {
+        if now - parsed.savedAt > maxAgeMs || parsed.userId != userId {
             clear()
             return nil
         }
-        return parsed.draft.toDomain()
+        return StashedEventForm(draft: parsed.draft.toDomain(), session: parsed.session)
     }
 
     static func clear() {
         defaults.removeObject(forKey: key)
     }
+
+    /// Clears the stash only if `session` wrote it, so a later form's draft survives.
+    static func clear(session: String) {
+        guard let data = defaults.data(forKey: key),
+              let parsed = try? JSONDecoder().decode(StashedEventPayload.self, from: data),
+              parsed.session == session
+        else { return }
+        clear()
+    }
 }
 
 private struct StashedEventPayload: Codable {
     var savedAt: Int64
+    var session: String
+    var userId: String?
     var draft: StashedEventDraft
 }
 

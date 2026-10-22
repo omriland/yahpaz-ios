@@ -340,6 +340,41 @@ final class EventDraftTests: XCTestCase {
         XCTAssertNil(cleared["police_event_id"])
     }
 
+    func testAddingAPendingResponderToADoneEventRewritesTheStatus() {
+        var previous = draft()
+        previous.responders = [EventResponderDraft(responderId: "r1", assignmentId: "a1", status: .done)]
+        var next = previous
+        next.responders.append(EventResponderDraft(responderId: "r2"))
+        // Both sides persist as `partial`, so the plain column diff misses done → partial.
+        let diff = changedPersistColumns(
+            previous: eventPersistColumns(previous, districts: districts, mainLeadId: "lead"),
+            next: eventPersistColumns(next, districts: districts, mainLeadId: "lead")
+        )
+        XCTAssertNil(diff["status"])
+        XCTAssertEqual(
+            eventPatchWithDerivedStatus(diff, previous: previous, next: next)["status"],
+            .string(EventStatus.partial.rawValue)
+        )
+        XCTAssertNil(eventPatchWithDerivedStatus([:], previous: previous, next: previous)["status"])
+        XCTAssertNil(eventPatchWithDerivedStatus([:], previous: nil, next: next)["status"])
+    }
+
+    func testOnlyAssignmentsThisFormRemovedAreDeleted() {
+        let existing = [
+            (id: "a1", responderId: "r1"),
+            (id: "a2", responderId: "r2"),
+            (id: "a3", responderId: "x-added-elsewhere"),
+        ]
+        XCTAssertEqual(
+            assignmentIdsToRemove(existing: existing, keepResponderIds: ["r1"], previousResponderIds: ["r1", "r2"]),
+            ["a2"]
+        )
+        XCTAssertEqual(
+            assignmentIdsToRemove(existing: existing, keepResponderIds: ["r1"], previousResponderIds: nil),
+            ["a2", "a3"]
+        )
+    }
+
     func testNewAssignmentWritesTheEventTimesAndLeadFields() {
         let row = EventResponderDraft(responderId: "r1", totalKm: "7", emergencyMeans: true, hasVehicle: true)
         XCTAssertEqual(

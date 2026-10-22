@@ -442,21 +442,31 @@ final class AppModel: ObservableObject {
         lookupsLoading = false
     }
 
-    /// Event writes run one at a time, outside the form's own task, so an older
-    /// snapshot cannot land on top of a newer one and closing the form does not
-    /// cancel the last save.
+    /// Writes of one kind run one at a time, outside the screen's own task, so an older
+    /// snapshot cannot land on top of a newer one and closing the screen (or the next
+    /// keystroke cancelling a debounce) does not abort a write that already started.
     private var eventWriteTail: Task<Void, Never>?
-    /// Rows an autosave created for a form session that has not seen the id yet.
+    private var fillWriteTail: Task<Void, Never>?
+    private var shiftWriteTail: Task<Void, Never>?
+    /// Rows a save created for a form session that has not seen the id yet.
     private var autosavedEventIds: [String: String] = [:]
 
-    private func serializedEventWrite<T: Sendable>(_ work: @escaping @MainActor () async -> T) async -> T {
-        let previous = eventWriteTail
+    private func enqueue<T: Sendable>(
+        _ lane: ReferenceWritableKeyPath<AppModel, Task<Void, Never>?>,
+        _ work: @escaping @MainActor () async -> T
+    ) async -> T {
+        let previous = self[keyPath: lane]
         let task = Task { @MainActor () -> T in
             await previous?.value
             return await work()
         }
-        eventWriteTail = Task { _ = await task.value }
+        self[keyPath: lane] = Task { _ = await task.value }
         return await task.value
+    }
+
+    /// True once this form session's draft exists as a row, so its device stash is stale.
+    func eventRowExists(forSession session: String) -> Bool {
+        autosavedEventIds[session] != nil
     }
 
     func createUnitEvent(
@@ -468,18 +478,20 @@ final class AppModel: ObservableObject {
     ) async -> EventSaveOutcome {
         let districts = lookups.districts
         let vehicleKinds = lookups.vehicleKinds
-        let outcome = await serializedEventWrite {
-            await YahpazAPI.shared.createUnitEvent(
+        let outcome = await enqueue(\.eventWriteTail) { [self] in
+            let outcome = await YahpazAPI.shared.createUnitEvent(
                 draft,
                 districts: districts,
                 vehicleKinds: vehicleKinds,
                 allowPartial: allowPartial
             )
+            // A create that inserted the row and then failed later still owns that row.
+            if let formSession, let id = outcome.eventId {
+                autosavedEventIds[formSession] = id
+            }
+            return outcome
         }
         if outcome.error != nil { return outcome }
-        if let formSession, let id = outcome.eventId {
-            autosavedEventIds[formSession] = id
-        }
         await reloadUnitEvents()
         Task { await reloadEvents() }
         if !quiet {
@@ -505,7 +517,7 @@ final class AppModel: ObservableObject {
         let vehicleKinds = lookups.vehicleKinds
         let viewerIsAdmin = canManageUnit
         let viewerRoles = roles
-        let error = await serializedEventWrite {
+        let error = await enqueue(\.eventWriteTail) {
             await YahpazAPI.shared.updateUnitEvent(
                 eventId: eventId,
                 draft: draft,
@@ -545,7 +557,7 @@ final class AppModel: ObservableObject {
         let viewerIsAdmin = canManageUnit
         let viewerRoles = roles
         Task {
-            let wrote = await serializedEventWrite { [self] () -> Bool in
+            let wrote = await enqueue(\.eventWriteTail) { [self] () -> Bool in
                 if let target = eventId ?? autosavedEventIds[formSession] {
                     if previousDraft == nil && !replaceExisting { return false }
                     if let previousDraft, previousDraft.forPersistCompare() == draft.forPersistCompare() { return false }
@@ -569,17 +581,32 @@ final class AppModel: ObservableObject {
                     vehicleKinds: vehicleKinds,
                     allowPartial: true
                 )
-                guard outcome.error == nil, let created = outcome.eventId else { return false }
+                guard let created = outcome.eventId else { return false }
                 autosavedEventIds[formSession] = created
+                // The form stashed this draft on its way out; it is a row now.
+                EventDraftStore.clear(session: formSession)
                 return true
             }
             if wrote { await reloadUnitEvents() }
         }
     }
 
-    /// The fill screen is gone; its last draft still goes to the server.
-    func flushFillDraft(context: FillContext, draft: ResponderFillDraft) {
-        Task { _ = await YahpazAPI.shared.saveFill(context: context, draft: draft, complete: false) }
+    /// Every fill write (autosave, flush, draft, complete) goes through one queue: `saveFill`
+    /// deletes and re-inserts the plates, so two of them interleaving would duplicate or drop them.
+    func saveFill(
+        context: FillContext,
+        draft: ResponderFillDraft,
+        complete: Bool,
+        unfinishedMediaDraftCount: Int = 0
+    ) async -> String? {
+        await enqueue(\.fillWriteTail) {
+            await YahpazAPI.shared.saveFill(
+                context: context,
+                draft: draft,
+                complete: complete,
+                unfinishedMediaDraftCount: unfinishedMediaDraftCount
+            )
+        }
     }
 
     /// Fill must not open on a manual event the lead has not released yet.
@@ -589,7 +616,10 @@ final class AppModel: ObservableObject {
     }
 
     func deleteUnitEvent(_ eventId: String) async -> String? {
-        if let error = await YahpazAPI.shared.deleteUnitEvent(eventId: eventId) { return error }
+        // Behind any save still queued, so a late autosave cannot land after the delete.
+        if let error = await enqueue(\.eventWriteTail, { await YahpazAPI.shared.deleteUnitEvent(eventId: eventId) }) {
+            return error
+        }
         await reloadUnitEvents()
         Task { await reloadEvents() }
         showToast(EVENT_DELETED, tone: .done)
@@ -648,7 +678,9 @@ final class AppModel: ObservableObject {
     }
 
     func createUnitShift(_ draft: ShiftDraft) async -> String? {
-        if let error = await YahpazAPI.shared.createUnitShift(draft) { return error }
+        if let error = await enqueue(\.shiftWriteTail, { await YahpazAPI.shared.createUnitShift(draft) }) {
+            return error
+        }
         await reloadUnitShifts()
         Task { await reloadShifts() }
         showToast(SHIFT_DRAFT_SAVED, tone: .done)
@@ -659,7 +691,7 @@ final class AppModel: ObservableObject {
 
     /// Quiet edit autosave: no toast, no navigation.
     func autoSaveUnitShift(_ shiftId: String, draft: ShiftDraft) async -> String? {
-        let error = await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft)
+        let error = await enqueue(\.shiftWriteTail) { await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft) }
         if error == nil {
             await reloadUnitShifts()
             Task { await reloadShifts() }
@@ -671,7 +703,8 @@ final class AppModel: ObservableObject {
     func flushShiftForm(_ shiftId: String, draft: ShiftDraft) {
         guard validateShiftDraft(draft).isEmpty else { return }
         Task {
-            if await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft) == nil {
+            let error = await enqueue(\.shiftWriteTail) { await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft) }
+            if error == nil {
                 await reloadUnitShifts()
                 await reloadShifts()
             }
@@ -679,7 +712,9 @@ final class AppModel: ObservableObject {
     }
 
     func updateUnitShift(_ shiftId: String, draft: ShiftDraft) async -> String? {
-        if let error = await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft) { return error }
+        if let error = await enqueue(\.shiftWriteTail, { await YahpazAPI.shared.updateUnitShift(shiftId: shiftId, draft: draft) }) {
+            return error
+        }
         await reloadUnitShifts()
         Task { await reloadShifts() }
         showToast(SHIFT_DRAFT_SAVED, tone: .done)

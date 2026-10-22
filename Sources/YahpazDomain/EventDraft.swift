@@ -711,6 +711,40 @@ public func changedPersistColumns(
     return patch
 }
 
+/// The row stores `done` after promotion, while the persisted columns say `partial` for both
+/// `done` and `partial`, so done → partial (a pending responder added) never shows up in the
+/// column diff and the event would stay `done`, locking the new responder's fill. Compare the
+/// derived statuses themselves and write the row status whenever they moved.
+public func eventPatchWithDerivedStatus(
+    _ patch: [String: PersistValue],
+    previous: EventDraft?,
+    next: EventDraft
+) -> [String: PersistValue] {
+    guard let previous else { return patch }
+    let nextStatus = deriveEventStatusFromDraft(next.responders)
+    if deriveEventStatusFromDraft(previous.responders) == nextStatus { return patch }
+    var result = patch
+    result["status"] = .string(eventStatusForRowWriteBeforeResponders(nextStatus).rawValue)
+    return result
+}
+
+/// Assignment rows to delete. With a loaded baseline only the responders this form removed
+/// go, so an assignment another lead (or a shift sync) added meanwhile, and the documentation
+/// hanging off it, survives an autosave. Without a baseline the draft is the whole crew.
+public func assignmentIdsToRemove(
+    existing: [(id: String, responderId: String)],
+    keepResponderIds: Set<String>,
+    previousResponderIds: Set<String>?
+) -> [String] {
+    let removed = previousResponderIds?.subtracting(keepResponderIds)
+    return existing
+        .filter { row in
+            guard !keepResponderIds.contains(row.responderId) else { return false }
+            return removed?.contains(row.responderId) ?? true
+        }
+        .map(\.id)
+}
+
 public func shouldRewriteTreatedVehicles(
     previous: [TreatedVehicleDraft]?,
     next: [TreatedVehicleDraft]

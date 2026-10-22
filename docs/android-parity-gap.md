@@ -1,7 +1,7 @@
 # iOS ↔ Android parity gap (Android 0.3.26 → 0.3.47)
 
 **Written:** 2026-10-22, before any implementation on `feat/android-parity-appstore`.
-**Closed:** 2026-10-22 on the same branch. All 28 items ported; 424 domain tests green
+**Closed:** 2026-10-22 on the same branch. All 28 items ported; 426 domain tests green
 (`swift test`), app builds clean for simulator and Release.
 **Android:** `yahpaz-android` `main` @ `72b29b0` — 0.3.47 / versionCode 61 (read only).
 **iOS base:** `feat/android-parity` @ `7f00c62` — 1.0.2 (16).
@@ -79,6 +79,21 @@ Status is filled in as each item lands. `Done` means ported, with domain tests w
   keystroke (before any quiet autosave created the row) leaves `createdEventId` empty, so the
   leave-flush stashes the event it just created and the next `אירוע חדש` restores it. iOS records the
   created id on every successful create. **Same one-line fix applies to Android.**
+
+An independent review of the write path found more problems that Android (and in one case the web)
+share. iOS fixes them; Android still has them:
+
+| Problem on Android today | iOS on this branch |
+|---|---|
+| Leave-flush that creates the event leaves its device stash, so the next `אירוע חדש` restores it and autosave inserts a duplicate | Stash carries its form session and is cleared once that session's row exists |
+| A create that inserted the row but failed later (responders, leads) is forgotten, so the next autosave inserts another event | The returned id is kept; the next save updates that row |
+| A failed or cancelled vehicle lookup marks every responder vehicle-less, and the next edit nulls every lead KM | Lookup failures leave the crew untouched |
+| An autosave deletes assignments that another lead (or a shift sync) added since the form loaded, with their documentation | Only responders removed in this form are deleted |
+| Adding a pending responder to a `done` event leaves the row `done` (both sides persist as `partial`, so the diff skips `status`), which locks the new responder's fill. **The web `eventForm.ts` has the same gap** | Status is written whenever the derived status changed |
+| Fill and shift writes can interleave (plates deleted and re-inserted twice; duplicate crew rows) | One write queue per kind (event, fill, shift), outside the screen's lifetime |
+| A just-created shift is re-stashed as a new draft on close | Not stashed after a create |
+| Device stashes are global, so the next user on the phone inherits them | Scoped to the user who typed them |
+| Creating an event with another lead as main: save and autosave refuse silently (the foreign-lead ack is not limited to editing) | Ack required only when editing |
 
 ## Notes on platform differences
 

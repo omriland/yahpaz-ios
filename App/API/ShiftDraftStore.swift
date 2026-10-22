@@ -2,16 +2,17 @@ import Foundation
 import YahpazDomain
 
 /// Device copy of a new shift the lead has not saved yet. Same 24-hour window
-/// as Android `ShiftDraftStore`.
+/// as Android `ShiftDraftStore`; scoped to the user who typed it.
 @MainActor
 enum ShiftDraftStore {
     private static let key = "yahpaz_shift_draft.new_shift_draft"
     private static let maxAgeMs: Int64 = 24 * 60 * 60 * 1000
     private static let defaults = UserDefaults.standard
 
-    static func stash(_ draft: ShiftDraft, now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) {
+    static func stash(_ draft: ShiftDraft, userId: String?, now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) {
         let payload = StashedShiftPayload(
             savedAt: now,
+            userId: userId,
             shiftDate: draft.shiftDate,
             shiftKind: draft.shiftKind,
             vehicleType: draft.vehicleType,
@@ -23,13 +24,13 @@ enum ShiftDraftStore {
         defaults.set(data, forKey: key)
     }
 
-    static func read(now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) -> ShiftDraft? {
+    static func read(userId: String?, now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) -> ShiftDraft? {
         guard let data = defaults.data(forKey: key) else { return nil }
         guard let parsed = try? JSONDecoder().decode(StashedShiftPayload.self, from: data) else {
             clear()
             return nil
         }
-        if now - parsed.savedAt > maxAgeMs {
+        if now - parsed.savedAt > maxAgeMs || parsed.userId != userId {
             clear()
             return nil
         }
@@ -57,6 +58,7 @@ func shiftDraftHasDetail(_ draft: ShiftDraft) -> Bool {
 
 private struct StashedShiftPayload: Codable {
     var savedAt: Int64
+    var userId: String?
     var shiftDate: String
     var shiftKind: String
     var vehicleType: String

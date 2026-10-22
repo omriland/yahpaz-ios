@@ -768,13 +768,17 @@ actor YahpazAPI {
         var eventPatch = nextColumns
         if let previousDraft {
             let previousLead = previousDraft.shiftLeadId.trimmingCharacters(in: .whitespacesAndNewlines)
-            eventPatch = changedPersistColumns(
-                previous: eventPersistColumns(
-                    previousDraft,
-                    districts: districts,
-                    mainLeadId: previousLead.isEmpty ? mainLeadId : previousLead
+            eventPatch = eventPatchWithDerivedStatus(
+                changedPersistColumns(
+                    previous: eventPersistColumns(
+                        previousDraft,
+                        districts: districts,
+                        mainLeadId: previousLead.isEmpty ? mainLeadId : previousLead
+                    ),
+                    next: nextColumns
                 ),
-                next: nextColumns
+                previous: previousDraft,
+                next: draft
             )
         }
         do {
@@ -974,13 +978,16 @@ actor YahpazAPI {
                 .eq("event_id", value: eventId)
                 .execute()
                 .value
-            let keepIds = Set(responders.map(\.responderId))
-            let toRemove = existing.filter { !keepIds.contains($0.responderId) }
+            let toRemove = assignmentIdsToRemove(
+                existing: existing.map { (id: $0.id, responderId: $0.responderId) },
+                keepResponderIds: Set(responders.map(\.responderId)),
+                previousResponderIds: previousResponders.map { Set($0.map(\.responderId)) }
+            )
             if !toRemove.isEmpty {
                 try await client
                     .from("event_responders")
                     .delete()
-                    .in("id", values: toRemove.map(\.id))
+                    .in("id", values: toRemove)
                     .execute()
             }
             let existingByResponder = keyedLastWins(existing.map { ($0.responderId, $0.id) })
