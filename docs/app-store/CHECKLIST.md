@@ -6,8 +6,8 @@
 |---|---|
 | Display name | אבן דרך |
 | Bundle ID | `com.yahpz.responder` |
-| Marketing version | 1.0.0 |
-| Build | 2 |
+| Marketing version | 1.0.2 (`MARKETING_VERSION` in `project.yml`) |
+| Build | 16 (`CURRENT_PROJECT_VERSION`); bump before every upload |
 | Team | `477WWCHXU7` (personal) |
 | Devices | iPhone only (`TARGETED_DEVICE_FAMILY = 1`) |
 | Minimum iOS | 17.0 |
@@ -33,7 +33,15 @@
 
 > אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.
 
-Background mode `location` is already in Info.plist. No camera or photos usage, so no extra permission strings.
+Background mode `location` is already in Info.plist.
+
+Other usage strings in Info.plist:
+
+- `NSCameraUsageDescription`: plate scan on the fill screen
+- `NSMicrophoneUsageDescription`: voice note in the feedback sheet
+
+Photos are picked with `PhotosPicker`, which needs no permission string. The מפה tab draws Apple
+Maps and searches addresses with MapKit; it never asks for the user's location.
 
 ## PrivacyInfo.xcprivacy
 
@@ -46,9 +54,11 @@ Declared, linked, not used for tracking, purpose App Functionality:
 - Phone number
 - User ID
 - Precise location
+- Photos or videos (event photos on the fill screen, feedback attachments)
+- Audio data (feedback voice note)
 - Other user content (event/shift fill)
 
-Required-reason API: UserDefaults `CA92.1`. Tracking: false.
+Required-reason APIs: UserDefaults `CA92.1`, file timestamp `C617.1` (size of the recorded feedback note in the app container). Tracking: false.
 
 ## Privacy policy URL
 

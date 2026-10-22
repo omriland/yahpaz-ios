@@ -52,7 +52,7 @@ Limit 100, comma-separated. Do not repeat the app name. Current: 52.
 ```
 
 ## What's New
-Limit 4000. Version 1.0.0.
+Limit 4000. Version 1.0.2.
 
 ```
 גרסה ראשונה לכוננים: כניסה, האירועים שלי, המשמרות שלי, זמינות, פרופיל ושיתוף מיקום בזמן אירוע.

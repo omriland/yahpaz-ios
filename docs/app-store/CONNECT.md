@@ -98,6 +98,8 @@ Distribution → General → **App Privacy** → **Get Started**
    - Phone Number
    - User ID
    - Precise Location
+   - Photos or Videos
+   - Audio Data
    - Other User Content
 5. Publish / Save. This is the public nutrition label. It must match `App/Resources/PrivacyInfo.xcprivacy`.
 
@@ -126,7 +128,7 @@ Skip iPad. Skip 6.5" unless Connect still shows it as required (it should scale 
 | Keywords | Keywords |
 | Support URL | `https://yahpz.com` |
 | Marketing URL | `https://yahpz.com` |
-| Version | `1.0.0` |
+| Version | `1.0.2` (must match `MARKETING_VERSION`) |
 | Copyright | `2026 Omri Landman` |
 | What's New | What's New |
 
@@ -161,7 +163,9 @@ Release: **Manually release this version** until you have seen it on TestFlight 
 
 The portal cannot attach an IPA you drag in. Xcode / the script uploads it.
 
-In `project.yml` bump `CURRENT_PROJECT_VERSION` from `2` to `3`, then:
+In `project.yml` bump `CURRENT_PROJECT_VERSION` (16 today) to a number never uploaded before, then
+either the one-step Xcode upload below or the scripted path in `docs/xtool-deploy.md`
+(`scripts/deploy-xtool.sh archive` → `validate` → `upload --confirm-upload`):
 
 ```bash
 cd /Users/omrilandman/CursorProjects/today-i/yahpaz-ios
