@@ -36,7 +36,7 @@ public struct TreatedPlate: Equatable, Sendable, Codable, Hashable {
 
 public let TREATED_PLATE_LENGTH_ERROR = "יש להזין 7 או 8 ספרות."
 public let TREATED_PLATE_DUPLICATE_ERROR = "מספר זה כבר נוסף."
-public let TREATED_PLATE_LEFTOVER_ERROR = "השלימו או מחקו את המספר בתחתית."
+public let TREATED_PLATE_LEFTOVER_ERROR = "יש ללחוץ הוספה לשמירת המספר"
 
 public enum CommitTreatedPlateResult: Equatable, Sendable {
     case ok(plate: TreatedPlate, plates: [TreatedPlate])

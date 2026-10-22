@@ -2,6 +2,13 @@ import XCTest
 @testable import YahpazDomain
 
 final class MineInboxTests: XCTestCase {
+    func testFuelNoteCountsResponderLoggedEventsWithKm() {
+        XCTAssertEqual(
+            FUEL_NOTE,
+            "שימו לב! אירועים שטרם תועדו על ידי המתנדב, או ללא ק״מ, אינם נכללים בהחזר הדלק הרבעוני"
+        )
+    }
+
     func testOpenMineSummary() {
         XCTAssertEqual(openMineSummary(count: 0, ready: true), "אין אירועים שממתינים לתיעוד.")
         XCTAssertEqual(openMineSummary(count: 1, ready: true), "יש לך אירוע אחד לתעד.")

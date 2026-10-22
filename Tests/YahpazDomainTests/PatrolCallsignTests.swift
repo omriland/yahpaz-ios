@@ -36,24 +36,14 @@ final class PatrolCallsignTests: XCTestCase {
         )
     }
 
-    func testEventTimesCopyOntoResponders() {
-        let crew = [
-            EventResponderDraft(responderId: "a", startTime: "08:00", endTime: "09:00"),
-            EventResponderDraft(responderId: "b"),
-        ]
-        let next = applyEventTimesToResponders(crew, startTime: "10:15", endTime: "11:40")
-        XCTAssertTrue(next.allSatisfy { $0.startTime == "10:15" && $0.endTime == "11:40" })
-    }
-
     func testEventFormTimesPreferEventThenResponders() {
-        let crew = [
-            EventResponderDraft(responderId: "a", startTime: "08:00", endTime: "09:00"),
-            EventResponderDraft(responderId: "b", startTime: "07:30", endTime: "12:00"),
-        ]
+        let starts = ["2026-02-02T08:00:00", "2026-02-02T07:30:00", nil]
+        let ends = ["2026-02-02T09:00:00", "2026-02-02T12:00:00", nil]
         let fromEvent = eventFormTimes(
             eventStart: "2026-02-02T10:00:00",
             eventEnd: "2026-02-02T11:00:00",
-            responders: crew,
+            responderStarts: starts,
+            responderEnds: ends,
             fallbackStart: "06:00"
         )
         XCTAssertEqual(fromEvent.start, "10:00")
@@ -61,7 +51,8 @@ final class PatrolCallsignTests: XCTestCase {
         let fromCrew = eventFormTimes(
             eventStart: nil,
             eventEnd: nil,
-            responders: crew,
+            responderStarts: starts,
+            responderEnds: ends,
             fallbackStart: "06:00"
         )
         XCTAssertEqual(fromCrew.start, "07:30")
@@ -69,7 +60,8 @@ final class PatrolCallsignTests: XCTestCase {
         let empty = eventFormTimes(
             eventStart: nil,
             eventEnd: nil,
-            responders: [],
+            responderStarts: [],
+            responderEnds: [],
             fallbackStart: "06:00"
         )
         XCTAssertEqual(empty.start, "06:00")

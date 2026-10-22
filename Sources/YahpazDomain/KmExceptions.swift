@@ -1,6 +1,6 @@
 import Foundation
 
-public let KM_EXCEPTION_THRESHOLD = 60.0
+public let KM_EXCEPTION_THRESHOLD = 80.0
 
 public struct KmExceptionResponderInput: Equatable, Sendable {
     public var totalKm: Double?

@@ -15,7 +15,7 @@ public func isMineFillOverdue(
     return nowMs - start >= OVERDUE_48H_MS
 }
 
-private func parseInstantMs(_ value: String?) -> Int64? {
+func parseInstantMs(_ value: String?) -> Int64? {
     let raw = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     if raw.isEmpty { return nil }
     let withFraction = ISO8601DateFormatter()

@@ -26,8 +26,8 @@ final class KmExceptionsTests: XCTestCase {
                 id: "e1",
                 date: "2026-02-02",
                 responders: [
-                    KmExceptionResponderInput(totalKm: 59.9, name: "מתחת", callsign: "1"),
-                    KmExceptionResponderInput(totalKm: 60.0, name: "בדיוק", callsign: "2"),
+                    KmExceptionResponderInput(totalKm: 79.9, name: "מתחת", callsign: "1"),
+                    KmExceptionResponderInput(totalKm: 80.0, name: "בדיוק", callsign: "2"),
                     KmExceptionResponderInput(totalKm: 120.0, name: "מעל", callsign: "3"),
                     KmExceptionResponderInput(totalKm: nil, name: "בלי ק״מ", callsign: "4"),
                 ]
@@ -39,7 +39,7 @@ final class KmExceptionsTests: XCTestCase {
     func testRowsSortByNewestDateThenLargestKm() {
         let rows = buildKmExceptionRows([
             event(id: "old", date: "2026-01-01", responders: [KmExceptionResponderInput(totalKm: 200.0, name: "א", callsign: "1")]),
-            event(id: "new", date: "2026-02-01", responders: [KmExceptionResponderInput(totalKm: 70.0, name: "ב", callsign: "2")]),
+            event(id: "new", date: "2026-02-01", responders: [KmExceptionResponderInput(totalKm: 80.0, name: "ב", callsign: "2")]),
             event(id: "new2", date: "2026-02-01", responders: [KmExceptionResponderInput(totalKm: 90.0, name: "ג", callsign: "3")]),
         ])
         XCTAssertEqual(rows.map(\.responderName), ["ג", "ב", "א"])

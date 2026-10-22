@@ -14,10 +14,10 @@ public struct EventFreezeFlags: Equatable, Sendable {
 
     public var tooltipHe: String? {
         if frozenOver60km && frozenSuspiciousDuplicate {
-            return "האירוע מוקפא בגלל חריגת קילומטרים (מעל 60 ק״מ) ובגלל חשד לאירוע כפול, וממתין לאישור מנהל."
+            return "האירוע מוקפא בגלל חריגת קילומטרים (מעל \(Int(KM_EXCEPTION_THRESHOLD)) ק״מ) ובגלל חשד לאירוע כפול, וממתין לאישור מנהל."
         }
         if frozenOver60km {
-            return "האירוע מוקפא בגלל חריגת קילומטרים (מעל 60 ק״מ) וממתין לאישור מנהל."
+            return "האירוע מוקפא בגלל חריגת קילומטרים (מעל \(Int(KM_EXCEPTION_THRESHOLD)) ק״מ) וממתין לאישור מנהל."
         }
         if frozenSuspiciousDuplicate {
             return "האירוע מוקפא בגלל חשד לאירוע כפול וממתין לאישור מנהל."

@@ -127,7 +127,7 @@ public let REPORT_SPECS: [ReportSpec] = [
     ReportSpec(
         id: .kmExceptions,
         title: "חריגי ק״מ",
-        includes: "אירועים עם \(KM_EXCEPTION_THRESHOLD) ק״מ ומעלה",
+        includes: "אירועים עם \(Int(KM_EXCEPTION_THRESHOLD)) ק״מ ומעלה",
         audience: .managesUnit,
         searchPlaceholder: "מתנדב, אירוע או מיקום",
         emptyTitle: "אין חריגי ק״מ בתקופה זו"

@@ -20,6 +20,7 @@ final class EventDraftTests: XCTestCase {
     ) -> EventDraft {
         EventDraft(
             eventDate: date,
+            patrolCallsignNumber: "411",
             eventTypeId: typeId,
             roadId: roadId,
             districtId: districtId,
@@ -36,11 +37,15 @@ final class EventDraftTests: XCTestCase {
         XCTAssertEqual(sortLookupsBySortOrder(shuffled).map(\.id), ["a", "c", "b"])
     }
 
-    func testDateTypeAndRoadAreTheMinimum() {
+    func testDateAndTypeAreTheMinimum() {
         XCTAssertTrue(validateEventDraft(draft()).isEmpty)
         XCTAssertEqual(validateEventDraft(draft(date: "")).eventDate, EVENT_DRAFT_DATE_ERROR)
         XCTAssertEqual(validateEventDraft(draft(typeId: "")).eventType, EVENT_DRAFT_TYPE_ERROR)
-        XCTAssertEqual(validateEventDraft(draft(roadId: "")).road, EVENT_DRAFT_ROAD_ERROR)
+        XCTAssertNil(validateEventDraft(draft(roadId: "")).road)
+        var noCallsign = draft()
+        noCallsign.patrolCallsignNumber = ""
+        XCTAssertTrue(validateEventDraft(noCallsign).isEmpty)
+        XCTAssertTrue(validateEventDraftPartial(noCallsign).isEmpty)
     }
 
     func testDdMmYyyyInputIsAcceptedAsADate() {
@@ -61,8 +66,42 @@ final class EventDraftTests: XCTestCase {
     }
 
     func testFormMessageFallsBackToTheNonLocationCopy() {
-        XCTAssertEqual(validateEventDraft(draft(roadId: "")).formMessage, EVENT_DRAFT_FORM_ERROR)
+        XCTAssertEqual(validateEventDraft(draft(typeId: "")).formMessage, EVENT_DRAFT_FORM_ERROR)
+        XCTAssertNil(validateEventDraft(draft(roadId: "")).formMessage)
         XCTAssertNil(validateEventDraft(draft()).formMessage)
+        XCTAssertEqual(EVENT_DRAFT_FORM_ERROR, "יש למלא תאריך וסוג אירוע כדי ליצור אירוע.")
+        XCTAssertEqual(EVENT_DRAFT_FORM_LOCATION_ERROR, "יש למלא תאריך, סוג אירוע ומיקום כדי ליצור אירוע.")
+    }
+
+    func testAssignedResponderCaptionTeachesTheTapTargetThenShowsKm() {
+        XCTAssertEqual(EVENT_ASSIGN_EDIT_HINT, "ק״מ")
+        XCTAssertEqual(assignedResponderCaption(totalKm: "", hasVehicle: true), EVENT_ASSIGN_EDIT_HINT)
+        XCTAssertEqual(assignedResponderCaption(totalKm: "18", hasVehicle: true), "18 ק״מ")
+        XCTAssertEqual(assignedResponderCaption(totalKm: "12", hasVehicle: false), EVENT_ASSIGN_EDIT_HINT)
+    }
+
+    func testRemoveConfirmIsNeededAfterAnyLeadFieldIsFilled() {
+        let empty = EventResponderDraft(responderId: "r1", assignmentId: "a1")
+        XCTAssertFalse(eventResponderHasFilledFields(empty))
+        var km = empty
+        km.totalKm = "12"
+        XCTAssertTrue(eventResponderHasFilledFields(km))
+        var means = empty
+        means.emergencyMeans = true
+        XCTAssertTrue(eventResponderHasFilledFields(means))
+        var treated = empty
+        treated.treated = [TreatedVehicleDraft(vehicleKindId: "car", quantity: 1)]
+        XCTAssertTrue(eventResponderHasFilledFields(treated))
+        var noVehicle = km
+        noVehicle.hasVehicle = false
+        XCTAssertFalse(eventResponderHasFilledFields(noVehicle))
+        var zero = empty
+        zero.treated = [TreatedVehicleDraft(vehicleKindId: "car", quantity: 0)]
+        XCTAssertFalse(eventResponderHasFilledFields(zero))
+        var unsavedDefault = empty
+        unsavedDefault.assignmentId = ""
+        unsavedDefault.emergencyMeans = NEW_RESPONDER_EMERGENCY_MEANS
+        XCTAssertFalse(eventResponderHasFilledFields(unsavedDefault))
     }
 
     func testCrewlessEventsSaveAsDrafts() {
@@ -167,6 +206,9 @@ final class EventDraftTests: XCTestCase {
         XCTAssertEqual(EVENT_CREATE_DRAFT_TITLE, "שמירה כטיוטה")
         XCTAssertEqual(eventFormPrimaryTitle(editing: false), EVENT_CREATE_TITLE)
         XCTAssertEqual(eventFormDraftTitle(editing: false), EVENT_CREATE_DRAFT_TITLE)
+        XCTAssertEqual(EVENT_START_TIME_LABEL, "זמן התחלה")
+        XCTAssertEqual(EVENT_END_TIME_LABEL, "זמן סיום")
+        XCTAssertEqual(TIME_NOW_LABEL, "עכשיו")
         XCTAssertEqual(eventFormPrimaryTitle(editing: true), EVENT_SAVE_TITLE)
         XCTAssertEqual(eventFormDraftTitle(editing: true), EVENT_SAVE_DRAFT_TITLE)
         XCTAssertEqual(EVENT_FORM_DETAILS_SECTION, "פרטי האירוע")
@@ -185,7 +227,10 @@ final class EventDraftTests: XCTestCase {
         XCTAssertEqual(EVENT_ASSIGN_OPEN, "מתנדבים")
         XCTAssertEqual(EVENT_ASSIGN_CLOSE, "סגירת הקצאה")
         XCTAssertEqual(EVENT_ASSIGN_REMOVE, "הסרת מתנדב")
-        XCTAssertEqual(EVENT_PATROL_CALLSIGN_LABEL, "או״ק ניידת")
+        XCTAssertEqual(EVENT_ASSIGN_REMOVE_CANCEL, "ביטול")
+        XCTAssertEqual(eventResponderRemoveConfirm("דנה"), "האם אתה בטוח שברצונך להסיר את דנה?")
+        XCTAssertEqual(eventResponderRemoveConfirm("  "), "האם אתה בטוח שברצונך להסיר את מתנדב?")
+        XCTAssertEqual(EVENT_PATROL_CALLSIGN_LABEL, "אוק - מס")
         XCTAssertEqual(EVENT_LOCATION_PLACEHOLDER, "למשל: מחלף שורק")
         XCTAssertEqual(UNIT_EVENTS_LOAD_FAILED, "טעינת האירועים נכשלה. בדקו את החיבור ונסו שוב.")
     }
@@ -218,6 +263,151 @@ final class EventDraftTests: XCTestCase {
         XCTAssertNil(
             ownResumableEventId(currentEventId: "evt-mine", viewerLeadId: "lead-1", existing: [mine])
         )
+    }
+
+    func testSameDayPoliceEventIdCollidesUnlessCancelledBlankOrAnotherDate() {
+        let existing = [
+            SameDayPoliceEventRow(id: "evt-1", eventDate: "2026-09-03", policeEventId: "12345"),
+            SameDayPoliceEventRow(id: "evt-cancelled", isCancelled: true, eventDate: "2026-09-03", policeEventId: "99999"),
+        ]
+        XCTAssertTrue(sameDayPoliceEventIdCollides(eventDate: "2026-09-03", policeEventId: "12345", currentEventId: "evt-new", existing: existing))
+        XCTAssertFalse(sameDayPoliceEventIdCollides(eventDate: "2026-09-04", policeEventId: "12345", currentEventId: "evt-new", existing: existing))
+        XCTAssertFalse(sameDayPoliceEventIdCollides(eventDate: "2026-09-03", policeEventId: "", currentEventId: "evt-new", existing: existing))
+        XCTAssertFalse(sameDayPoliceEventIdCollides(eventDate: "2026-09-03", policeEventId: "12345", currentEventId: "evt-1", existing: existing))
+        XCTAssertFalse(sameDayPoliceEventIdCollides(eventDate: "2026-09-03", policeEventId: "99999", currentEventId: "evt-new", existing: existing))
+        XCTAssertEqual(POLICE_EVENT_ID_DUPLICATE_ERROR, "כבר קיים אירוע עם המספר הזה באותו תאריך.")
+    }
+
+    func testDoneStaysOffTheEventRowUntilAssignedKmIsWritten() {
+        XCTAssertEqual(eventStatusForRowWriteBeforeResponders(.done), .partial)
+        XCTAssertEqual(eventStatusForRowWriteBeforeResponders(.partial), .partial)
+        XCTAssertEqual(eventStatusForRowWriteBeforeResponders(.inProgress), .inProgress)
+        XCTAssertEqual(eventStatusForRowWriteBeforeResponders(.draft), .draft)
+    }
+
+    func testPersistFailureMapsTheHebrewDoneGuardInsteadOfANetworkToast() {
+        XCTAssertEqual(eventPersistFailure("P0001: \(EVENT_DONE_NEEDS_KM_ERROR)"), EVENT_DONE_NEEDS_KM_ERROR)
+        XCTAssertEqual(eventPersistFailure(EVENT_DONE_NEEDS_END_ERROR), EVENT_DONE_NEEDS_END_ERROR)
+        XCTAssertEqual(eventPersistFailure("permission denied"), EVENT_DRAFT_SAVE_FAILED)
+        XCTAssertEqual(eventPersistFailure(nil), EVENT_DRAFT_SAVE_FAILED)
+        XCTAssertEqual(EVENT_DONE_NEEDS_KM_ERROR, "לא ניתן להשלים אירוע לפני הזנת קילומטרים לכל הכוננים.")
+        XCTAssertEqual(EVENT_DONE_NEEDS_END_ERROR, "לא ניתן להשלים אירוע ללא שעת סיום.")
+    }
+
+    func testKilometerEditDoesNotRewriteTheRestOfTheEvent() {
+        var previous = draft()
+        previous.policeEventId = "3207"
+        previous.location = "מחלף גלילות"
+        previous.notes = "רכב תקוע בנתיב"
+        previous.startTime = "14:05"
+        previous.shiftLeadId = "lead-1"
+        previous.responders = [EventResponderDraft(responderId: "user-1", assignmentId: "a1", totalKm: "", hasVehicle: true)]
+        var next = previous
+        next.responders[0].totalKm = "42"
+
+        let patch = changedPersistColumns(
+            previous: eventPersistColumns(previous, districts: districts, mainLeadId: "lead-1"),
+            next: eventPersistColumns(next, districts: districts, mainLeadId: "lead-1")
+        )
+        XCTAssertTrue(patch.isEmpty)
+        XCTAssertEqual(
+            responderLeadPatch(
+                previous: previous.responders[0],
+                next: next.responders[0],
+                startedAt: "2026-10-12T14:05:00",
+                endedAt: nil,
+                previousStartedAt: "2026-10-12T14:05:00",
+                previousEndedAt: nil
+            ),
+            ["total_km": .double(42)]
+        )
+        XCTAssertFalse(shouldRewriteTreatedVehicles(
+            previous: [TreatedVehicleDraft(vehicleKindId: "car", quantity: 2)],
+            next: [TreatedVehicleDraft(vehicleKindId: "car", quantity: 2)]
+        ))
+        XCTAssertFalse(shouldRewriteTreatedVehicles(previous: nil, next: []))
+        XCTAssertTrue(shouldRewriteTreatedVehicles(previous: nil, next: [TreatedVehicleDraft(vehicleKindId: "car", quantity: 1)]))
+
+        var emptied = previous
+        emptied.location = ""
+        emptied.notes = ""
+        let cleared = changedPersistColumns(
+            previous: eventPersistColumns(previous, districts: districts, mainLeadId: "lead-1"),
+            next: eventPersistColumns(emptied, districts: districts, mainLeadId: "lead-1")
+        )
+        XCTAssertEqual(cleared["location"], .null)
+        XCTAssertEqual(cleared["notes"], .null)
+        XCTAssertNil(cleared["police_event_id"])
+    }
+
+    func testNewAssignmentWritesTheEventTimesAndLeadFields() {
+        let row = EventResponderDraft(responderId: "r1", totalKm: "7", emergencyMeans: true, hasVehicle: true)
+        XCTAssertEqual(
+            responderLeadPatch(
+                previous: nil,
+                next: row,
+                startedAt: "2026-10-12T14:05:00",
+                endedAt: nil,
+                previousStartedAt: nil,
+                previousEndedAt: nil
+            ),
+            ["started_at": .string("2026-10-12T14:05:00"), "total_km": .double(7), "emergency_means": .bool(true)]
+        )
+    }
+
+    func testSecondaryLeadsCompareByUserAndLock() {
+        let a = SecondaryLead(userId: "u1", locked: false)
+        XCTAssertTrue(secondaryLeadsUnchanged(previous: [a], next: [a]))
+        XCTAssertFalse(secondaryLeadsUnchanged(previous: [a], next: [SecondaryLead(userId: "u1", locked: true)]))
+        XCTAssertTrue(secondaryLeadsUnchanged(previous: nil, next: []))
+        XCTAssertFalse(secondaryLeadsUnchanged(previous: nil, next: [a]))
+    }
+
+    func testOpeningANewEventIsNotDetailWorthSaving() {
+        XCTAssertFalse(EventDraft(eventDate: "2026-10-12", startTime: "14:05").hasDetailBeyondOpen())
+        XCTAssertTrue(EventDraft(eventDate: "2026-10-12", notes: "x").hasDetailBeyondOpen())
+        XCTAssertTrue(EventDraft(eventDate: "2026-10-12", patrolCallsignNumber: "411").hasDetailBeyondOpen())
+        XCTAssertTrue(EventDraft(eventDate: "2026-10-12", responders: [EventResponderDraft(responderId: "r")]).hasDetailBeyondOpen())
+    }
+
+    func testPersistedDraftKeepsANullEventEndDirtyWhenTheFormFellBackToAResponderTime() {
+        var uiDraft = draft()
+        uiDraft.eventDate = "16.10.2026"
+        uiDraft.policeEventId = "8005"
+        uiDraft.startTime = "18:53"
+        uiDraft.endTime = "19:37"
+        uiDraft.shiftLeadId = "lead-hila"
+        let persisted = persistedEventDraftForRow(
+            uiDraft: uiDraft,
+            storedStartedAt: "2026-10-16T18:53:00",
+            storedEndedAt: nil,
+            responderStartedAts: ["2026-10-16T18:53:00"],
+            shiftLeadId: "lead-hila"
+        )
+        XCTAssertEqual(persisted.endTime, "")
+        XCTAssertNotEqual(persisted.forPersistCompare(), uiDraft.forPersistCompare())
+        let patch = changedPersistColumns(
+            previous: eventPersistColumns(persisted, districts: districts, mainLeadId: "lead-hila"),
+            next: eventPersistColumns(uiDraft, districts: districts, mainLeadId: "lead-hila")
+        )
+        XCTAssertEqual(patch["ended_at"], .string("2026-10-16T19:37:00"))
+    }
+
+    func testPersistColumnsCarryTheSplitCallsignAndOvernightEnd() {
+        var row = draft()
+        row.patrolCallsignPrefix = " אביב "
+        row.patrolCallsignNumber = "411"
+        row.startTime = "23:30"
+        row.endTime = "01:10"
+        row.shiftLeadId = "lead-1"
+        let columns = eventPersistColumns(row, districts: districts, mainLeadId: "lead-1")
+        XCTAssertEqual(columns["patrol_callsign"], .string("אביב 411"))
+        XCTAssertEqual(columns["patrol_callsign_prefix"], .string("אביב"))
+        XCTAssertEqual(columns["patrol_callsign_number"], .string("411"))
+        XCTAssertEqual(columns["started_at"], .string("2026-02-02T23:30:00"))
+        XCTAssertEqual(columns["ended_at"], .string("2026-02-03T01:10:00"))
+        XCTAssertEqual(columns["shift_lead_id"], .string("lead-1"))
+        XCTAssertEqual(columns["road_id"], .string("road-6"))
     }
 
     func testFillReadyNotifyStillFiresWhenAnExistingAssignmentFirstGetsKm() {

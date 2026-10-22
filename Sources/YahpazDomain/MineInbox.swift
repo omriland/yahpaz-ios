@@ -134,7 +134,7 @@ public func fuelNoteNeeded(openCount: Int) -> Bool {
     openCount >= 3
 }
 
-public let FUEL_NOTE = "שימו לב! אירועים שלא תועדו במלואם לא נכללים בהחזר הדלק הרבעוני"
+public let FUEL_NOTE = "שימו לב! אירועים שטרם תועדו על ידי המתנדב, או ללא ק״מ, אינם נכללים בהחזר הדלק הרבעוני"
 
 public enum ListReloadFailure: Equatable, Sendable {
     case ignore

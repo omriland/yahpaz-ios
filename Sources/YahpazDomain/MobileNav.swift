@@ -1,7 +1,7 @@
 import Foundation
 
 /// Port of web `mobileNav.ts`. Same ranks, same overflow rule, same Hebrew labels.
-/// Native skips `map` (Google Maps JS) and desktop-only `cockpit`.
+/// Native skips desktop-only `cockpit`.
 
 public let MOBILE_MORE_LABEL = "עוד"
 
@@ -9,7 +9,7 @@ public let MOBILE_MORE_LABEL = "עוד"
 private let MOBILE_TAB_PRIMARY = ["events", "mine", "users", "my_shifts"]
 
 /// Reachable on mobile, but not every-session. Overflow into עוד.
-private let MOBILE_TAB_SECONDARY = ["shifts", "contacts", "reports"]
+private let MOBILE_TAB_SECONDARY = ["shifts", "contacts", "map", "reports"]
 
 /// Five is the hard limit; the last slot is reserved for עוד when anything overflows.
 private let MOBILE_TAB_MAX = 4
@@ -56,7 +56,7 @@ public func splitMobileNav(_ entries: [MobileNavEntry]) -> SplitMobileNav {
 }
 
 /// Destinations a signed-in user can open on the phone.
-/// Matches web `App.tsx` entries for mobile, minus מפה and הקוקפיט.
+/// Matches web `App.tsx` entries for mobile, minus הקוקפיט.
 public func mobileNavEntries(_ roles: [String]) -> [MobileNavEntry] {
     var list: [MobileNavEntry] = []
     let hasMineList = isResponder(roles) || roleSet(roles).contains(.shiftLead)
@@ -68,6 +68,7 @@ public func mobileNavEntries(_ roles: [String]) -> [MobileNavEntry] {
         list.append(MobileNavEntry(view: "my_shifts", label: "המשמרות שלי"))
     }
     list.append(MobileNavEntry(view: "contacts", label: "אנשי קשר"))
+    list.append(MobileNavEntry(view: "map", label: "מפה"))
     if manages {
         list.append(MobileNavEntry(view: "events", label: "אירועים"))
         list.append(MobileNavEntry(view: "shifts", label: "משמרות"))

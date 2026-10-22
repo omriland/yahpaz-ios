@@ -4,9 +4,15 @@ public let EVENT_DRAFT_DATE_ERROR = "יש לבחור תאריך."
 public let EVENT_DRAFT_TYPE_ERROR = "יש לבחור סוג אירוע."
 public let EVENT_DRAFT_ROAD_ERROR = "יש לבחור כביש."
 public let EVENT_DRAFT_LOCATION_ERROR = "יש לבחור או להזין מיקום."
-public let EVENT_DRAFT_FORM_ERROR = "יש למלא תאריך, סוג אירוע וכביש כדי ליצור אירוע."
-public let EVENT_DRAFT_FORM_LOCATION_ERROR = "יש למלא תאריך, סוג אירוע, כביש ומיקום כדי ליצור אירוע."
+public let EVENT_DRAFT_FORM_ERROR = "יש למלא תאריך וסוג אירוע כדי ליצור אירוע."
+public let EVENT_DRAFT_FORM_LOCATION_ERROR = "יש למלא תאריך, סוג אירוע ומיקום כדי ליצור אירוע."
 public let EVENT_DRAFT_SAVE_FAILED = "שמירת האירוע נכשלה. בדקו את החיבור ונסו שוב."
+
+/// Event-level complete is blocked until `events.ended_at` is set.
+public let EVENT_DONE_NEEDS_END_ERROR = "לא ניתן להשלים אירוע ללא שעת סיום."
+
+/// Event-level complete is blocked until every assigned lead `total_km` is set.
+public let EVENT_DONE_NEEDS_KM_ERROR = "לא ניתן להשלים אירוע לפני הזנת קילומטרים לכל הכוננים."
 public let EVENT_DRAFT_SAVED = "האירוע נשמר."
 public let EVENT_NEW_TITLE = "אירוע חדש"
 public let EVENT_EDIT_TITLE = "עריכת אירוע"
@@ -16,6 +22,9 @@ public let EVENT_CREATE_TITLE = "יצירת אירוע"
 public let EVENT_CREATE_DRAFT_TITLE = "שמירה כטיוטה"
 public let EVENT_FORM_DETAILS_SECTION = "פרטי האירוע"
 public let EVENT_FORM_RESPONDERS_SECTION = "מתנדבים"
+public let EVENT_START_TIME_LABEL = "זמן התחלה"
+public let EVENT_END_TIME_LABEL = "זמן סיום"
+public let TIME_NOW_LABEL = "עכשיו"
 public let EVENT_TIMES_FIELD_NOTE =
     "שימו לב! מעתה הזנת זמנים תהיה עבור האירוע כולו ולא לכל מתנדב בנפרד"
 public let EVENT_TIMES_FIELD_TOOLTIP =
@@ -26,7 +35,7 @@ public let LOCATION_FIELD_NOTE = "חדש! הזנת כביש באופן אוטו�
 public let LOCATION_FIELD_TOOLTIP =
     "מיקמנו את שדה 'מיקום' ראשון כדי להקל עליכם והטמענו הזנה אוטומטית של מספר הכביש. במקרה של כביש וק\"מ או מיקום שאינו נמצא, תוכלו עדין להזין מספר כביש באופן ידני"
 public let EVENT_DRAFT_PARTIAL_SAVED = "הטיוטה נשמרה."
-public let EVENT_PATROL_CALLSIGN_LABEL = "או״ק ניידת"
+public let EVENT_PATROL_CALLSIGN_LABEL = PATROL_CALLSIGN_NUMBER_LABEL
 public let EVENT_LOCATION_PLACEHOLDER = "למשל: מחלף שורק"
 public let EVENT_LOCATION_SEARCHING = "מחפשים צמתים ומקומות…"
 public let EVENT_LOCATION_JUNCTIONS_UNAVAILABLE = "חיפוש הצמתים אינו זמין כרגע."
@@ -40,6 +49,8 @@ public let MY_ACTIVE_EVENT_DISMISSED = "הוסר מהאירועים הפעילי
 public let NO_VEHICLE_KM_PLACEHOLDER = "מתנדב ללא רכב"
 public let EVENT_ASSIGN_OPEN = "מתנדבים"
 public let EVENT_ASSIGN_CLOSE = "סגירת הקצאה"
+public let EVENT_ASSIGN_REMOVE_CANCEL = "ביטול"
+public let EVENT_ASSIGN_EDIT_HINT = "ק״מ"
 public let EVENT_ASSIGN_EMPTY = "בלי מתנדב משובץ האירוע נשאר בהזנה ואינו מוצג למתנדבים."
 public let EVENT_SELF_ASSIGN_ON_CREATE_ERROR = "לא ניתן לשבץ את יוצר האירוע כמתנדב."
 public let EVENT_SELF_ASSIGN_DISABLED_HINT = "לא ניתן לשבץ"
@@ -70,8 +81,6 @@ public struct TreatedVehicleDraft: Equatable, Sendable {
 public struct EventResponderDraft: Equatable, Sendable {
     public var responderId: String
     public var assignmentId: String
-    public var startTime: String
-    public var endTime: String
     public var totalKm: String
     public var emergencyMeans: Bool
     public var treated: [TreatedVehicleDraft]
@@ -81,8 +90,6 @@ public struct EventResponderDraft: Equatable, Sendable {
     public init(
         responderId: String,
         assignmentId: String = "",
-        startTime: String = "",
-        endTime: String = "",
         totalKm: String = "",
         emergencyMeans: Bool = false,
         treated: [TreatedVehicleDraft] = [],
@@ -91,8 +98,6 @@ public struct EventResponderDraft: Equatable, Sendable {
     ) {
         self.responderId = responderId
         self.assignmentId = assignmentId
-        self.startTime = startTime
-        self.endTime = endTime
         self.totalKm = totalKm
         self.emergencyMeans = emergencyMeans
         self.treated = treated
@@ -107,6 +112,11 @@ public struct EventDraft: Equatable, Sendable {
     public var eventDate: String
     public var policeEventId: String
     public var patrolCallsign: String
+    public var patrolCallsignPrefix: String
+    public var patrolCallsignNumber: String
+    public var startTime: String
+    public var endTime: String
+    public var createdAt: String
     public var eventTypeId: String
     public var roadId: String
     public var districtId: String
@@ -124,13 +134,16 @@ public struct EventDraft: Equatable, Sendable {
     public var busLane: Bool
     public var shiftLeadId: String
     public var secondaryLeads: [SecondaryLead]
-    public var startTime: String
-    public var endTime: String
 
     public init(
         eventDate: String,
         policeEventId: String = "",
         patrolCallsign: String = "",
+        patrolCallsignPrefix: String = "",
+        patrolCallsignNumber: String = "",
+        startTime: String = "",
+        endTime: String = "",
+        createdAt: String = "",
         eventTypeId: String = "",
         roadId: String = "",
         districtId: String = "",
@@ -147,13 +160,16 @@ public struct EventDraft: Equatable, Sendable {
         isCancelled: Bool = false,
         busLane: Bool = false,
         shiftLeadId: String = "",
-        secondaryLeads: [SecondaryLead] = [],
-        startTime: String = "",
-        endTime: String = ""
+        secondaryLeads: [SecondaryLead] = []
     ) {
         self.eventDate = eventDate
         self.policeEventId = policeEventId
         self.patrolCallsign = patrolCallsign
+        self.patrolCallsignPrefix = patrolCallsignPrefix
+        self.patrolCallsignNumber = patrolCallsignNumber
+        self.startTime = startTime
+        self.endTime = endTime
+        self.createdAt = createdAt
         self.eventTypeId = eventTypeId
         self.roadId = roadId
         self.districtId = districtId
@@ -171,8 +187,6 @@ public struct EventDraft: Equatable, Sendable {
         self.busLane = busLane
         self.shiftLeadId = shiftLeadId
         self.secondaryLeads = secondaryLeads
-        self.startTime = startTime
-        self.endTime = endTime
     }
 
     public var locationPin: LocationPinFields {
@@ -278,12 +292,13 @@ public func validateEventDraftPartial(_ draft: EventDraft) -> EventDraftErrors {
     )
 }
 
-/// Minimum to create an event: date + event type + road (+ מיקום for the system שלוחה).
+/// Minimum to create an event: date + event type (+ מיקום for the system שלוחה).
+/// או״ק, כביש, and מספר אירוע may be empty — the event is saved and a responder
+/// can be attached, but it stays hidden from responders until all three are filled.
 public func validateEventDraft(_ draft: EventDraft, districts: [LookupOption] = []) -> EventDraftErrors {
     EventDraftErrors(
         eventDate: normalizeReturnDate(draft.eventDate) == nil ? EVENT_DRAFT_DATE_ERROR : nil,
         eventType: draft.eventTypeId.isEmpty ? EVENT_DRAFT_TYPE_ERROR : nil,
-        road: draft.roadId.isEmpty ? EVENT_DRAFT_ROAD_ERROR : nil,
         location: districtNeedsLocation(districts, districtId: draft.districtId) && draft.location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? EVENT_DRAFT_LOCATION_ERROR
             : nil
@@ -383,6 +398,22 @@ public func deriveEventStatusFromDraft(_ responders: [EventResponderDraft]) -> E
     return .inProgress
 }
 
+/// `guard_event_done_requirements` reads assigned `total_km` already in the
+/// database. The event row is written before responders, so a derived `done`
+/// must wait — otherwise filling the last KM 400s and the generic toast
+/// pretends it was a network error.
+public func eventStatusForRowWriteBeforeResponders(_ derived: EventStatus) -> EventStatus {
+    derived == .done ? .partial : derived
+}
+
+/// Map the Hebrew done-guard (and keep the generic save toast for anything else).
+public func eventPersistFailure(_ message: String?) -> String {
+    let raw = message ?? ""
+    if raw.contains(EVENT_DONE_NEEDS_KM_ERROR) { return EVENT_DONE_NEEDS_KM_ERROR }
+    if raw.contains(EVENT_DONE_NEEDS_END_ERROR) { return EVENT_DONE_NEEDS_END_ERROR }
+    return EVENT_DRAFT_SAVE_FAILED
+}
+
 /// A new event with no responders is a draft; adding pending crew opens it for documentation.
 public func eventDraftStatus(responderCount: Int) -> EventStatus {
     responderCount == 0 ? .draft : .inProgress
@@ -394,6 +425,25 @@ public func eventDraftSummary(responderCount: Int) -> String {
     case 1: return "מתנדב אחד משובץ"
     default: return "\(responderCount) מתנדבים משובצים"
     }
+}
+
+/// Any lead-owned field the אחמ״ש typed or toggled on this assignment.
+public func eventResponderHasFilledFields(_ row: EventResponderDraft) -> Bool {
+    if row.hasVehicle && !row.totalKm.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
+    // On a not-yet-saved assignment אמצעים is only the default, not entered data.
+    if row.emergencyMeans && !row.assignmentId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
+    return row.treated.contains { $0.quantity > 0 }
+}
+
+public func eventResponderRemoveConfirm(_ name: String) -> String {
+    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    return "האם אתה בטוח שברצונך להסיר את \(trimmed.isEmpty ? "מתנדב" : trimmed)?"
+}
+
+/// Caption under an assigned responder — teaches that the row opens km.
+public func assignedResponderCaption(totalKm: String, hasVehicle: Bool) -> String {
+    let km = totalKm.trimmingCharacters(in: .whitespacesAndNewlines)
+    return hasVehicle && !km.isEmpty ? "\(km) ק״מ" : EVENT_ASSIGN_EDIT_HINT
 }
 
 /// When entering the system שלוחה the web defaults כביש to the road containing 101.
@@ -493,15 +543,46 @@ public func canToggleEventCancelled(next: Bool, canClearCancelled: Bool) -> Stri
     return nil
 }
 
+public let POLICE_EVENT_ID_DUPLICATE_ERROR = "כבר קיים אירוע עם המספר הזה באותו תאריך."
+
 public struct SameDayPoliceEventRow: Equatable, Sendable {
     public var id: String
     public var shiftLeadId: String?
     public var isCancelled: Bool
+    public var eventDate: String
+    public var policeEventId: String?
 
-    public init(id: String, shiftLeadId: String? = nil, isCancelled: Bool = false) {
+    public init(
+        id: String,
+        shiftLeadId: String? = nil,
+        isCancelled: Bool = false,
+        eventDate: String = "",
+        policeEventId: String? = nil
+    ) {
         self.id = id
         self.shiftLeadId = shiftLeadId
         self.isCancelled = isCancelled
+        self.eventDate = eventDate
+        self.policeEventId = policeEventId
+    }
+}
+
+public func sameDayPoliceEventIdCollides(
+    eventDate: String,
+    policeEventId: String,
+    currentEventId: String?,
+    existing: [SameDayPoliceEventRow]
+) -> Bool {
+    let policeId = digitsOnly(policeEventId)
+    let date = eventDate.trimmingCharacters(in: .whitespacesAndNewlines)
+    if policeId.isEmpty || date.isEmpty { return false }
+    let current = currentEventId?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return existing.contains { row in
+        if row.isCancelled { return false }
+        if !current.isEmpty && row.id == current { return false }
+        let rowDate = row.eventDate.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !rowDate.isEmpty && rowDate != date { return false }
+        return digitsOnly(row.policeEventId ?? "") == policeId
     }
 }
 
@@ -516,4 +597,183 @@ public func ownResumableEventId(
     }
     let mine = existing.filter { !$0.isCancelled && $0.shiftLeadId == viewerLeadId }
     return mine.count == 1 ? mine[0].id : nil
+}
+
+/// One column value in a PostgREST patch. `.null` clears the column.
+public enum PersistValue: Equatable, Sendable, Encodable {
+    case null
+    case string(String)
+    case double(Double)
+    case bool(Bool)
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .null: try container.encodeNil()
+        case .string(let value): try container.encode(value)
+        case .double(let value): try container.encode(value)
+        case .bool(let value): try container.encode(value)
+        }
+    }
+}
+
+private func persistString(_ value: String?) -> PersistValue {
+    guard let value else { return .null }
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? .null : .string(trimmed)
+}
+
+private func persistDouble(_ value: Double?) -> PersistValue {
+    value.map(PersistValue.double) ?? .null
+}
+
+/**
+ Baseline representing what is stored on the `events` row. When `events.ended_at`
+ (or `events.started_at`) is NULL in the DB and the form pre-filled the input
+ from a responder's timestamp, the persisted draft keeps the stored DB value (`""`)
+ so saving/autosaving persists the pre-filled time to `events`.
+ */
+public func persistedEventDraftForRow(
+    uiDraft: EventDraft,
+    storedStartedAt: String?,
+    storedEndedAt: String?,
+    responderStartedAts: [String?],
+    shiftLeadId: String
+) -> EventDraft {
+    let storedStart = toTimeInput(storedStartedAt)
+    let responderHasStart = responderStartedAts.contains { !toTimeInput($0).isEmpty }
+    var persisted = uiDraft
+    persisted.startTime = !storedStart.isEmpty || responderHasStart ? storedStart : uiDraft.startTime
+    persisted.endTime = toTimeInput(storedEndedAt)
+    persisted.shiftLeadId = shiftLeadId
+    return persisted
+}
+
+/**
+ Columns an event save is allowed to write. A later edit sends only the keys
+ that differ, so entering kilometers cannot null location, notes, or anything
+ this form did not change.
+ */
+public func eventPersistColumns(
+    _ draft: EventDraft,
+    districts: [LookupOption],
+    mainLeadId: String
+) -> [String: PersistValue] {
+    let pin = buildLocationPayload(draft)
+    let callsign = resolvePatrolCallsign(
+        prefix: draft.patrolCallsignPrefix,
+        number: draft.patrolCallsignNumber,
+        legacy: draft.patrolCallsign
+    )
+    let eventDate = normalizeReturnDate(draft.eventDate) ?? draft.eventDate.trimmingCharacters(in: .whitespacesAndNewlines)
+    let overnight = isOvernightEnd(startTime: draft.startTime, endTime: draft.endTime)
+    let prefix = patrolCallsignPrefixForInput(callsign.prefix).trimmingCharacters(in: .whitespacesAndNewlines)
+    let number = patrolCallsignNumberForInput(callsign.number)
+    let rowStatus = eventStatusForRowWriteBeforeResponders(deriveEventStatusFromDraft(draft.responders))
+    return [
+        "event_date": .string(eventDate),
+        "police_event_id": persistString(draft.policeEventId),
+        "district_id": persistString(draft.districtId),
+        "patrol_callsign": persistString(formatPatrolCallsign(prefix, number)),
+        "patrol_callsign_prefix": persistString(prefix),
+        "patrol_callsign_number": persistString(number),
+        "started_at": persistString(wallTimestamp(eventDate: eventDate, timeHm: draft.startTime, dayOffset: 0)),
+        "ended_at": persistString(wallTimestamp(eventDate: eventDate, timeHm: draft.endTime, dayOffset: overnight ? 1 : 0)),
+        "event_type_id": persistString(draft.eventTypeId),
+        "road_id": persistString(draft.roadId),
+        "location": persistString(pin.location),
+        "location_place_id": persistString(pin.locationPlaceId),
+        "location_lat": persistDouble(pin.locationLat),
+        "location_lng": persistDouble(pin.locationLng),
+        "location_pin_source": persistString(pin.locationPinSource),
+        "location_pinned_at": persistString(pin.locationPinnedAt),
+        "location_pinned_by": persistString(pin.locationPinnedBy),
+        "station": persistString(stationForSave(districts, districtId: draft.districtId, station: draft.station)),
+        "notes": persistString(draft.notes),
+        "is_cancelled": .bool(draft.isCancelled),
+        "bus_lane": .bool(draft.busLane),
+        "status": .string(rowStatus.rawValue),
+        "shift_lead_id": .string(mainLeadId),
+    ]
+}
+
+/// Equal blanks stay out of the patch so they cannot null a stored column.
+public func changedPersistColumns(
+    previous: [String: PersistValue],
+    next: [String: PersistValue]
+) -> [String: PersistValue] {
+    var patch: [String: PersistValue] = [:]
+    for key in Set(previous.keys).union(next.keys) {
+        let before = previous[key] ?? .null
+        let after = next[key] ?? .null
+        if before != after { patch[key] = after }
+    }
+    return patch
+}
+
+public func shouldRewriteTreatedVehicles(
+    previous: [TreatedVehicleDraft]?,
+    next: [TreatedVehicleDraft]
+) -> Bool {
+    func key(_ rows: [TreatedVehicleDraft]) -> String {
+        rows.filter { $0.quantity > 0 }
+            .map { "\($0.vehicleKindId):\($0.quantity)" }
+            .sorted()
+            .joined(separator: "|")
+    }
+    let nextKey = key(next)
+    guard let previous else { return !nextKey.isEmpty }
+    return key(previous) != nextKey
+}
+
+public func responderLeadPatch(
+    previous: EventResponderDraft?,
+    next: EventResponderDraft,
+    startedAt: String?,
+    endedAt: String?,
+    previousStartedAt: String?,
+    previousEndedAt: String?
+) -> [String: PersistValue] {
+    let km = leadKmForSave(hasVehicle: next.hasVehicle, totalKm: next.totalKm)
+    guard let previous else {
+        var patch: [String: PersistValue] = [
+            "started_at": persistString(startedAt),
+            "total_km": persistDouble(km),
+            "emergency_means": .bool(next.emergencyMeans),
+        ]
+        if let endedAt { patch["ended_at"] = .string(endedAt) }
+        return patch
+    }
+    var patch: [String: PersistValue] = [:]
+    if leadKmForSave(hasVehicle: previous.hasVehicle, totalKm: previous.totalKm) != km {
+        patch["total_km"] = persistDouble(km)
+    }
+    if previous.emergencyMeans != next.emergencyMeans { patch["emergency_means"] = .bool(next.emergencyMeans) }
+    if previousStartedAt != startedAt { patch["started_at"] = persistString(startedAt) }
+    if let endedAt, previousEndedAt != endedAt { patch["ended_at"] = .string(endedAt) }
+    return patch
+}
+
+public func secondaryLeadsUnchanged(previous: [SecondaryLead]?, next: [SecondaryLead]) -> Bool {
+    func key(_ rows: [SecondaryLead]) -> String {
+        rows.map { "\($0.userId):\($0.locked ? 1 : 0)" }.sorted().joined(separator: "|")
+    }
+    guard let previous else { return next.isEmpty }
+    return key(previous) == key(next)
+}
+
+extension EventDraft {
+    /// True once the lead has typed something past the prefilled date and start
+    /// time. Opening "אירוע חדש" must not insert a row by itself.
+    public func hasDetailBeyondOpen() -> Bool {
+        let texts = [
+            policeEventId, patrolCallsignPrefix, patrolCallsignNumber, endTime, eventTypeId,
+            roadId, districtId, location, station, notes,
+        ]
+        return texts.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            || !responders.isEmpty
+            || !secondaryLeads.isEmpty
+            || isCancelled
+            || busLane
+    }
 }

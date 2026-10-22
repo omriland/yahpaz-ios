@@ -50,6 +50,8 @@ public func isAutoOnMyActive(isCancelled: Bool, status: EventStatus) -> Bool {
 
 public let EVENT_DELETE_TITLE = "מחיקת אירוע"
 public let EVENT_DELETE_CONFIRM = "למחוק את האירוע? אין מתנדבים משובצים."
+public let EVENT_DELETE_CONFIRM_WITH_RESPONDERS =
+    "יש מתנדבים משובצים באירוע. הפעולה תמחק גם את הנתונים שלהם. האם למחוק? לא ניתן לשחזר."
 public let EVENT_DELETE_ACTION = "מחיקה"
 public let EVENT_DELETED = "האירוע נמחק."
 public let EVENT_DELETE_FAILED = "מחיקת האירוע נכשלה. בדקו את החיבור ונסו שוב."
@@ -99,14 +101,14 @@ public func visibleMyActiveIds(
     return seen
 }
 
+/// Owning shift lead or admin. The 7-day edit lock does not apply, and assigned responders do not block it.
 public func canDeleteUnassignedEvent(
     canManageUnit: Bool,
-    responderCount: Int,
     viewerIsAdmin: Bool,
     viewerId: String?,
     shiftLeadId: String?
 ) -> Bool {
-    if !canManageUnit || responderCount != 0 { return false }
+    if !canManageUnit { return false }
     if viewerIsAdmin { return true }
     return viewerId != nil && viewerId == shiftLeadId
 }

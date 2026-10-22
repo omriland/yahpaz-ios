@@ -17,11 +17,17 @@ final class EventIncompleteTests: XCTestCase {
         hasEventType: Bool = true,
         hasRoad: Bool = true,
         location: String? = "מחלף אייל",
-        responders: [IncompleteResponderSnapshot]? = nil
+        responders: [IncompleteResponderSnapshot]? = nil,
+        startedAt: String? = nil,
+        endedAt: String? = nil,
+        origin: String? = nil
     ) -> IncompleteEventSnapshot {
         IncompleteEventSnapshot(
+            origin: origin,
             policeEventId: policeEventId,
             patrolCallsign: patrolCallsign,
+            startedAt: startedAt,
+            endedAt: endedAt,
             hasDistrict: hasDistrict,
             hasEventType: hasEventType,
             hasRoad: hasRoad,
@@ -46,6 +52,23 @@ final class EventIncompleteTests: XCTestCase {
         XCTAssertEqual(missingEventFields(event(location: "  ")), [.location])
     }
 
+    func testCallsignWithoutANumberIsMissing() {
+        XCTAssertEqual(missingEventFields(event(patrolCallsign: "אביב")), [.patrolCallsign])
+        XCTAssertEqual(
+            missingEventFields(IncompleteEventSnapshot(
+                policeEventId: "12345",
+                patrolCallsign: nil,
+                patrolCallsignNumber: "411",
+                hasDistrict: true,
+                hasEventType: true,
+                hasRoad: true,
+                location: "מחלף אייל",
+                responders: [responder()]
+            )),
+            []
+        )
+    }
+
     func testKmZeroCountsAsFilledAndNullIsMissing() {
         XCTAssertEqual(missingEventFields(event(responders: [responder(totalKm: nil)])), [.responderKm])
         XCTAssertTrue(eventHasMissingResponderKm(event(responders: [responder(totalKm: nil)])))
@@ -55,8 +78,27 @@ final class EventIncompleteTests: XCTestCase {
     }
 
     func testFlagsTimesWhenAnyResponderIsMissingStartOrEnd() {
-        XCTAssertEqual(missingEventFields(event(responders: [responder(startedAt: nil)])), [.responderTimes])
-        XCTAssertEqual(missingEventFields(event(responders: [responder(endedAt: "  ")])), [.responderTimes])
+        XCTAssertEqual(missingEventFields(event(responders: [responder(startedAt: nil)])), [.eventTimes])
+        XCTAssertEqual(missingEventFields(event(responders: [responder(endedAt: "  ")])), [.eventTimes])
+    }
+
+    func testEventLevelTimesWinOverResponderTimes() {
+        XCTAssertEqual(
+            missingEventFields(event(
+                responders: [responder(startedAt: nil, endedAt: nil)],
+                startedAt: "2026-09-04T06:00:00",
+                endedAt: "2026-09-04T07:00:00"
+            )),
+            []
+        )
+        XCTAssertEqual(
+            missingEventFields(event(
+                responders: [responder()],
+                startedAt: "2026-09-04T06:00:00",
+                endedAt: nil
+            )),
+            [.eventTimes]
+        )
     }
 
     func testStillFlagsEventsWaitingForDocumentation() {
@@ -68,9 +110,23 @@ final class EventIncompleteTests: XCTestCase {
         XCTAssertEqual(incompleteFieldLabels(fields), ["מספר אירוע", "ק״מ"])
         XCTAssertEqual(incompleteNoticeLabel(fields), "חסרים: מספר אירוע · ק״מ")
         XCTAssertEqual(INCOMPLETE_FIELD_LABELS[.responderKm], "ק״מ")
-        XCTAssertEqual(INCOMPLETE_FIELD_LABELS[.responderTimes], "שעות")
+        XCTAssertEqual(INCOMPLETE_FIELD_LABELS[.eventTimes], "שעות")
+        XCTAssertEqual(INCOMPLETE_FIELD_LABELS[.patrolCallsign], "אוק - מס")
         XCTAssertEqual(INCOMPLETE_EVENTS_HEADING, "דורשים השלמת פרטים")
         XCTAssertEqual(INCOMPLETE_NOTICE_MARK, "פרטים חסרים:")
+    }
+
+    func testAddsNotSentMarkWhenVolunteersAreAssignedBeforeTheEventIsReleased() {
+        XCTAssertEqual(incompleteLeadNoticeLabels(event(policeEventId: nil)), ["מספר אירוע", "לא נשלח למתנדבים"])
+        XCTAssertEqual(incompleteLeadNoticeLabels(event(policeEventId: nil, responders: [])), ["מספר אירוע"])
+        XCTAssertEqual(incompleteLeadNoticeLabels(event(hasRoad: false)), ["כביש", "לא נשלח למתנדבים"])
+        XCTAssertEqual(incompleteLeadNoticeLabels(event(patrolCallsign: nil)), ["אוק - מס", "לא נשלח למתנדבים"])
+        XCTAssertEqual(incompleteLeadNoticeLabels(event()), [])
+        XCTAssertEqual(incompleteLeadNoticeLabels(event(policeEventId: nil, origin: "shift")), ["מספר אירוע"])
+        XCTAssertEqual(
+            RESPONDERS_HELD_FOR_POLICE_ID_NOTE,
+            "האירוע לא יוצג למתנדב עד שאו״ק, כביש ומספר אירוע מלאים."
+        )
     }
 
     func testPartitionPinsIncompleteFirstAndKeepsInputOrder() {

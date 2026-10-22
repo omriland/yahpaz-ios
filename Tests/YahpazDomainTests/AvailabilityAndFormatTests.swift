@@ -92,6 +92,12 @@ final class AvailabilityAndFormatTests: XCTestCase {
         XCTAssertNil(availabilityReturnCaption(""))
     }
 
+    func testPoliceEventIdInputKeepsFiveDigits() {
+        XCTAssertEqual(POLICE_EVENT_ID_MAX_LENGTH, 5)
+        XCTAssertEqual(policeEventIdForInput("12a345678"), "12345")
+        XCTAssertEqual(policeEventIdForInput(""), "")
+    }
+
     func testFormatPlateSevenAndEightDigits() {
         XCTAssertEqual(formatPlate("1234567"), "12-345-67")
         XCTAssertEqual(formatPlate("12345678"), "123-45-678")

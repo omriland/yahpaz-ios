@@ -89,11 +89,10 @@ final class MyActiveEventsTests: XCTestCase {
         )
     }
 
-    func testShiftLeadCanDeleteOnlyTheirOwnUnassignedEvent() {
+    func testShiftLeadCanDeleteTheirOwnEventEvenWithResponders() {
         XCTAssertTrue(
             canDeleteUnassignedEvent(
                 canManageUnit: true,
-                responderCount: 0,
                 viewerIsAdmin: false,
                 viewerId: "lead-a",
                 shiftLeadId: "lead-a"
@@ -102,7 +101,6 @@ final class MyActiveEventsTests: XCTestCase {
         XCTAssertFalse(
             canDeleteUnassignedEvent(
                 canManageUnit: true,
-                responderCount: 0,
                 viewerIsAdmin: false,
                 viewerId: "lead-a",
                 shiftLeadId: "lead-b"
@@ -110,17 +108,7 @@ final class MyActiveEventsTests: XCTestCase {
         )
         XCTAssertFalse(
             canDeleteUnassignedEvent(
-                canManageUnit: true,
-                responderCount: 1,
-                viewerIsAdmin: false,
-                viewerId: "lead-a",
-                shiftLeadId: "lead-a"
-            )
-        )
-        XCTAssertFalse(
-            canDeleteUnassignedEvent(
                 canManageUnit: false,
-                responderCount: 0,
                 viewerIsAdmin: false,
                 viewerId: "lead-a",
                 shiftLeadId: "lead-a"
@@ -132,12 +120,15 @@ final class MyActiveEventsTests: XCTestCase {
         XCTAssertTrue(
             canDeleteUnassignedEvent(
                 canManageUnit: true,
-                responderCount: 0,
                 viewerIsAdmin: true,
                 viewerId: "admin",
                 shiftLeadId: "lead-b"
             )
         )
         XCTAssertEqual(EVENT_DELETE_OTHER_LEAD, "אין הרשאה למחוק אירוע שנוצר על ידי אחמ״ש אחר.")
+        XCTAssertEqual(
+            EVENT_DELETE_CONFIRM_WITH_RESPONDERS,
+            "יש מתנדבים משובצים באירוע. הפעולה תמחק גם את הנתונים שלהם. האם למחוק? לא ניתן לשחזר."
+        )
     }
 }

@@ -13,7 +13,7 @@ final class EventFreezeTests: XCTestCase {
         XCTAssertFalse(flags.countsTowardFuelRefund)
         XCTAssertEqual(
             flags.tooltipHe,
-            "האירוע מוקפא בגלל חריגת קילומטרים (מעל 60 ק״מ) ובגלל חשד לאירוע כפול, וממתין לאישור מנהל."
+            "האירוע מוקפא בגלל חריגת קילומטרים (מעל 80 ק״מ) ובגלל חשד לאירוע כפול, וממתין לאישור מנהל."
         )
     }
 

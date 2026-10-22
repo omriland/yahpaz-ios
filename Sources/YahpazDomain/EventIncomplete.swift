@@ -15,22 +15,25 @@ public enum IncompleteField: String, CaseIterable, Sendable {
     case road
     case location
     case responderKm
-    case responderTimes
+    case eventTimes
 }
 
 public let INCOMPLETE_FIELD_LABELS: [IncompleteField: String] = [
     .policeEventId: "מספר אירוע",
-    .patrolCallsign: "או״ק ניידת",
+    .patrolCallsign: "אוק - מס",
     .district: "שלוחה",
     .eventType: "סוג אירוע",
     .road: "כביש",
     .location: "מיקום",
     .responderKm: "ק״מ",
-    .responderTimes: "שעות",
+    .eventTimes: "שעות",
 ]
 
 public let INCOMPLETE_EVENTS_HEADING = "דורשים השלמת פרטים"
 public let INCOMPLETE_NOTICE_MARK = "פרטים חסרים:"
+public let HELD_FROM_RESPONDERS_LABEL = "לא נשלח למתנדבים"
+public let RESPONDERS_HELD_FOR_POLICE_ID_NOTE =
+    "האירוע לא יוצג למתנדב עד שאו״ק, כביש ומספר אירוע מלאים."
 
 public struct IncompleteResponderSnapshot: Equatable, Sendable {
     public var totalKm: Double?
@@ -45,8 +48,12 @@ public struct IncompleteResponderSnapshot: Equatable, Sendable {
 }
 
 public struct IncompleteEventSnapshot: Equatable, Sendable {
+    public var origin: String?
     public var policeEventId: String?
     public var patrolCallsign: String?
+    public var patrolCallsignNumber: String?
+    public var startedAt: String?
+    public var endedAt: String?
     public var hasDistrict: Bool
     public var hasEventType: Bool
     public var hasRoad: Bool
@@ -54,16 +61,24 @@ public struct IncompleteEventSnapshot: Equatable, Sendable {
     public var responders: [IncompleteResponderSnapshot]
 
     public init(
+        origin: String? = nil,
         policeEventId: String? = nil,
         patrolCallsign: String? = nil,
+        patrolCallsignNumber: String? = nil,
+        startedAt: String? = nil,
+        endedAt: String? = nil,
         hasDistrict: Bool = false,
         hasEventType: Bool = false,
         hasRoad: Bool = false,
         location: String? = nil,
         responders: [IncompleteResponderSnapshot] = []
     ) {
+        self.origin = origin
         self.policeEventId = policeEventId
         self.patrolCallsign = patrolCallsign
+        self.patrolCallsignNumber = patrolCallsignNumber
+        self.startedAt = startedAt
+        self.endedAt = endedAt
         self.hasDistrict = hasDistrict
         self.hasEventType = hasEventType
         self.hasRoad = hasRoad
@@ -79,20 +94,23 @@ private func isMissing(_ value: String?) -> Bool {
 public func missingEventFields(_ event: IncompleteEventSnapshot) -> Set<IncompleteField> {
     var missing = Set<IncompleteField>()
     if isMissing(event.policeEventId) { missing.insert(.policeEventId) }
-    if isMissing(event.patrolCallsign) { missing.insert(.patrolCallsign) }
+    let callsign = resolvePatrolCallsign(number: event.patrolCallsignNumber, legacy: event.patrolCallsign)
+    if isMissing(callsign.number) { missing.insert(.patrolCallsign) }
     if !event.hasDistrict { missing.insert(.district) }
     if !event.hasEventType { missing.insert(.eventType) }
     if !event.hasRoad { missing.insert(.road) }
     if isMissing(event.location) { missing.insert(.location) }
 
-    for responder in event.responders {
-        if responder.totalKm == nil { missing.insert(.responderKm) }
-        if isMissing(responder.startedAt) || isMissing(responder.endedAt) {
-            missing.insert(.responderTimes)
+    if event.startedAt != nil || event.endedAt != nil {
+        if isMissing(event.startedAt) || isMissing(event.endedAt) {
+            missing.insert(.eventTimes)
         }
-        if missing.contains(.responderKm) && missing.contains(.responderTimes) {
-            break
-        }
+    } else if event.responders.contains(where: { isMissing($0.startedAt) || isMissing($0.endedAt) }) {
+        missing.insert(.eventTimes)
+    }
+
+    if event.responders.contains(where: { $0.totalKm == nil }) {
+        missing.insert(.responderKm)
     }
     return missing
 }
@@ -103,6 +121,19 @@ public func incompleteFieldLabels(_ fields: Set<IncompleteField>) -> [String] {
 
 public func incompleteNoticeLabel(_ fields: Set<IncompleteField>) -> String {
     "חסרים: \(incompleteFieldLabels(fields).joined(separator: " · "))"
+}
+
+/// Lead-facing chips: the missing fields, plus `לא נשלח למתנדבים` while assigned crew cannot see it yet.
+public func incompleteLeadNoticeLabels(_ event: IncompleteEventSnapshot) -> [String] {
+    let labels = incompleteFieldLabels(missingEventFields(event))
+    let held = !event.responders.isEmpty && !eventReleasedToResponders(
+        origin: event.origin,
+        policeEventId: event.policeEventId,
+        patrolCallsignNumber: event.patrolCallsignNumber,
+        hasRoad: event.hasRoad,
+        patrolCallsignLegacy: event.patrolCallsign
+    )
+    return held ? labels + [HELD_FROM_RESPONDERS_LABEL] : labels
 }
 
 public func isEventIncomplete(_ event: IncompleteEventSnapshot) -> Bool {

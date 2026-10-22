@@ -75,32 +75,22 @@ public func resolvePatrolCallsign(prefix: String? = nil, number: String? = nil, 
     return splitPatrolCallsign(legacy)
 }
 
-public func applyEventTimesToResponders(
-    _ responders: [EventResponderDraft],
-    startTime: String,
-    endTime: String
-) -> [EventResponderDraft] {
-    responders.map { row in
-        var copy = row
-        copy.startTime = startTime
-        copy.endTime = endTime
-        return copy
-    }
-}
-
+/// Form clock fields: the event's own times, else the earliest responder start and
+/// latest responder end, else `fallbackStart` (now) for the start.
 public func eventFormTimes(
     eventStart: String?,
     eventEnd: String?,
-    responders: [EventResponderDraft],
+    responderStarts: [String?],
+    responderEnds: [String?],
     fallbackStart: String
 ) -> (start: String, end: String) {
     let start = toTimeInput(eventStart)
     let end = toTimeInput(eventEnd)
-    let responderStarts = responders.map(\.startTime).filter { !$0.isEmpty }.sorted()
-    let responderEnds = responders.map(\.endTime).filter { !$0.isEmpty }.sorted()
+    let starts = responderStarts.map(toTimeInput).filter { !$0.isEmpty }.sorted()
+    let ends = responderEnds.map(toTimeInput).filter { !$0.isEmpty }.sorted()
     return (
-        start.isEmpty ? (responderStarts.first ?? fallbackStart) : start,
-        end.isEmpty ? (responderEnds.last ?? "") : end
+        start.isEmpty ? (starts.first ?? fallbackStart) : start,
+        end.isEmpty ? (ends.last ?? "") : end
     )
 }
 

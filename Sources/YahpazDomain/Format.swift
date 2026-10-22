@@ -4,6 +4,12 @@ public func digitsOnly(_ value: String) -> String {
     value.filter(\.isNumber)
 }
 
+public let POLICE_EVENT_ID_MAX_LENGTH = 5
+
+public func policeEventIdForInput(_ raw: String) -> String {
+    String(digitsOnly(raw).prefix(POLICE_EVENT_ID_MAX_LENGTH))
+}
+
 public func plateDigits(_ value: String) -> String {
     digitsOnly(value)
 }

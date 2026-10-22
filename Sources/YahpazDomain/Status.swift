@@ -67,12 +67,44 @@ public func participationStamp(_ status: ParticipationStatus, isViewer: Bool) ->
     return StampDescriptor(label: isViewer ? "ממתין לתיעוד" : "ממתין למתנדב", tone: .pending)
 }
 
-/// Responder-facing: they finished; the lead has not entered KM yet. Stamp stays הושלם.
+/// Responder finished fill; lead KM still missing. Replaces הושלם on their own stamp.
+public let FILL_DONE_AWAITING_KM_LABEL = "סיימת לתעד"
+
+/// Responder-facing: they finished; the lead has not entered KM yet.
 public let LEAD_KM_PENDING_NOTE = "אחמ״ש טרם הזין ק״מ"
 
-public func leadKmPendingNote(_ participation: ParticipationStatus?, totalKm: Double?) -> String? {
-    if participation == .done && totalKm == nil { return LEAD_KM_PENDING_NOTE }
-    return nil
+/// Responder-facing: they finished; the lead still owes end time (or other done-gate fields).
+public let AWAITING_LEAD_DETAILS_NOTE = "ממתין לפרטים נוספים מאחמש"
+
+/// Lead-owned field that keeps stored status from becoming `done`.
+public func eventMissingLeadDoneDetails(endedAt: String?) -> Bool {
+    endedAt?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+}
+
+public func leadKmPendingNote(
+    _ participation: ParticipationStatus?,
+    totalKm: Double?,
+    origin: String? = nil,
+    missingLeadDetails: Bool = false
+) -> String? {
+    if origin == "shift" { return nil }
+    if participation != .done { return nil }
+    if missingLeadDetails { return AWAITING_LEAD_DETAILS_NOTE }
+    return totalKm == nil ? LEAD_KM_PENDING_NOTE : nil
+}
+
+/// Own-row stamp for mine inbox / fill / detail: סיימת לתעד when lead KM is still null.
+public func mineParticipationStamp(
+    _ status: ParticipationStatus?,
+    totalKm: Double?,
+    missingLeadDetails: Bool = false
+) -> StampDescriptor {
+    let resolved = status ?? .pending
+    if resolved == .done && missingLeadDetails { return eventStamp(.partial) }
+    if resolved == .done && totalKm == nil {
+        return StampDescriptor(label: FILL_DONE_AWAITING_KM_LABEL, tone: .done)
+    }
+    return participationStamp(resolved, isViewer: true)
 }
 
 /// Mine inbox: fill still open, or fill done but lead KM is missing.

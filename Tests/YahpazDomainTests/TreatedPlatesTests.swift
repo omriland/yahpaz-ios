@@ -49,6 +49,16 @@ final class TreatedPlatesTests: XCTestCase {
         )
     }
 
+    func testLeftoverCopyAsksToPressAdd() {
+        XCTAssertEqual(TREATED_PLATE_LEFTOVER_ERROR, "יש ללחוץ הוספה לשמירת המספר")
+    }
+
+    func testSetLeftWhereKeepsInternalSpaces() {
+        let plates = [TreatedPlate(plateNumber: "12-345-67")]
+        let next = setTreatedPlateLeftWhere(plates, plateDigitsKey: "1234567", leftWhere: "חניון גרר")
+        XCTAssertEqual(next.first?.leftWhere, "חניון גרר")
+    }
+
     func testLeftoverAllowsEmptyPendingOnComplete() {
         XCTAssertNil(leftoverTreatedPlateError(pending: "", mode: .complete))
     }
