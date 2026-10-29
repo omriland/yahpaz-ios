@@ -13,7 +13,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 XT="$ROOT/xtool"
 GEN="$XT/.generated"
 DIST="$ROOT/dist"
-ARCHIVE="$DIST/Yahpaz-appstore.xcarchive"
 EXPORT_DIR="$DIST/appstore"
 SCHEME=Yahpaz
 TEAM=477WWCHXU7
@@ -226,6 +225,7 @@ cmd_device() {
 cmd_archive() {
   local build
   build=$(project_build_number)
+  local ARCHIVE="$DIST/Yahpaz-appstore-$build.xcarchive"
   run xcodegen generate --spec "$ROOT/project.yml" --project "$ROOT"
   run rm -rf "$ARCHIVE" "$EXPORT_DIR"
   run mkdir -p "$DIST"

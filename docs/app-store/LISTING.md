@@ -1,5 +1,7 @@
 # App Store listing — אבן דרך
 
+> **Superseded on 29 Oct 2026 by [`store-assets/`](../../store-assets/AUDIT.md)** for build 1.0.2 (17): live tracking, location strings and Precise Location are out of the store build, and the screenshots are now taken from the real app.
+
 Paste into App Store Connect. Primary locale: **Hebrew (Israel)**. English listing is not required.
 
 Character counts are Unicode length (Apple's limit).

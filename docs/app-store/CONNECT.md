@@ -1,5 +1,7 @@
 # Where to click (Apple Developer + App Store Connect)
 
+> **Superseded on 29 Oct 2026 by [`store-assets/`](../../store-assets/AUDIT.md)** for build 1.0.2 (17): live tracking, location strings and Precise Location are out of the store build, and the screenshots are now taken from the real app.
+
 Two websites. Do not mix them.
 
 | Site | URL | What it is for |

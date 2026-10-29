@@ -1,5 +1,7 @@
 # App Store package
 
+> **Superseded on 29 Oct 2026 by [`store-assets/`](../../store-assets/AUDIT.md)** for build 1.0.2 (17): live tracking, location strings and Precise Location are out of the store build, and the screenshots are now taken from the real app.
+
 Paste-ready listing for the first App Store submission of אבן דרך (`com.yahpz.responder`). Does not upload anything.
 
 | File | What |
