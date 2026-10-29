@@ -2,8 +2,6 @@
 
 Native SwiftUI app for Yahpaz responders. Same Supabase backend as [yahpz.com](https://yahpz.com).
 
-**Install:** [yahpz.com/ios](https://yahpz.com/ios) — Safari on iPhone only
-
 ## What it does
 
 - Email + password login (Hebrew RTL, רשומה Field/Command)
@@ -11,33 +9,22 @@ Native SwiftUI app for Yahpaz responders. Same Supabase backend as [yahpz.com](h
 - **השלמת הפרטים שלי** — vehicle, odometers, route, treatment; draft + complete
 - **זמינות**
 - **פרופיל** + lifetime stats + forced password change
-- Live location sharing when opened with `?track_token=` or `yahpaz://track?token=`
+- Live location sharing, compiled out unless `LIVE_TRACKING` is set (see `project.yml`)
 
-## Install
+## Distribution
 
-Distribution is **Ad Hoc, self-hosted from yahpz.com** — no App Store, no TestFlight, no
-AltStore. A device only installs if its UDID was registered in team `477WWCHXU7` *before*
-the build was signed.
+The App Store only. The submission pack is in [store-assets/](store-assets/AUDIT.md); archive,
+validate and upload run through `scripts/deploy-xtool.sh` (below).
 
-Volunteers open <https://yahpz.com/ios> in **Safari** on the iPhone and tap install.
-`itms-services://` links do nothing in Chrome, Firefox, or in-app browsers.
+The Ad Hoc / OTA path (self-hosted `itms-services` installs from yahpz.com) was removed on
+29 Oct 2026. Builds already installed that way still carry their own OTA update screen.
 
-Hard limits worth knowing: 100 iPhones per membership year, resetting only at renewal, and
-the provisioning profile expires 12 months after it is issued — at which point the app
-stops launching until everyone reinstalls.
-
-Design: `op-yh-26/docs/superpowers/specs/2026-09-04-yahpaz-ios-adhoc-selfhosted-distribution-design.md`
-
-### Cutting a release
-
-```bash
-./scripts/build-adhoc.sh    # signed IPA + OTA manifest in dist/adhoc/
-./scripts/publish-ios.sh    # copies into op-yh-26/public/ios/ and refreshes version.json
-```
-
-To add a volunteer: register the UDID at
-<https://developer.apple.com/account/resources/devices/list>, then rerun both scripts.
-Automatic signing picks up every registered device on each build.
+**Forced updates.** On launch and on every return to the foreground the app reads
+`https://yahpz.com/ios/version.json` (web repo `op-yh-26/public/ios/version.json`). If the
+installed build is below `minBuild`, the app shows only the update screen, whose button opens
+`appStoreUrl`. **Add `"appStoreUrl": "https://apps.apple.com/app/id<APP_ID>"` to that file once
+the app is live**; until then the button opens the App Store app. Raise `minBuild` only when
+the App Store already serves that build.
 
 ## Build
 
@@ -48,9 +35,6 @@ xcodegen generate
 swift test
 xcodebuild -scheme Yahpaz -destination 'platform=iOS Simulator,name=iPhone 17' -configuration Debug build
 ```
-
-For a distributable build see "Cutting a release" above — `build-ipa.sh` produced an
-unsigned IPA for AltStore and has been removed.
 
 Command-line dev builds and the App Store pipeline run through `scripts/deploy-xtool.sh`
 (xtool for simulator and device, Xcode for archive / validate / upload). See

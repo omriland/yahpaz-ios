@@ -64,7 +64,7 @@ xtool auth login        # choose "API Key" — see "App Store Connect API key" b
 ```
 
 xtool installs under a team-prefixed bundle ID (`XTL-…com.yahpz.responder`), so the dev build sits
-**beside** the Ad Hoc / App Store app instead of replacing it. Push notifications are not set up on
+**beside** the App Store app instead of replacing it. Push notifications are not set up on
 that ID, so pushes reach only the real build.
 
 ## App Store Connect API key (Omri's step)
@@ -97,4 +97,4 @@ It does **not** use `export-options-local.plist`: that one sets `testFlightInter
 which App Review refuses. `upload-testflight.sh` (Xcode upload in one step) still works and is
 unchanged.
 
-The Ad Hoc path (`build-adhoc.sh`, `publish-ios.sh`) is untouched.
+The Ad Hoc path (`build-adhoc.sh`, `publish-ios.sh`) was removed on 29 Oct 2026: the App Store is the only distribution.

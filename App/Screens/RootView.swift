@@ -40,14 +40,6 @@ struct RootView: View {
             PrivacyPolicyView(onClose: { app.closePrivacy() })
         }
         .sheet(isPresented: Binding(
-            get: { app.optionalUpdate != nil && app.forceUpdate == nil && !app.privacyOpen },
-            set: { if !$0 { dismissOptionalUpdate() } }
-        )) {
-            if let update = app.optionalUpdate {
-                OptionalUpdateSheet(update: update, onLater: dismissOptionalUpdate)
-            }
-        }
-        .sheet(isPresented: Binding(
             get: { feedbackOpen && app.isSignedIn && app.forceUpdate == nil },
             set: { if !$0 { feedbackOpen = false } }
         )) {
@@ -141,13 +133,6 @@ struct RootView: View {
         } else {
             mainTabs
         }
-    }
-
-    private func dismissOptionalUpdate() {
-        if let latest = app.optionalUpdate?.latestBuild {
-            OptionalUpdatePrefs.skip(latestBuild: latest)
-        }
-        app.dismissOptionalUpdate()
     }
 
     private var navEntries: [MobileNavEntry] {

@@ -20,7 +20,6 @@ echo "Xcode destination: ${DEST:-none}"
 if [[ -z "${DEST}" ]]; then
   echo "No physical iPhone is connected and available."
   echo "Plug in the iPhone, trust this Mac, enable Developer Mode, then run this script again."
-  echo "Until then install from: https://omriland.github.io/yahpaz-ios/"
   exit 1
 fi
 

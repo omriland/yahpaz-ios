@@ -17,117 +17,19 @@ struct ForceUpdateView: View {
                         .foregroundStyle(CommandTheme.textSecondary)
                         .multilineTextAlignment(.center)
                 }
-                if isStoreInstall() {
-                    StoreUpdateAction(appStoreUrl: update.appStoreUrl)
-                } else {
-                    InAppUpdateActions(
-                        manifestUrl: update.manifestUrl,
-                        updateTitle: "הורדה והתקנה",
-                        command: true
-                    )
+                PrimaryButton(title: "עדכון גרסה", command: true) {
+                    openAppStore()
                 }
             }
             .padding(24)
         }
     }
-}
 
-/// Store installs update from the App Store page (or the App Store app when the page is not known yet).
-private struct StoreUpdateAction: View {
-    let appStoreUrl: String?
-
-    var body: some View {
-        PrimaryButton(title: "עדכון גרסה", command: true) {
-            let page = appStoreUrl.flatMap { $0.isEmpty ? nil : URL(string: $0) }
-            if let url = page ?? URL(string: "itms-apps://apps.apple.com") {
-                UIApplication.shared.open(url)
-            }
-        }
-    }
-}
-
-struct OptionalUpdateSheet: View {
-    let update: OptionalUpdateAvailable
-    var onLater: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("גרסה חדשה")
-                .font(TypeScale.title)
-                .foregroundStyle(FieldTheme.textPrimary)
-            Text(update.messageHe.isEmpty ? DEFAULT_OPTIONAL_UPDATE_MESSAGE : update.messageHe)
-                .font(TypeScale.body)
-                .foregroundStyle(FieldTheme.textSecondary)
-            InAppUpdateActions(
-                manifestUrl: update.manifestUrl,
-                updateTitle: "עדכון",
-                laterTitle: "אחר כך",
-                onLater: onLater
-            )
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 28)
-        .padding(.top, 8)
-        .environment(\.layoutDirection, .rightToLeft)
-        .environment(\.locale, Locale(identifier: "he"))
-        .yahpazFormScroll()
-        .presentationDragIndicator(.visible)
-        .presentationDetents([.medium])
-    }
-}
-
-private struct InAppUpdateActions: View {
-    let manifestUrl: String
-    let updateTitle: String
-    var laterTitle: String? = nil
-    var onLater: (() -> Void)? = nil
-    var command = false
-
-    @State private var busy = false
-    @State private var errorHe: String?
-
-    var body: some View {
-        VStack(spacing: 12) {
-            if let errorHe {
-                Text(errorHe)
-                    .font(TypeScale.caption)
-                    .foregroundStyle(FieldTheme.alert)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-            }
-            PrimaryButton(title: updateTitle, busy: busy, enabled: !busy, command: command) {
-                openInstall()
-            }
-            if let laterTitle, let onLater {
-                GhostButton(title: laterTitle, enabled: !busy, action: onLater)
-            }
-        }
-    }
-
-    private func openInstall() {
-        errorHe = nil
-        busy = true
-        let primary = installActionURL(manifestUrl: manifestUrl)
-        UIApplication.shared.open(primary, options: [:]) { success in
-            if success {
-                Task { @MainActor in busy = false }
-                return
-            }
-            if primary != AppConfig.iosInstallPageUrl {
-                UIApplication.shared.open(AppConfig.iosInstallPageUrl, options: [:]) { fallback in
-                    Task { @MainActor in
-                        busy = false
-                        if !fallback {
-                            errorHe = "ההורדה נכשלה. נסו שוב."
-                        }
-                    }
-                }
-                return
-            }
-            Task { @MainActor in
-                busy = false
-                errorHe = "ההורדה נכשלה. נסו שוב."
-            }
+    /// The app's App Store page from version.json, or the App Store app until that URL is set.
+    private func openAppStore() {
+        let page = update.appStoreUrl.flatMap { $0.isEmpty ? nil : URL(string: $0) }
+        if let url = page ?? URL(string: "itms-apps://apps.apple.com") {
+            UIApplication.shared.open(url)
         }
     }
 }

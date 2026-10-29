@@ -216,7 +216,7 @@ cmd_device() {
   fi
   generate_xtool_inputs iphoneos
   # xtool signs with a development profile under a team-prefixed bundle ID (XTL-…),
-  # so this installs beside the Ad Hoc build instead of replacing it.
+  # so this installs beside the App Store build instead of replacing it.
   local args=(xtool dev run)
   [[ -n "$DEVICE_UDID" ]] && args+=(--udid "$DEVICE_UDID")
   xtool_with_bundle_workaround Debug-iphoneos "${args[@]}"

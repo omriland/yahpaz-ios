@@ -8,8 +8,6 @@ enum AppConfig {
     static let appOriginString = "https://yahpz.com"
     static let passwordResetRedirect = URL(string: "https://yahpz.com/?set_password=1")!
     static let iosVersionUrl = URL(string: "https://yahpz.com/ios/version.json")!
-    static let iosInstallPageUrl = URL(string: "https://yahpz.com/ios")!
-    static let defaultIosManifestUrl = "https://yahpz.com/ios/manifest.plist"
     /// Same Places key as the web client; requests send a yahpz.com Referer.
     static let googleMapsApiKey = ""
     static let googleMapsReferer = "https://yahpz.com/"

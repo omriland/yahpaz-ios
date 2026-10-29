@@ -121,7 +121,7 @@ screens themselves need a pass on a phone with a test account.
    paste into App Review Information. Reviewer notes are drafted in `CONNECT.md`.
 9. **Review risk to decide on**: the binary still contains the Ad Hoc OTA update flow
    (`itms-services`, `LSApplicationQueriesSchemes`). Store installs never reach it, but a reviewer who
-   finds it may ask. If you go store-only later, remove it.
+   finds it may ask. If you go store-only later, remove it. **Done 29 Oct 2026: removed; App Store only.**
 10. **Android follow-ups** (not touched, repo is read only): the eleven Android problems listed in
     the gap doc. The `done`-not-reopening one also exists in the web form (`eventForm.ts`).
 

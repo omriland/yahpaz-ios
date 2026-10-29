@@ -65,7 +65,6 @@ final class AppModel: ObservableObject {
 
     @Published var booting = true
     @Published var forceUpdate: ForceUpdateRequired?
-    @Published var optionalUpdate: OptionalUpdateAvailable?
     @Published var userId: String?
     @Published var profile: ProfileRecord?
     @Published var roles: [String] = []
@@ -132,17 +131,11 @@ final class AppModel: ObservableObject {
 
     func bootstrap() async {
         booting = true
-        let check = await checkSideloadUpdates(currentBuild: installedBuildNumber())
-        if let force = check.force {
+        if let force = await checkForceUpdate(currentBuild: installedBuildNumber()) {
             forceUpdate = force
-            optionalUpdate = nil
             booting = false
             await reportSessionIfDue()
             return
-        }
-        let skipped = OptionalUpdatePrefs.skippedLatestBuild
-        optionalUpdate = check.optional.flatMap { update in
-            update.latestBuild != skipped ? update : nil
         }
         if let id = await YahpazAPI.shared.sessionUserId() {
             try? await applySession(userId: id)
@@ -154,15 +147,10 @@ final class AppModel: ObservableObject {
         booting = false
     }
 
-    func dismissOptionalUpdate() {
-        optionalUpdate = nil
-    }
-
     func onForeground() {
         Task {
             await reportSessionIfDue()
-            let check = await checkSideloadUpdates(currentBuild: installedBuildNumber())
-            if let force = check.force, forceUpdate == nil {
+            if let force = await checkForceUpdate(currentBuild: installedBuildNumber()), forceUpdate == nil {
                 forceUpdate = force
             }
         }

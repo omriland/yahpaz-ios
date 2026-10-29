@@ -1,61 +1,22 @@
 import Foundation
 import YahpazDomain
 
+/// `yahpz.com/ios/version.json` (web repo `op-yh-26/public/ios/version.json`). Only `minBuild`
+/// gates the app; other keys in that file are ignored.
 struct IosVersionManifest: Decodable {
     var minBuild: Int
-    var latestBuild: Int?
-    var latestVersionName: String?
-    var manifestUrl: String?
     var messageHe: String?
-    /// App Store page for store installs; added to yahpz.com/ios/version.json once the app is live.
+    /// App Store page; add it to version.json once the app is live.
     var appStoreUrl: String?
 }
 
 struct ForceUpdateRequired: Equatable {
     var messageHe: String
-    var manifestUrl: String
     var appStoreUrl: String?
-}
-
-struct OptionalUpdateAvailable: Equatable {
-    var messageHe: String
-    var manifestUrl: String
-    var latestBuild: Int
-    var latestVersionName: String
-}
-
-struct SideloadUpdateCheck: Equatable {
-    var force: ForceUpdateRequired? = nil
-    var optional: OptionalUpdateAvailable? = nil
 }
 
 let DEFAULT_FORCE_UPDATE_MESSAGE =
     "יש גרסה חדשה של האפליקציה. יש להוריד ולהתקין כדי להמשיך."
-
-let DEFAULT_OPTIONAL_UPDATE_MESSAGE =
-    "יש עדכון לאבן דרך. אפשר להתקין עכשיו בלי לפתוח את החנות."
-
-enum OptionalUpdatePrefs {
-    private static let skippedKey = "yahpaz_app_update.skipped_latest_version_code"
-
-    static var skippedLatestBuild: Int {
-        UserDefaults.standard.integer(forKey: skippedKey)
-    }
-
-    static func skip(latestBuild: Int) {
-        UserDefaults.standard.set(latestBuild, forKey: skippedKey)
-    }
-}
-
-/// App Store and TestFlight builds carry no embedded provisioning profile; Ad Hoc and dev builds do.
-/// A store install must update through the App Store, never through the Ad Hoc OTA link.
-func isStoreInstall(bundle: Bundle = .main) -> Bool {
-    #if targetEnvironment(simulator)
-    return false
-    #else
-    return bundle.path(forResource: "embedded", ofType: "mobileprovision") == nil
-    #endif
-}
 
 func installedBuildNumber(
     bundle: Bundle = .main
@@ -71,51 +32,21 @@ func installedVersionName(
     return raw.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func checkSideloadUpdates(currentBuild: Int) async -> SideloadUpdateCheck {
+/// Non-nil when the installed build is below `minBuild`: the app then shows only the update screen.
+func checkForceUpdate(currentBuild: Int) async -> ForceUpdateRequired? {
     #if DEBUG
-    if StoreScreenshots.isOn { return SideloadUpdateCheck() }
+    if StoreScreenshots.isOn { return nil }
     #endif
-    guard let manifest = await fetchIosVersionManifest() else {
-        return SideloadUpdateCheck()
+    guard let manifest = await fetchIosVersionManifest(),
+          needsForceUpdate(currentBuild: currentBuild, minBuild: manifest.minBuild)
+    else {
+        return nil
     }
-    let manifestUrl = {
-        let raw = manifest.manifestUrl?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return raw.isEmpty ? AppConfig.defaultIosManifestUrl : raw
-    }()
-    if needsForceUpdate(currentBuild: currentBuild, minBuild: manifest.minBuild) {
-        let message = manifest.messageHe?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return SideloadUpdateCheck(
-            force: ForceUpdateRequired(
-                messageHe: message.isEmpty ? DEFAULT_FORCE_UPDATE_MESSAGE : message,
-                manifestUrl: manifestUrl,
-                appStoreUrl: manifest.appStoreUrl?.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
-        )
-    }
-    let latestBuild = manifest.latestBuild ?? manifest.minBuild
-    // The App Store updates store installs itself; the OTA prompt is for Ad Hoc phones only.
-    if !isStoreInstall() && needsOptionalUpdate(currentBuild: currentBuild, minBuild: manifest.minBuild, latestBuild: latestBuild) {
-        let named = manifest.latestVersionName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let message = named.isEmpty
-            ? DEFAULT_OPTIONAL_UPDATE_MESSAGE
-            : "יש עדכון לאבן דרך (\(named)). אפשר להתקין עכשיו בלי לפתוח את החנות."
-        return SideloadUpdateCheck(
-            optional: OptionalUpdateAvailable(
-                messageHe: message,
-                manifestUrl: manifestUrl,
-                latestBuild: latestBuild,
-                latestVersionName: named
-            )
-        )
-    }
-    return SideloadUpdateCheck()
-}
-
-func installActionURL(manifestUrl: String) -> URL {
-    if let href = itmsInstallHref(manifestUrl), let url = URL(string: href) {
-        return url
-    }
-    return AppConfig.iosInstallPageUrl
+    let message = manifest.messageHe?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return ForceUpdateRequired(
+        messageHe: message.isEmpty ? DEFAULT_FORCE_UPDATE_MESSAGE : message,
+        appStoreUrl: manifest.appStoreUrl?.trimmingCharacters(in: .whitespacesAndNewlines)
+    )
 }
 
 private func fetchIosVersionManifest() async -> IosVersionManifest? {

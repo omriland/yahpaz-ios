@@ -61,8 +61,6 @@ targets:
           - CFBundleURLName: com.yahpz.responder
             CFBundleURLSchemes:
               - yahpaz
-        LSApplicationQueriesSchemes:
-          - itms-services
         UIAppFonts:
           - IBMPlexSansHebrew-Regular.ttf
           - IBMPlexSansHebrew-Medium.ttf
