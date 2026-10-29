@@ -27,9 +27,9 @@ final class StoreScreenshotTests: XCTestCase {
         shot("03-complete-my-part")
         app.navigationBars.buttons["חזרה"].firstMatch.tap()
 
-        open(tab: "המשמרות שלי")
+        open(tab: "אנשי קשר")
         settle()
-        shot("04-my-shifts")
+        shot("04-contacts")
 
         open(tab: "מפה")
         sleep(4) // map tiles

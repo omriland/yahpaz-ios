@@ -61,7 +61,8 @@ enum StoreScreenshots {
     }
 
     static var contacts: [UnitContact] {
-        let names = ["אחמ״ש דמו", "כונן דמו", "כוננת דמו א", "כונן דמו ב", "כוננת דמו ג", "כונן דמו ד"]
+        // list_unit_contacts leaves out the caller, so כונן דמו is not here.
+        let names = ["אחמ״ש דמו", "כוננת דמו א", "כונן דמו ב", "כוננת דמו ג", "כונן דמו ד", "כוננת דמו ה"]
         return decode(names.enumerated().map { index, name in
             [
                 "id": id(30 + index),
