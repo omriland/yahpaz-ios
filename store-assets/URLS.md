@@ -5,7 +5,7 @@ Checked on 29 Oct 2026 with `curl`, logged out, no cookies. No browser was used.
 | Field | URL | Use it? |
 |---|---|---|
 | Privacy Policy URL (required) | `https://yahpz.com/privacy` | **Yes**. Real policy page, see below |
-| Support URL (required) | `https://yahpz.com/privacy` | **Yes, for now**. It is the only public page with contact details; see below |
+| Support URL (required) | `https://yahpz.com/support` | **Yes, live after the op-yh-26 deploy**. Not deployed yet; see below |
 | Marketing URL (optional) | `https://yahpz.com` | Optional. Public home page; it is the login screen with the unit's description |
 | Data deletion (not an ASC field) | `https://yahpz.com/delete-data` | Cite it in the review notes |
 
@@ -35,26 +35,32 @@ So the content check was done on the route and on the deployed bundle:
 What a reviewer sees in a browser: the Hebrew policy with a back button, rendered by
 JavaScript. The page adds `noindex`, which does not matter to App Review.
 
-### Gaps between the policy and what the iOS app collects
+### Policy coverage of what the iOS app collects
 
-Apple expects the policy to name what the app collects (guideline 5.1.1(i)). The current
-text covers identity, contact, operational records, vehicles, incident location and IP and
-access logs. It does **not** mention:
+Apple expects the policy to name what the app collects (guideline 5.1.1(i)). The **live**
+text (checked again on 29 Oct, same bundle `index-C2YvRNI7.js`) covers identity, contact,
+operational records, vehicles, incident location and IP and access logs. It does not yet
+mention:
 
 1. Photos and short videos (event photos on the fill screen, feedback attachments).
 2. Voice recordings (feedback voice note).
-3. The push notification token and the app version and last-seen time the app reports.
+3. The push notification token and the app-version check-in the app reports.
 
-None of this blocks a submission today, but a reviewer comparing the label to the policy can
-ask. The fix is a short addition to `op-yh-26/src/lib/privacyPolicy.ts` (section 2.1), which
-is outside this repo, so it is listed as an open question in AUDIT.md.
+**Decided:** the `op-yh-26` session on `feat/app-review-demo` adds these to
+`src/lib/privacyPolicy.ts`. The policy covers the App Privacy label **once that is deployed**.
+Re-check the live page before submitting.
 
-## Support URL
+## Support URL: `https://yahpz.com/support`
 
-`https://yahpz.com` is the login page. It has a privacy link but no contact details, and
-Apple asks that the support URL lead to a way to contact you. Until there is a support page,
-use `https://yahpz.com/privacy`: its section 8 gives the contact email and address. A small
-`/support` page on the web app would be cleaner (open question in AUDIT.md).
+**Live after the op-yh-26 deploy.** Today the path returns the 200 SPA shell and the live
+bundle has no `/support` route, so a logged-out visitor would get the login page. The page is
+being added on `feat/app-review-demo`: public and logged out like `/privacy`, Hebrew, with what
+the app is, who it is for, the policy's contact details, and links to `/privacy` and
+`/delete-data`.
+
+After the deploy, check it the same way as `/privacy`: `curl` the route and look for the
+`/support` route and the page text in the deployed bundle. Do not submit until it renders
+logged out. (`https://yahpz.com` alone is the login page with no contact details.)
 
 ## Account deletion: `https://yahpz.com/delete-data`
 

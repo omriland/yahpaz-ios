@@ -3,6 +3,14 @@
 App Store Connect → App Privacy → Get Started. Derived from the code of build 1.0.2 (17) and
 kept identical to `App/Resources/PrivacyInfo.xcprivacy` (9 collected types, tracking off).
 
+## Privacy policy coverage
+
+Privacy Policy URL: `https://yahpz.com/privacy`. **Once the op-yh-26 update on
+`feat/app-review-demo` is deployed**, the policy covers everything below that the live text
+lacks today: photos and videos, voice notes, the push notification token, and the
+app-version check-in (the Product Interaction row). Until that deploy, the label declares more
+than the policy describes. Re-check the live page before submitting (URLS.md).
+
 ## Third-party code in the binary
 
 | Package | Version | What it does | Data it sends anywhere else |

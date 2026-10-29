@@ -9,8 +9,10 @@ session on this Mac.
 
 - Apple Developer Program membership active, latest agreements accepted
   (`docs/app-store/CONNECT.md` §1 has the clicks).
-- Decide the open questions in `AUDIT.md`, at least the demo account. Without a suitable demo
-  account, App Review will stop at the login screen.
+- The op-yh-26 deploy from `feat/app-review-demo` is live: App Review demo flag, `/support`,
+  the updated privacy policy. Then the demo account has been provisioned (`REVIEW-NOTES.md`).
+  Without it, App Review stops at the login screen.
+- Build number 17 is confirmed as never uploaded before (still unconfirmed on 29 Oct).
 
 ## 1. Apps → + → New App
 
@@ -31,7 +33,7 @@ session on this Mac.
 | Subtitle | `אפליקציית הכוננים של יחפ״צ` |
 | Category, primary | Productivity (matches `LSApplicationCategoryType` in the build) |
 | Category, secondary | Utilities (optional) |
-| Content Rights | See the open question in `AUDIT.md`: the app bundles car-manufacturer logos and a WhatsApp icon. If you are comfortable that this is nominative use, answer that the app does not contain third-party content needing rights; otherwise answer Yes and confirm you have the rights |
+| Content Rights | **No**, the app does not contain, show or access third-party content. Car-manufacturer logos and the WhatsApp icon were removed on 29 Oct; maps are Apple's own MapKit |
 | Age Rating | Edit → answers in `AGE-RATING.md` → expected **4+**. Made for Kids: No |
 | License Agreement | Apple's standard EULA (leave as is) |
 
@@ -74,7 +76,7 @@ iPhone only. Upload in this order (same names in both folders):
 1. `01-login.png`
 2. `02-my-events.png`
 3. `03-complete-my-part.png`
-4. `04-my-shifts.png`
+4. `04-contacts.png`
 5. `05-map.png`
 6. `06-profile.png`
 7. `07-availability.png`
@@ -89,7 +91,7 @@ No iPad screenshots (iPhone-only build). No app preview video.
 | Promotional Text | LISTING.md → Promotional text |
 | Description | LISTING.md → Description |
 | Keywords | LISTING.md → Keywords |
-| Support URL | `https://yahpz.com/privacy` (see `URLS.md`: it is the public page with contact details) |
+| Support URL | `https://yahpz.com/support` (**live after the op-yh-26 deploy**; see `URLS.md`) |
 | Marketing URL | `https://yahpz.com` (optional) |
 | Version | `1.0.2` |
 | Copyright | `2026 Omri Landman` |
@@ -105,8 +107,8 @@ the build (`ITSAppUsesNonExemptEncryption = false`), so no question should appea
 | Field | Value |
 |---|---|
 | Sign-in required | Yes |
-| User name | demo account email |
-| Password | demo account password (type it here, nowhere else) |
+| User name | the `app-review-demo` account email the provisioning script reports |
+| Password | from `~/.yahpz-secrets/app-review-demo.env`; type it here, nowhere else |
 | Contact | Omri Landman, your email and phone |
 | Notes | REVIEW-NOTES.md → the English block |
 
@@ -118,10 +120,11 @@ the build (`ITSAppUsesNonExemptEncryption = false`), so no question should appea
 
 Add for Review → Submit. Before that:
 
-- [ ] Demo account exists, is responder-only, has only demo data, and signs in on a phone
-- [ ] `https://yahpz.com/privacy` opens logged out (checked 29 Oct 2026)
+- [ ] Demo account provisioned, responder-only, sees only demo data, signs in on a phone (REVIEW-NOTES.md checklist)
+- [ ] `https://yahpz.com/support` renders logged out (not deployed on 29 Oct)
+- [ ] `https://yahpz.com/privacy` opens logged out and lists photos, voice notes, push token and app-version check-in
 - [ ] 6.9" screenshots attached
-- [ ] Build 17 selected
+- [ ] Build 17 selected (number confirmed as never uploaded)
 - [ ] Age rating and App Privacy published
 
 ## Not needed for this app
