@@ -16,6 +16,7 @@ Every answer is based on what build 1.0.2 (17) does, not on the web app.
 | Age assurance | No | Accounts are issued by the unit to vetted adult members |
 | Unrestricted web access | **No** | The only web view shows `yahpz.com/privacy`; there is no address bar or free browsing |
 | User-generated content | **No** (judgment call, see below) | Records are internal unit paperwork, not content published to other users |
+| Social media | No | Not a social network; no profiles, feeds or following. App Store Connect had this as No already (29 Oct) |
 | Messaging and chat | No | No in-app messaging. The feedback form goes to the unit's admins; the contacts tab hands off to the phone dialer or WhatsApp |
 | Advertising | No | No ads, no ad SDKs |
 

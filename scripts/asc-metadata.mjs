@@ -5,14 +5,17 @@
 //
 //   node scripts/asc-metadata.mjs               dry run (default): reads App Store Connect, prints the plan
 //   node scripts/asc-metadata.mjs --apply       writes the plan
+//   ... --demo-from-file                        also sets the demo account from
+//                                               ~/.yahpz-secrets/app-review-demo.env (APP_REVIEW_DEMO_FILE)
+//   node scripts/asc-metadata.mjs --build-status  read-only: build 1.0.2 (17) processing state
 //   node scripts/asc-metadata.mjs --self-test   offline: inputs, JWT signing, guards; no network
 //
 // It never submits: any request whose path names a submission endpoint throws before it is
 // sent, and DELETE is only allowed on screenshots. Key: ASC_KEY_ID, ASC_ISSUER_ID and
 // optionally ASC_KEY_PATH, from the environment or ~/.appstoreconnect/asc.env; the .p8
-// defaults to ~/.appstoreconnect/private_keys/AuthKey_<ASC_KEY_ID>.p8. The key and the JWT
-// are generated and used in-process and never printed.
-// Review contact: REVIEW_CONTACT_EMAIL and REVIEW_CONTACT_PHONE (left unchanged when unset).
+// defaults to ~/.appstoreconnect/private_keys/AuthKey_<ASC_KEY_ID>.p8. The key, the JWT and the
+// demo account are used in-process and never printed. The review contact (name, email,
+// phone) is kept as App Store Connect has it; empty fields are reported, not filled.
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
@@ -65,10 +68,15 @@ const AGE_RATING = {
   lootBox: false,
   messagingAndChat: false,
   parentalControls: false,
+  socialMedia: false,
+  socialMediaAgeRestricted: false,
   unrestrictedWebAccess: false,
   userGeneratedContent: false,
 }
-const AGE_RATING_LEAVE = new Set(['kidsAgeBand', 'ageRatingOverride', 'ageRatingOverrideV2', 'koreaAgeRatingOverride'])
+const AGE_RATING_LEAVE = new Set([
+  'kidsAgeBand', 'ageRatingOverride', 'ageRatingOverrideV2', 'koreaAgeRatingOverride',
+  'gracRatingClassificationNumber', 'developerAgeRatingInfoUrl',
+])
 
 // ---------------------------------------------------------------- guards
 
@@ -185,21 +193,30 @@ function makeClient(key, apply) {
     }
     return `Bearer ${token}`
   }
+  /** GET and PATCH retry server errors (App Store Connect returns transient 500s); POST and
+   *  DELETE never retry, so nothing is created or deleted twice. A 404 surfaces as `status`. */
   async function request(method, urlPath, body) {
     guardRequest(method, urlPath)
     if (method !== 'GET' && !apply) return null
-    const response = await fetch(API + urlPath, {
-      method,
-      headers: { Authorization: auth(), ...(body ? { 'Content-Type': 'application/json' } : {}) },
-      body: body ? JSON.stringify(body) : undefined,
-    })
-    if (response.status === 204) return null
-    const json = await response.json().catch(() => null)
-    if (!response.ok) {
+    const retries = method === 'GET' || method === 'PATCH' ? 3 : 1
+    for (let attempt = 1; ; attempt++) {
+      const response = await fetch(API + urlPath, {
+        method,
+        headers: { Authorization: auth(), ...(body ? { 'Content-Type': 'application/json' } : {}) },
+        body: body ? JSON.stringify(body) : undefined,
+      })
+      if (response.status === 204) return null
+      const json = await response.json().catch(() => null)
+      if (response.ok) return json
+      if (response.status >= 500 && attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 2000 * attempt))
+        continue
+      }
       const detail = json?.errors?.map((e) => `${e.code}: ${e.detail}`).join('; ') || response.statusText
-      throw new Error(`${method} ${urlPath} → ${response.status} ${detail}`)
+      const error = new Error(`${method} ${urlPath} → ${response.status} ${detail}`)
+      error.status = response.status
+      throw error
     }
-    return json
   }
   async function list(urlPath) {
     const out = []
@@ -235,10 +252,31 @@ function changed(current, wanted) {
   return Object.fromEntries(Object.entries(wanted).filter(([k, v]) => v !== undefined && current?.[k] !== v))
 }
 
-function describe(fields) {
+/** Never shown in output, whatever the value. */
+const HIDDEN_FIELDS = new Set(['demoAccountName', 'demoAccountPassword'])
+
+export function describe(fields) {
   return Object.entries(fields)
-    .map(([k, v]) => `${k}=${typeof v === 'string' && v.length > 40 ? `${JSON.stringify(v.slice(0, 40))}… (${[...v].length} chars)` : JSON.stringify(v)}`)
+    .map(([k, v]) => {
+      if (HIDDEN_FIELDS.has(k)) return `${k}=${v ? '(set, hidden)' : '(empty)'}`
+      return `${k}=${typeof v === 'string' && v.length > 40 ? `${JSON.stringify(v.slice(0, 40))}… (${[...v].length} chars)` : JSON.stringify(v)}`
+    })
     .join(', ')
+}
+
+/** APP_REVIEW_DEMO_EMAIL / APP_REVIEW_DEMO_PASSWORD, read in-process; never printed. */
+function loadDemoAccount() {
+  const file = process.env.APP_REVIEW_DEMO_FILE || path.join(os.homedir(), '.yahpz-secrets', 'app-review-demo.env')
+  if (!fs.existsSync(file)) throw new Error('demo account file not found (APP_REVIEW_DEMO_FILE or ~/.yahpz-secrets/app-review-demo.env)')
+  const values = {}
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    const match = line.match(/^\s*(?:export\s+)?(APP_REVIEW_DEMO_EMAIL|APP_REVIEW_DEMO_PASSWORD)=(.*)$/)
+    if (match) values[match[1]] = match[2].trim().replace(/^(['"])(.*)\1$/, '$2')
+  }
+  if (!values.APP_REVIEW_DEMO_EMAIL || !values.APP_REVIEW_DEMO_PASSWORD) {
+    throw new Error('demo account file lacks APP_REVIEW_DEMO_EMAIL or APP_REVIEW_DEMO_PASSWORD')
+  }
+  return { name: values.APP_REVIEW_DEMO_EMAIL, password: values.APP_REVIEW_DEMO_PASSWORD }
 }
 
 async function patchIfChanged(api, label, type, id, current, wanted, apply) {
@@ -248,8 +286,9 @@ async function patchIfChanged(api, label, type, id, current, wanted, apply) {
   await api.request('PATCH', `/v1/${type}/${id}`, { data: { type, id, attributes: fields } })
 }
 
-async function run(apply) {
+async function run(apply, demoFromFile) {
   const inputs = loadInputs()
+  const demo = demoFromFile ? loadDemoAccount() : null
   const api = makeClient(loadKey(), apply)
   say(apply ? 'APPLY: writing to App Store Connect (never submits)' : 'DRY RUN: reading only; pass --apply to write')
 
@@ -352,21 +391,25 @@ async function run(apply) {
     say('! no age rating declaration found on the app info; fill it by hand (AGE-RATING.md)')
   }
 
-  // App Review details: sign-in required, demo account left empty, notes from REVIEW-NOTES.md.
+  // App Review details: sign-in required and notes from REVIEW-NOTES.md. The contact stays as
+  // App Store Connect has it. The demo account is written only with --demo-from-file; without
+  // it the demo fields are left as they are, so a later run cannot wipe them.
   const reviewFields = {
-    contactFirstName: 'Omri',
-    contactLastName: 'Landman',
-    contactEmail: process.env.REVIEW_CONTACT_EMAIL || undefined,
-    contactPhone: process.env.REVIEW_CONTACT_PHONE || undefined,
     demoAccountRequired: true,
-    demoAccountName: '',
-    demoAccountPassword: '',
+    demoAccountName: demo ? demo.name : undefined,
+    demoAccountPassword: demo ? demo.password : undefined,
     notes: inputs.reviewNotes,
   }
-  if (!reviewFields.contactEmail) say('! TODO review contact email: set REVIEW_CONTACT_EMAIL')
-  if (!reviewFields.contactPhone) say('! TODO review contact phone: set REVIEW_CONTACT_PHONE')
-  say('  demo account name and password: left empty; type them in App Store Connect (DEMO-LOGIN.md)')
-  const review = (await api.request('GET', `/v1/appStoreVersions/${version.id}/appStoreReviewDetail`).catch(() => null))?.data
+  // Only a 404 means "no review details yet"; any other failure stops the run, so a failed
+  // read can never turn into a create that clobbers the contact.
+  const review = (await api.request('GET', `/v1/appStoreVersions/${version.id}/appStoreReviewDetail`).catch((error) => {
+    if (error.status === 404) return null
+    throw error
+  }))?.data
+  for (const [field, label] of [['contactFirstName', 'first name'], ['contactLastName', 'last name'], ['contactEmail', 'email'], ['contactPhone', 'phone']]) {
+    say(review?.attributes?.[field] ? `= review contact ${label}: kept` : `! review contact ${label}: empty in App Store Connect, left empty`)
+  }
+  say(demo ? '  demo account: from the demo file (hidden)' : '  demo account: left as it is (pass --demo-from-file to set it)')
   if (review) {
     const { demoAccountPassword: _ignored, ...visible } = review.attributes
     await patchIfChanged(api, 'review details', 'appStoreReviewDetails', review.id, { ...visible, demoAccountPassword: null }, reviewFields, apply)
@@ -381,13 +424,25 @@ async function run(apply) {
     })
   }
 
-  // Screenshots: delete every old one on this localization, upload the 7 new ones per size.
+  // Screenshots: the 7 new ones per size, resumable. A shot already uploaded with one of the new
+  // file names and a finished upload is kept; every other shot on this localization (old ones,
+  // half-reserved or failed uploads) is deleted; missing ones are uploaded; then the order is set.
   if (localization) {
     const sets = await api.list(`/v1/appStoreVersionLocalizations/${localization.id}/appScreenshotSets`)
+    const wanted = Object.fromEntries(SCREENSHOT_SETS.map(({ type }) => [type, inputs.screenshots[type].map((s) => s.name)]))
+    const kept = {}
     for (const set of sets) {
+      const type = set.attributes.screenshotDisplayType
+      kept[type] = {}
       const shots = await api.list(`/v1/appScreenshotSets/${set.id}/appScreenshots`)
       for (const shot of shots) {
-        say(`${apply ? '-' : '- would delete'} ${set.attributes.screenshotDisplayType} ${shot.attributes.fileName}`)
+        const name = shot.attributes.fileName
+        const done = ['COMPLETE', 'UPLOAD_COMPLETE'].includes(shot.attributes.assetDeliveryState?.state)
+        if (wanted[type]?.includes(name) && done && !kept[type][name]) {
+          kept[type][name] = shot.id
+          continue
+        }
+        say(`${apply ? '-' : '- would delete'} ${type} ${name}${done ? '' : ` (${shot.attributes.assetDeliveryState?.state ?? 'no state'})`}`)
         await api.request('DELETE', `/v1/appScreenshots/${shot.id}`)
       }
     }
@@ -403,8 +458,14 @@ async function run(apply) {
           },
         }))?.data
       }
-      const uploaded = []
+      const order = []
       for (const shot of inputs.screenshots[type]) {
+        const existing = kept[type]?.[shot.name]
+        if (existing) {
+          say(`= ${type} ${shot.name}: already uploaded`)
+          order.push(existing)
+          continue
+        }
         say(`${apply ? '+' : '+ would upload'} ${type} ${shot.name} (${shot.size} bytes)`)
         if (!apply || !set) continue
         const reserved = (await api.request('POST', '/v1/appScreenshots', {
@@ -418,12 +479,13 @@ async function run(apply) {
         await api.request('PATCH', `/v1/appScreenshots/${reserved.id}`, {
           data: { type: 'appScreenshots', id: reserved.id, attributes: { uploaded: true, sourceFileChecksum: shot.md5 } },
         })
-        uploaded.push(reserved.id)
+        order.push(reserved.id)
       }
-      if (uploaded.length) {
+      if (apply && set && order.length === inputs.screenshots[type].length) {
         await api.request('PATCH', `/v1/appScreenshotSets/${set.id}/relationships/appScreenshots`, {
-          data: uploaded.map((id) => ({ type: 'appScreenshots', id })),
+          data: order.map((id) => ({ type: 'appScreenshots', id })),
         })
+        say(`= ${type}: ${order.length} screenshots in order`)
       }
     }
   } else {
@@ -438,6 +500,9 @@ async function run(apply) {
   } else if (build.attributes.processingState !== 'VALID') {
     say(`! build ${VERSION} (${BUILD}) is ${build.attributes.processingState}: run this again once it is VALID`)
   } else {
+    // Export compliance: the build's ITSAppUsesNonExemptEncryption = false normally answers it.
+    await patchIfChanged(api, `build ${VERSION} (${BUILD}) export compliance`, 'builds', build.id,
+      build.attributes, { usesNonExemptEncryption: false }, apply)
     const attached = await api.request('GET', `/v1/appStoreVersions/${version.id}/relationships/build`)
     if (attached?.data?.id === build.id) {
       say(`= build ${VERSION} (${BUILD}): attached`)
@@ -483,12 +548,25 @@ function selfTest() {
   guardRequest('DELETE', '/v1/appScreenshots/abc')
   guardRequest('PATCH', '/v1/appStoreVersions/abc/relationships/build')
   console.log(`guard: refuses ${refused.length} submit/delete/foreign requests, allows screenshot deletes and build attach`)
+  const shown = describe({ demoAccountName: 'someone@example.com', demoAccountPassword: 'x1!Secret', notes: 'n' })
+  if (shown.includes('someone@example.com') || shown.includes('x1!Secret')) throw new Error('describe leaked the demo account')
+  console.log('describe: demo account name and password print as (set, hidden)')
   console.log('self-test passed (no network)')
+}
+
+/** Read-only: where build 1.0.2 (17) is in App Store Connect processing. */
+async function buildStatus() {
+  const api = makeClient(loadKey(), false)
+  const builds = await api.list(`/v1/builds?filter[app]=${APP_ID}&filter[version]=${BUILD}&filter[preReleaseVersion.version]=${VERSION}`)
+  const stamp = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Jerusalem' })
+  if (!builds.length) return say(`${stamp} Asia/Jerusalem: build ${VERSION} (${BUILD}) not visible yet`)
+  const b = builds[0].attributes
+  say(`${stamp} Asia/Jerusalem: build ${VERSION} (${BUILD}) ${b.processingState}, uploaded ${b.uploadedDate}, usesNonExemptEncryption ${b.usesNonExemptEncryption}`)
 }
 
 const args = new Set(process.argv.slice(2))
 for (const arg of args) {
-  if (!['--apply', '--dry-run', '--self-test'].includes(arg)) {
+  if (!['--apply', '--dry-run', '--self-test', '--demo-from-file', '--build-status'].includes(arg)) {
     console.error(`unknown option ${arg}`)
     process.exit(2)
   }
@@ -499,7 +577,8 @@ if (args.has('--apply') && args.has('--dry-run')) {
 }
 try {
   if (args.has('--self-test')) selfTest()
-  else await run(args.has('--apply'))
+  else if (args.has('--build-status')) await buildStatus()
+  else await run(args.has('--apply'), args.has('--demo-from-file'))
 } catch (error) {
   console.error(`✗ ${error.message}`)
   process.exit(1)
