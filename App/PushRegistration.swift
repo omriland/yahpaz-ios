@@ -18,7 +18,7 @@ final class PushRegistration {
 
     func requestAfterSignIn() {
         #if DEBUG
-        if StoreScreenshots.isOn { return }
+        if StoreScreenshots.isOn && !StoreScreenshots.pushPrompt { return }
         #endif
         Task {
             let granted: Bool

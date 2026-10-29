@@ -118,7 +118,14 @@ struct LoginView: View {
         error = nil
         let trimmed = normalizeLoginEmail(email)
         if mode == .signin {
-            error = await app.signIn(email: trimmed, password: normalizeLoginSecret(password))
+            // A password field that still holds text when the login screen goes away makes iOS
+            // put up "Save Password?". On an iPad running this iPhone app, that sheet's window
+            // swallows every tap for seconds before it is drawn (App Review 2.1(a), 1.0 (3)).
+            // Empty the field first; put it back if sign-in fails.
+            let secret = normalizeLoginSecret(password)
+            password = ""
+            error = await app.signIn(email: trimmed, password: secret)
+            if error != nil { password = secret }
         } else {
             if let message = await YahpazAPI.shared.requestPasswordReset(email: trimmed) {
                 error = message

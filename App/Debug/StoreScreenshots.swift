@@ -3,11 +3,14 @@ import Foundation
 import YahpazDomain
 
 /// Demo data for App Store screenshots, DEBUG builds only. Launch with `-StoreScreenshots`
-/// (add `-StoreSignedOut` for the login screen). In this mode the Supabase client points at a
-/// dead local port, so nothing reaches production; the volunteer screens read from here.
+/// (add `-StoreSignedOut` for the login screen; any email and password then sign in to the
+/// demo account, and `-StorePushPrompt` keeps the real notification prompt after sign-in).
+/// In this mode the Supabase client points at a dead local port, so nothing reaches
+/// production; the volunteer screens read from here.
 enum StoreScreenshots {
     static let isOn = ProcessInfo.processInfo.arguments.contains("-StoreScreenshots")
-    static let signedOut = ProcessInfo.processInfo.arguments.contains("-StoreSignedOut")
+    static var signedOut = ProcessInfo.processInfo.arguments.contains("-StoreSignedOut")
+    static let pushPrompt = ProcessInfo.processInfo.arguments.contains("-StorePushPrompt")
     static let supabaseURL = URL(string: "http://127.0.0.1:9")!
 
     static let userId = "00000000-0000-4000-8000-0000000000d1"

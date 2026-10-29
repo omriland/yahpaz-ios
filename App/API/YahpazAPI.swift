@@ -122,6 +122,12 @@ actor YahpazAPI {
     }
 
     func signIn(email: String, password: String) async -> String? {
+        #if DEBUG
+        if StoreScreenshots.isOn {
+            StoreScreenshots.signedOut = false
+            return nil
+        }
+        #endif
         let loginEmail = normalizeLoginEmail(email)
         let loginPassword = normalizeLoginSecret(password)
         do {

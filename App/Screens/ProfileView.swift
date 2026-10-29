@@ -112,7 +112,16 @@ struct ProfileView: View {
             return
         }
         busy = true
-        error = await app.completePasswordChange(password)
+        // Fields emptied before the gate disappears, so iOS does not offer "Save Password?"
+        // (see LoginView.submit); restored if the change fails.
+        let next = password
+        password = ""
+        confirm = ""
+        error = await app.completePasswordChange(next)
+        if error != nil {
+            password = next
+            confirm = next
+        }
         busy = false
     }
 }
