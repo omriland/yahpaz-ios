@@ -10,26 +10,24 @@ final class StoreScreenshotTests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// No login screen: App Review rejected a set that showed only login (2.3.3), so every
+    /// shot shows the app in use.
     func testCaptureStoreScreenshots() throws {
-        launch(signedOut: true)
-        XCTAssertTrue(app.staticTexts["כניסה למערכת"].waitForExistence(timeout: 15))
-        shot("01-login")
-
-        launch(signedOut: false)
+        launch()
         let continueFill = app.buttons["המשך התיעוד"].firstMatch
         XCTAssertTrue(continueFill.waitForExistence(timeout: 15))
-        shot("02-my-events")
+        shot("01-my-events")
 
         continueFill.tap()
         XCTAssertTrue(app.staticTexts["4127"].firstMatch.waitForExistence(timeout: 10)
             || app.navigationBars["השלמת התיעוד שלי"].waitForExistence(timeout: 5))
         settle()
-        shot("03-complete-my-part")
+        shot("02-complete-my-part")
         app.navigationBars.buttons["חזרה"].firstMatch.tap()
 
         open(tab: "אנשי קשר")
         settle()
-        shot("04-contacts")
+        shot("03-contacts")
 
         open(tab: "מפה")
         sleep(4) // map tiles
@@ -41,15 +39,15 @@ final class StoreScreenshotTests: XCTestCase {
             sleep(3)
         }
         sleep(3)
-        shot("05-map")
+        shot("04-map")
 
         open(tab: "פרופיל")
         settle()
-        shot("06-profile")
+        shot("05-profile")
 
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "זמינות")).firstMatch.tap()
         settle()
-        shot("07-availability")
+        shot("06-availability")
         app.swipeDown(velocity: .fast)
         settle()
 
@@ -57,14 +55,12 @@ final class StoreScreenshotTests: XCTestCase {
         app.buttons["משוב"].firstMatch.tap()
         app.buttons["הצעה"].firstMatch.tap()
         settle()
-        shot("08-feedback")
+        shot("07-feedback")
     }
 
-    private func launch(signedOut: Bool) {
-        app?.terminate()
+    private func launch() {
         app = XCUIApplication()
         app.launchArguments = ["-StoreScreenshots", "-AppleLanguages", "(he)", "-AppleLocale", "he_IL"]
-        if signedOut { app.launchArguments.append("-StoreSignedOut") }
         app.launch()
     }
 
