@@ -51,12 +51,12 @@ targets:
           - UIInterfaceOrientationPortrait
         UIStatusBarStyle: UIStatusBarStyleLightContent
         ITSAppUsesNonExemptEncryption: false
-        NSLocationWhenInUseUsageDescription: אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע. אפשר לעצור בכל רגע מסך המעקב.
-        NSLocationAlwaysAndWhenInUseUsageDescription: אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.
+        # Live tracking (שיתוף מיקום) is compiled out unless LIVE_TRACKING is set below.
+        # Turning it back on also needs, here: NSLocationWhenInUseUsageDescription,
+        # NSLocationAlwaysAndWhenInUseUsageDescription, UIBackgroundModes [location];
+        # and Precise Location back in App/Resources/PrivacyInfo.xcprivacy.
         NSCameraUsageDescription: אבן דרך משתמש במצלמה לסריקת לוחית רישוי בעת תיעוד אירוע.
         NSMicrophoneUsageDescription: אבן דרך משתמש במיקרופון כדי להקליט הודעת משוב. אפשר לכתוב הערה במקום.
-        UIBackgroundModes:
-          - location
         CFBundleURLTypes:
           - CFBundleURLName: com.yahpz.responder
             CFBundleURLSchemes:
@@ -87,9 +87,10 @@ targets:
         CODE_SIGN_IDENTITY: Apple Development
         TARGETED_DEVICE_FAMILY: "1"
         MARKETING_VERSION: 1.0.2
-        CURRENT_PROJECT_VERSION: 16
+        CURRENT_PROJECT_VERSION: 17
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        # Add LIVE_TRACKING to ship live tracking (see the Info.plist note above).
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited)
     dependencies:
       - package: YahpazDomain

@@ -169,9 +169,11 @@ final class AppModel: ObservableObject {
     }
 
     func applyIncomingURL(_ url: URL) {
+        #if LIVE_TRACKING
         if let token = parseTrackToken(from: url.absoluteString) {
             trackToken = token
         }
+        #endif
     }
 
     func signIn(email: String, password: String) async -> String? {

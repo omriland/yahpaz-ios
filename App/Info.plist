@@ -43,10 +43,6 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>אבן דרך משתמש במצלמה לסריקת לוחית רישוי בעת תיעוד אירוע.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>אבן דרך ממשיך לשתף מיקום גם כשהמסך כבוי כל עוד שובצת לאירוע פתוח.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>אבן דרך משתמש במיקום כדי לשתף את מיקומך עם האחמ״ש בזמן אירוע. אפשר לעצור בכל רגע מסך המעקב.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>אבן דרך משתמש במיקרופון כדי להקליט הודעת משוב. אפשר לכתוב הערה במקום.</string>
 	<key>UIAppFonts</key>
@@ -58,10 +54,6 @@
 		<string>IBMPlexMono-Regular.ttf</string>
 		<string>IBMPlexMono-Medium.ttf</string>
 		<string>SuezOne-Regular.ttf</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

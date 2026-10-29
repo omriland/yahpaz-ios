@@ -1,6 +1,8 @@
 import SwiftUI
 import YahpazDomain
 
+// Live tracking ships only with LIVE_TRACKING set; see project.yml.
+#if LIVE_TRACKING
 struct LiveTrackView: View {
     let token: String
     @EnvironmentObject private var app: AppModel
@@ -42,3 +44,11 @@ struct LiveTrackView: View {
         .onDisappear { tracker.stop() }
     }
 }
+#else
+/// Keeps RootView compiling; `trackToken` is never set without LIVE_TRACKING.
+struct LiveTrackView: View {
+    let token: String
+
+    var body: some View { EmptyView() }
+}
+#endif

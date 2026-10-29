@@ -1,3 +1,5 @@
+// Live tracking ships only with LIVE_TRACKING set; see project.yml.
+#if LIVE_TRACKING
 import Combine
 import CoreLocation
 import Foundation
@@ -124,3 +126,4 @@ extension LocationTracker: CLLocationManagerDelegate {
         }
     }
 }
+#endif
