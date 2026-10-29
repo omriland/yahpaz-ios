@@ -72,6 +72,9 @@ func installedVersionName(
 }
 
 func checkSideloadUpdates(currentBuild: Int) async -> SideloadUpdateCheck {
+    #if DEBUG
+    if StoreScreenshots.isOn { return SideloadUpdateCheck() }
+    #endif
     guard let manifest = await fetchIosVersionManifest() else {
         return SideloadUpdateCheck()
     }

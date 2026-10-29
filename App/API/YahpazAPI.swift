@@ -99,13 +99,21 @@ actor YahpazAPI {
     let client: SupabaseClient
 
     init() {
+        #if DEBUG
+        let url = StoreScreenshots.isOn ? StoreScreenshots.supabaseURL : AppConfig.supabaseURL
+        #else
+        let url = AppConfig.supabaseURL
+        #endif
         client = SupabaseClient(
-            supabaseURL: AppConfig.supabaseURL,
+            supabaseURL: url,
             supabaseKey: AppConfig.supabaseAnonKey
         )
     }
 
     func sessionUserId() async -> String? {
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.signedOut ? nil : StoreScreenshots.userId }
+        #endif
         do {
             return try await client.auth.session.user.id.uuidString.lowercased()
         } catch {
@@ -268,6 +276,9 @@ actor YahpazAPI {
     }
 
     func loadProfile() async throws -> (ProfileRecord, [String]) {
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.profile }
+        #endif
         guard let userId = await sessionUserId() else {
             throw APIError.notSignedIn
         }
@@ -296,6 +307,9 @@ actor YahpazAPI {
     }
 
     func fetchMyEvents() async throws -> [EventListItem] {
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.myEvents }
+        #endif
         guard let userId = await sessionUserId() else { return [] }
         let assignments: [AssignmentIdRow] = try await client
             .from("event_responders")
@@ -315,6 +329,9 @@ actor YahpazAPI {
     }
 
     func fetchMyShifts() async throws -> [ShiftListItem] {
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.myShifts }
+        #endif
         guard let userId = await sessionUserId() else { return [] }
         let assignments: [ShiftAssignmentIdRow] = try await client
             .from("shift_responders")
@@ -1442,7 +1459,10 @@ actor YahpazAPI {
     }
 
     func fetchUnitContacts() async throws -> [UnitContact] {
-        try await client
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.contacts }
+        #endif
+        return try await client
             .rpc("list_unit_contacts")
             .execute()
             .value
@@ -1450,6 +1470,9 @@ actor YahpazAPI {
 
     /// Every active member's saved addresses for the מפה tab (admin / training statuses filtered out).
     func fetchUnitMapPins() async throws -> [MapPin] {
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.unitMapPins }
+        #endif
         let rows: [UnitMapPinRowDto] = try await client
             .rpc("list_unit_map_pins")
             .execute()
@@ -1473,6 +1496,9 @@ actor YahpazAPI {
 
     /// Responders en route right now (open assignments only), for leads on the מפה tab.
     func fetchLiveMapPins() async throws -> [LiveMapPin] {
+        #if DEBUG
+        if StoreScreenshots.isOn { return [] }
+        #endif
         let rows: [LiveLocationRowDto] = try await client
             .from("event_responder_live_locations")
             .select(
@@ -1508,6 +1534,9 @@ actor YahpazAPI {
     }
 
     func fetchFillContext(eventId: String) async throws -> FillContext? {
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.fillContext(eventId: eventId) }
+        #endif
         guard let userId = await sessionUserId() else { return nil }
         async let eventReq: FillEventRow = client
             .from("events")
@@ -1910,6 +1939,9 @@ actor YahpazAPI {
     }
 
     func fetchMyVehicles() async throws -> [ProfileVehicle] {
+        #if DEBUG
+        if StoreScreenshots.isOn { return StoreScreenshots.myVehicles }
+        #endif
         guard let userId = await sessionUserId() else { return [] }
         let rows: [VehicleOption] = try await client
             .from("vehicles")

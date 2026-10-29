@@ -37,6 +37,7 @@
 		2A864538CCC5F6EA2525A736 /* TreatedPlateModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */; };
 		2C8554BD954D31810AC0F983 /* mazda.png in Resources */ = {isa = PBXBuildFile; fileRef = E2244F10216597A8FDF0D7AB /* mazda.png */; };
 		2DAA671F9512734FBBBBAF7E /* porsche.png in Resources */ = {isa = PBXBuildFile; fileRef = E66122670E0EBC6FB863578C /* porsche.png */; };
+		31FEC1B13AB9DFC8CEAF029C /* StoreScreenshots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064A24A18518ADE910FAACB9 /* StoreScreenshots.swift */; };
 		33654B122309EDD6F7D8BE28 /* ComingSoonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C5F5C50355222D9D6DF0994 /* ComingSoonViews.swift */; };
 		3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752BFE6312112CAD041949AD /* InboxCardTests.swift */; };
 		3AE250F0C1CDB6B58106292D /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D9B98FA1538F45EC77F482 /* MapView.swift */; };
@@ -48,6 +49,7 @@
 		4402C71A5F3EB9B662198704 /* suzuki.png in Resources */ = {isa = PBXBuildFile; fileRef = 9ACEE8BA593E67205C42DE27 /* suzuki.png */; };
 		443B7768A66BAC0312412DBC /* mini.png in Resources */ = {isa = PBXBuildFile; fileRef = 35F5F4074F2514B25B7215FE /* mini.png */; };
 		47D296FF6CE5B7F659037B51 /* cadillac.png in Resources */ = {isa = PBXBuildFile; fileRef = 5ED8144A8AC7CC914314B8BD /* cadillac.png */; };
+		4EB7B6AA711DFA1875E4D73F /* StoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 733C8F2B6A71B423328711B8 /* StoreScreenshotTests.swift */; };
 		4EC529D19C279041144BE647 /* FullSweepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */; };
 		5050CA2BBBC131556B2DA37E /* kia.png in Resources */ = {isa = PBXBuildFile; fileRef = C8D90932C77DAA3AAAD17F46 /* kia.png */; };
 		522265FB5B37CB43C9849C6C /* jaguar.png in Resources */ = {isa = PBXBuildFile; fileRef = A12B763E5909EA1037C6B341 /* jaguar.png */; };
@@ -135,6 +137,7 @@
 /* Begin PBXFileReference section */
 		05D9B98FA1538F45EC77F482 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 		0631C0DD49764B99933DD0CC /* mercedes-benz.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mercedes-benz.png"; sourceTree = "<group>"; };
+		064A24A18518ADE910FAACB9 /* StoreScreenshots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreScreenshots.swift; sourceTree = "<group>"; };
 		0EFE7E44232604A77B667971 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		0F2832BD0B04339F96CB82A4 /* yahpaz-ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yahpaz-ios"; path = .; sourceTree = SOURCE_ROOT; };
 		0F6E4AA12F2E7B6D29986B65 /* FeedbackSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheet.swift; sourceTree = "<group>"; };
@@ -192,6 +195,7 @@
 		6DFAF114360AC0CBF14BFFD2 /* ViewAsSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewAsSheets.swift; sourceTree = "<group>"; };
 		6FE6CF9B3D12241CEDBB76F9 /* MyShiftsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyShiftsView.swift; sourceTree = "<group>"; };
 		71219BA6D29D59260C134B93 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
+		733C8F2B6A71B423328711B8 /* StoreScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreScreenshotTests.swift; sourceTree = "<group>"; };
 		752BFE6312112CAD041949AD /* InboxCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxCardTests.swift; sourceTree = "<group>"; };
 		767BA4B1801FFE14A002536B /* lincoln.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lincoln.png; sourceTree = "<group>"; };
 		76E883F5BF0EE8F11A8EBD47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -448,12 +452,21 @@
 				CC2E1A24D63B8AE697202EBE /* YahpazApp.swift */,
 				F49028005DB97F8363BFA318 /* API */,
 				9F9A0B096F4E1F3372E73EB5 /* Components */,
+				EA14401197EF1D99304DBCDF /* Debug */,
 				F98315A09F1B96F3C1AC8CF1 /* Live */,
 				0F956E90D6F3E7EAC6378E5A /* Resources */,
 				599D1EEE21BC2B4E8C85B3B5 /* Screens */,
 				866208EEC3581E60BCA731D2 /* Theme */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		EA14401197EF1D99304DBCDF /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				064A24A18518ADE910FAACB9 /* StoreScreenshots.swift */,
+			);
+			path = Debug;
 			sourceTree = "<group>";
 		};
 		EAEDDF21C01F020EAD33FD03 /* UITests */ = {
@@ -463,6 +476,7 @@
 				8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */,
 				752BFE6312112CAD041949AD /* InboxCardTests.swift */,
 				3C2BDB6090708E4849BCDEFC /* QAHarness.swift */,
+				733C8F2B6A71B423328711B8 /* StoreScreenshotTests.swift */,
 				D919019483ADDD7E809CCB8B /* TypingVisibilityTests.swift */,
 			);
 			path = UITests;
@@ -691,6 +705,7 @@
 				00E8BC6C2270157F47FF509C /* RootView.swift in Sources */,
 				B3F1717C60FB725EDB72705D /* ShiftDraftStore.swift in Sources */,
 				8CB47A90E912776D92E5F375 /* ShiftFormView.swift in Sources */,
+				31FEC1B13AB9DFC8CEAF029C /* StoreScreenshots.swift in Sources */,
 				729713569D334E3157C148AB /* Theme.swift in Sources */,
 				2A864538CCC5F6EA2525A736 /* TreatedPlateModels.swift in Sources */,
 				CE1C0B4DB01B77B2B88B646E /* UnitEventsView.swift in Sources */,
@@ -710,6 +725,7 @@
 				4EC529D19C279041144BE647 /* FullSweepTests.swift in Sources */,
 				3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */,
 				A3124790FF07392A25796BFD /* QAHarness.swift in Sources */,
+				4EB7B6AA711DFA1875E4D73F /* StoreScreenshotTests.swift in Sources */,
 				2961442E9BA6D68BB89301A7 /* TypingVisibilityTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
