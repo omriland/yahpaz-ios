@@ -47,7 +47,9 @@ Options:
   --udid ID           Pick a simulator / device instead of the first one
 
 ASC key (validate / upload / archive provisioning), set by Omri, never committed:
-  ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH (absolute path to AuthKey_<id>.p8)
+  ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH (absolute path to AuthKey_<id>.p8), read from the
+  environment or from ~/.appstoreconnect/asc.env. ASC_KEY_PATH defaults to
+  ~/.appstoreconnect/private_keys/AuthKey_<ASC_KEY_ID>.p8, which must be chmod 600.
 USAGE
 }
 
@@ -94,6 +96,24 @@ require_asc_key() {
   case "$ASC_KEY_PATH" in
     "$ROOT"/*) fail "keep the .p8 outside the repo (ASC_KEY_PATH points inside it)" ;;
   esac
+  if [[ $DRY_RUN -eq 0 && "$(stat -f %Lp "$ASC_KEY_PATH")" != 600 ]]; then
+    fail "the .p8 must be private: chmod 600 the file ASC_KEY_PATH points at"
+  fi
+}
+
+# The operator keeps the key IDs in ~/.appstoreconnect/asc.env (ASC_KEY_ID, ASC_ISSUER_ID,
+# optionally ASC_KEY_PATH) and the key in ~/.appstoreconnect/private_keys/AuthKey_<id>.p8,
+# where altool also looks. Variables already set in the environment win. Nothing is printed.
+load_asc_env() {
+  local file="${ASC_ENV_FILE:-$HOME/.appstoreconnect/asc.env}"
+  if [[ -f "$file" && ( -z "${ASC_KEY_ID:-}" || -z "${ASC_ISSUER_ID:-}" ) ]]; then
+    set -a
+    source "$file"
+    set +a
+  fi
+  if [[ -n "${ASC_KEY_ID:-}" && -z "${ASC_KEY_PATH:-}" ]]; then
+    ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+  fi
 }
 
 # ---------------------------------------------------------------- xtool inputs
@@ -171,6 +191,13 @@ cmd_doctor() {
   for name in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_PATH; do
     if [[ -n "${(P)name:-}" ]]; then say "$name: set"; else say "$name: not set"; fi
   done
+  if [[ -n "${ASC_KEY_PATH:-}" ]]; then
+    if [[ -f "$ASC_KEY_PATH" ]]; then
+      say "ASC key file: present, mode $(stat -f %Lp "$ASC_KEY_PATH")"
+    else
+      say "ASC key file: missing"
+    fi
+  fi
   say "build number (project.yml): $(project_build_number)"
 }
 
@@ -297,6 +324,10 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
+
+case "$COMMAND" in
+  doctor|archive|validate|upload) load_asc_env ;;
+esac
 
 case "$COMMAND" in
   doctor) cmd_doctor ;;

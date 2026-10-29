@@ -69,18 +69,29 @@ that ID, so pushes reach only the real build.
 
 ## App Store Connect API key (Omri's step)
 
-Created once in App Store Connect → Users and Access → Integrations → Team Keys, role
-**App Manager**. Download the `.p8` (Apple shows it once) and keep it **outside the repo**, for
-example `~/.appstoreconnect/private_keys/AuthKey_<KEYID>.p8`. Then, in your shell only:
+Created once in App Store Connect → Users and Access → Integrations → **Team Keys**. Role:
+**Admin**, or App Manager with access to Certificates, Identifiers & Profiles, so a signed
+`archive` can create the distribution certificate and profile (`-allowProvisioningUpdates`).
+Download the `.p8` (Apple shows it once) and keep it outside the repo:
 
 ```bash
-export ASC_KEY_ID=<key id>
-export ASC_ISSUER_ID=<issuer id>
-export ASC_KEY_PATH=~/.appstoreconnect/private_keys/AuthKey_<KEYID>.p8
+mkdir -p ~/.appstoreconnect/private_keys
+mv ~/Downloads/AuthKey_<KEYID>.p8 ~/.appstoreconnect/private_keys/
+chmod 600 ~/.appstoreconnect/private_keys/AuthKey_<KEYID>.p8
+cat > ~/.appstoreconnect/asc.env <<'ENV'
+ASC_KEY_ID=<key id>
+ASC_ISSUER_ID=<issuer id>
+ASC_KEY_PATH=$HOME/.appstoreconnect/private_keys/AuthKey_<KEYID>.p8
+ENV
+chmod 600 ~/.appstoreconnect/asc.env
 ```
 
-The script never prints these values: dry runs show `"$ASC_KEY_ID"`, and `ASC_KEY_PATH` inside the
-repo is refused. `.gitignore` already ignores `*.p8` and `.env`.
+`scripts/deploy-xtool.sh` (`doctor`, `archive`, `validate`, `upload`) and
+`scripts/asc-metadata.mjs` read `~/.appstoreconnect/asc.env` unless the variables are already
+exported; `ASC_KEY_PATH` defaults to `~/.appstoreconnect/private_keys/AuthKey_<ASC_KEY_ID>.p8`,
+which is also where `altool` looks. Neither ever prints the values: dry runs show
+`"$ASC_KEY_ID"`, a `.p8` inside the repo or not `chmod 600` is refused, and the metadata
+script signs its JWT in-process. `.gitignore` already ignores `*.p8` and `.env`.
 
 ## Store release, end to end
 
@@ -90,7 +101,16 @@ scripts/deploy-xtool.sh doctor
 scripts/deploy-xtool.sh archive            # → dist/appstore/Yahpaz.ipa, nothing uploaded
 scripts/deploy-xtool.sh validate           # App Store Connect checks the binary
 YAHPAZ_ALLOW_UPLOAD=1 scripts/deploy-xtool.sh upload --confirm-upload
+node scripts/asc-metadata.mjs              # dry run: what it would change on App Store Connect
+node scripts/asc-metadata.mjs --apply      # listing, screenshots, review notes, build 17; never submits
 ```
+
+`archive` signs with `-allowProvisioningUpdates -authenticationKeyPath -authenticationKeyID
+-authenticationKeyIssuerID`; `validate` / `upload` run `xcrun altool --validate-app` /
+`--upload-app` with `--apiKey` and `--apiIssuer`. `asc-metadata.mjs` fills the 1.0.2 version
+from `store-assets/` (renaming the rejected 1.0), attaches build 17 once it is processed, and
+refuses any submission endpoint: submitting stays a click in App Store Connect. Its
+`--self-test` checks inputs, JWT signing and the guards offline.
 
 `archive` exports with `scripts/export-options-appstore-ipa.plist` (App Store signing, export only).
 It does **not** use `export-options-local.plist`: that one sets `testFlightInternalTestingOnly`,

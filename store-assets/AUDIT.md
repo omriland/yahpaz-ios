@@ -13,7 +13,7 @@ trademark artwork. Since the third (brief 3), it fixes the cause of the 18 Aug r
 "unresponsive after login" on iPad (§2b), and the screenshots no longer include login.
 **What stands between this build and a submission is all outside this repo:** signing
 access, the op-yh-26 deploy (demo isolation, `/support`, privacy policy), the demo account it
-provisions, the version string on App Store Connect, and your 3.2 decision (§8).
+provisions, and the version string on App Store Connect (§8). 3.2: public App Store, decided.
 
 ## 0. App Store Connect state (read-only check by Omri, 29 Oct 09:35)
 
@@ -24,7 +24,7 @@ App record **אבן דרך**, Apple ID **6802333227**. Version **1.0 rejected on
 |---|---|---|
 | 2.1(a) App Completeness | "The app became unresponsive after login" on iPad | **Reproduced and fixed** (§2b, `5668ef3`) |
 | 2.3.3 Accurate Metadata | 6.5" screenshots showed only a login screen | **Fixed**: 7 in-app screens per size, no login (`c1e449d`) |
-| 3.2 Business | Single-organization app: Apple recommends Unlisted or Custom distribution | **Omri decides**; reply drafts for both in REVIEW-NOTES.md, recommendation Unlisted |
+| 3.2 Business | Single-organization app: Apple recommends Unlisted or Custom distribution | **Decided: public App Store** (29 Oct). REVIEW-NOTES.md answers Apple's five questions for a public listing; Unlisted was considered and not chosen |
 
 TestFlight holds builds 1–4 under 1.0.0, so **build 17 is fine** (confirmed).
 
@@ -183,7 +183,8 @@ The Supabase anon key next to it is public by design.
 | `2dd781d` | Listing without משמרות / דוחות, support URL `/support`, demo-account notes, closed decisions |
 | `5668ef3` | **Brief 3.** Post-login tap blocking fixed (§2b): login and password-change fields emptied before they leave; DEBUG demo sign-in (`-StoreSignedOut` + any credentials) and `-StorePushPrompt`; `LoginResponsivenessTests` |
 | `c1e449d` | Screenshots without login: 7 per size, renumbered 01–07 |
-| this commit | App Store Connect state, version 1.0 → 1.0.2, Resolution Center reply with the 3.2 options |
+| `65c4498` | App Store Connect state, version 1.0 → 1.0.2, Resolution Center reply with the 3.2 options |
+| this commit | **Brief 4.** 3.2 reply for a public listing; DEMO-LOGIN.md (email + password is enough, no mailbox); signed archive and upload read `~/.appstoreconnect/asc.env`; `scripts/asc-metadata.mjs` (dry run by default, never submits) |
 
 The Release binary contains none of the demo code: no `StoreScreenshots`, `-StoreScreenshots`
 or `127.0.0.1:9` in `strings` of the archived executable.
@@ -270,8 +271,8 @@ the result bundle.
 2. **Provision the demo account** with that branch's script, sign in on a phone **and on a
    real iPad** (the 2.1(a) fix is simulator-verified only) and run the checklist in
    REVIEW-NOTES.md.
-3. **Decide 3.2**: public with option A's answers, or Unlisted (recommended; request it
-   before resubmitting). Drafts in REVIEW-NOTES.md, "Reply to App Review".
+3. **3.2: public App Store** (decided). Paste the reply in REVIEW-NOTES.md after submitting.
+   The demo login needs no mailbox (DEMO-LOGIN.md).
 4. **Signing** (§7), then archive → validate → upload. On App Store Connect, change the
    version 1.0 → **1.0.2**, replace all screenshots, attach build 17, submit, and reply in the
    Resolution Center (ASC-FILL.md).

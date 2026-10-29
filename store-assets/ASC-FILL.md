@@ -10,9 +10,17 @@ session on this Mac.
 - The op-yh-26 deploy from `feat/app-review-demo` is live: App Review demo flag, `/support`,
   the updated privacy policy. Then the demo account has been provisioned (`REVIEW-NOTES.md`).
   Without it, App Review stops at the login screen.
-- **Decide 3.2 first: public listing or Unlisted distribution** (REVIEW-NOTES.md, "Reply to
-  App Review"). It changes how you submit, not the binary.
+- **3.2 decided: public App Store** (29 Oct). The reply in REVIEW-NOTES.md answers Apple's five
+  questions for a public listing.
 - Build 17: confirmed fine (TestFlight has only builds 1–4, under 1.0.0).
+
+**Scripted path (instead of most of the clicks below).** With the Team API key in
+`~/.appstoreconnect/` (`docs/xtool-deploy.md`): `scripts/deploy-xtool.sh archive` → `validate`
+→ `upload`, then `node scripts/asc-metadata.mjs` (dry run) and `--apply`. It renames 1.0 to
+1.0.2 and fills the listing, app info, categories, age rating, review notes (demo account left
+empty), screenshots and build 17. It does not touch availability or pricing, and it never
+submits. What stays manual: the demo account name and password, the review contact phone,
+App Privacy, **Submit for Review**, and the Resolution Center reply.
 
 ## 1. The app record already exists
 
@@ -54,7 +62,7 @@ store version that reads lower than what volunteers already run.
 
 | Field | Value |
 |---|---|
-| Distribution | **Your 3.2 decision.** Public: leave as is and answer 3.2 in the reply. Unlisted: request Unlisted App Distribution from Apple (Apple Developer site, unlisted app distribution request, quoting Apple ID 6802333227) before resubmitting; the app then only opens from its direct link |
+| Distribution | **Public App Store** (decided 29 Oct). Leave the distribution method as is; 3.2 is answered in the reply. Unlisted was considered and not chosen |
 | Price | Free |
 | Availability | Israel only (deselect all, select Israel) |
 | Apple silicon Mac | Do not make available (iPhone-only, untested on Mac) |
@@ -136,7 +144,7 @@ the build (`ITSAppUsesNonExemptEncryption = false`), so no question should appea
 Add for Review → Submit, then answer the rejection in the Resolution Center with the reply in
 REVIEW-NOTES.md ("Reply to App Review"). Before that:
 
-- [ ] 3.2 decided: public with the reply's answers, or Unlisted requested
+- [ ] 3.2 reply pasted (public listing answers)
 - [ ] Version page reads 1.0.2
 - [ ] Demo account provisioned, responder-only, sees only demo data, signs in on a phone (REVIEW-NOTES.md checklist)
 - [ ] `https://yahpz.com/support` renders logged out (not deployed on 29 Oct)
