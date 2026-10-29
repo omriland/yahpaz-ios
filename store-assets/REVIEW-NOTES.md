@@ -28,6 +28,57 @@ Length: 1,671 characters (the field allows 4,000).
 The notes point to `https://yahpz.com/support`, which goes **live with the op-yh-26 deploy**.
 Do not submit before that page loads logged out.
 
+## Reply to App Review (Resolution Center)
+
+Version 1.0 was rejected on 18 Aug 2026 (build 1.0 (3), reviewed on an iPad Air 11-inch (M3),
+iPadOS 26.5.2) under 2.1(a), 2.3.3 and 3.2. Paste this after submitting 1.0.2 (17). The first
+two parts are ready. **The 3.2 part is for Omri to choose: public listing with these answers,
+or Unlisted distribution.**
+
+```
+Thank you for the review of version 1.0. Version 1.0.2 (build 17) addresses each point.
+
+Guideline 2.1(a) - App Completeness
+We reproduced an unresponsive state right after login with the iPhone app running on iPad Air 11-inch (M3). After login, iOS showed its "Save Password?" sheet at the same time as the notifications prompt, and on iPad that sheet took all touches before it appeared on screen, so the app looked frozen. In 1.0.2 the login screen clears its password field before it closes, so the sheet is no longer shown, and an automated test now signs in on iPad and iPhone and checks that every screen responds.
+
+Guideline 2.3.3 - Accurate Metadata
+We replaced all screenshots. The 6.9-inch and 6.5-inch sets now show the app in use (my events, completing an event report, contacts, map, profile, availability, feedback) and no longer include the login screen. They were taken from the app itself, running on demo data.
+
+Guideline 3.2 - Business
+[Paste option A or option B below.]
+```
+
+### 3.2, option A: stay public and answer Apple's five questions
+
+```
+Thank you for the guidance. Our answers:
+
+1. Is your app restricted to users who are part of a single company? Yes. It is used only by members of one organization, the Israeli National Road Clearance Unit (יחפ״צ), a volunteer unit: its volunteers, shift leads and unit administrators.
+2. Is your app designed for use by a limited or specific group of companies? It is designed for this one organization. No other organization uses it, and there is no way for another organization to become a client.
+3. What features in the app, if any, are intended for use by the general public? None. Every feature requires an account; without one, only the login screen and the privacy policy are available.
+4. How do users obtain an account? The unit's administrators create each account and send an email invitation. There is no sign-up in the app or on the website.
+5. Is there any paid content in the app and if so who pays for it? No. The app is free, with no in-app purchases, subscriptions or advertising. It is a non-commercial project maintained by volunteers.
+```
+
+### 3.2, option B: Unlisted distribution
+
+```
+Thank you for the recommendation. Because the app serves members of a single organization, we have requested Unlisted App Distribution for it, so it is available only through its direct link and not in search. For reference, the answers to your questions: [paste the five answers from option A].
+```
+
+**Recommendation: option B.** The truthful answers to questions 1 to 4 describe exactly the
+single-organization app that 3.2 points to Unlisted or Custom distribution, so a public
+resubmission with option A is likely to be rejected again. Unlisted keeps App Review and a
+normal App Store install from a link, with no Apple Business Manager needed (Custom Apps would
+need one for the unit). Request it before resubmitting (ASC-FILL.md §3).
+
+Facts behind the answers: one unit, roles admin / shift lead / responder
+(`op-yh-26/PRODUCT.md`); accounts only by admin invitation (`admin-users` function, the iOS
+admin screen's invite), no sign-up; no purchases or ads in the code; the privacy policy's
+disclaimer calls it a non-commercial volunteer project. `PRODUCT.md` also describes the unit as
+a *police* road-recovery volunteer unit. The draft leaves that out: naming the police may lead
+App Review to ask whether you are authorized to publish for that organization. Your call.
+
 ## Sign-in information
 
 | Field | Value |

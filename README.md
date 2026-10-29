@@ -22,7 +22,7 @@ The Ad Hoc / OTA path (self-hosted `itms-services` installs from yahpz.com) was 
 **Forced updates.** On launch and on every return to the foreground the app reads
 `https://yahpz.com/ios/version.json` (web repo `op-yh-26/public/ios/version.json`). If the
 installed build is below `minBuild`, the app shows only the update screen, whose button opens
-`appStoreUrl`. **Add `"appStoreUrl": "https://apps.apple.com/app/id<APP_ID>"` to that file once
+`appStoreUrl`. **Add `"appStoreUrl": "https://apps.apple.com/app/id6802333227"` to that file once
 the app is live**; until then the button opens the App Store app. Raise `minBuild` only when
 the App Store already serves that build.
 

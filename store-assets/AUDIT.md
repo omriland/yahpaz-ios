@@ -9,9 +9,24 @@ before every check. Nothing was pushed, uploaded or signed.
 The Release build is clean and store-shaped: unsigned archive at
 `dist/Yahpaz-appstore-17.xcarchive`, no warnings in project code, launches to the login
 screen. Since the second pass (brief 2, 29 Oct), it has no Ad Hoc update code and no bundled
-trademark artwork. **What stands between this build and a submission is all outside this
-repo:** signing access, the op-yh-26 deploy (demo isolation, `/support`, privacy policy), the
-demo account it provisions, and the build-number confirmation (§8).
+trademark artwork. Since the third (brief 3), it fixes the cause of the 18 Aug rejection's
+"unresponsive after login" on iPad (§2b), and the screenshots no longer include login.
+**What stands between this build and a submission is all outside this repo:** signing
+access, the op-yh-26 deploy (demo isolation, `/support`, privacy policy), the demo account it
+provisions, the version string on App Store Connect, and your 3.2 decision (§8).
+
+## 0. App Store Connect state (read-only check by Omri, 29 Oct 09:35)
+
+App record **אבן דרך**, Apple ID **6802333227**. Version **1.0 rejected on 18 Aug 2026**
+(build 1.0 (3), reviewed on iPad Air 11-inch (M3), iPadOS 26.5.2):
+
+| Guideline | Apple's finding | State |
+|---|---|---|
+| 2.1(a) App Completeness | "The app became unresponsive after login" on iPad | **Reproduced and fixed** (§2b, `5668ef3`) |
+| 2.3.3 Accurate Metadata | 6.5" screenshots showed only a login screen | **Fixed**: 7 in-app screens per size, no login (`c1e449d`) |
+| 3.2 Business | Single-organization app: Apple recommends Unlisted or Custom distribution | **Omri decides**; reply drafts for both in REVIEW-NOTES.md, recommendation Unlisted |
+
+TestFlight holds builds 1–4 under 1.0.0, so **build 17 is fine** (confirmed).
 
 ## 1. Checklist against code and `project.yml`
 
@@ -20,7 +35,8 @@ demo account it provisions, and the build-number confirmation (§8).
 | Bundle ID | `com.yahpz.responder` | `project.yml` `PRODUCT_BUNDLE_IDENTIFIER`; archived Info.plist |
 | Team | `477WWCHXU7`, automatic signing | `project.yml` `DEVELOPMENT_TEAM` |
 | Marketing version | `1.0.2` | `MARKETING_VERSION` and the hard-coded `CFBundleShortVersionString` in `project.yml` `info.properties` (two places to bump next time) |
-| Build number | **17** (was 16) | `CURRENT_PROJECT_VERSION`. 16 is what Ad Hoc phones run and what `yahpz.com/ios/version.json` has as `minBuild`/`latestBuild` (fetched today), so 17 passes the force-update gate. **Unconfirmed**: you are checking that nothing ≥ 17 was uploaded to App Store Connect before |
+| Build number | **17** (was 16) | `CURRENT_PROJECT_VERSION`. 16 is what Ad Hoc phones run and what `yahpz.com/ios/version.json` has as `minBuild`/`latestBuild` (fetched today), so 17 passes the force-update gate. **Confirmed fine**: App Store Connect has only builds 1–4 |
+| Version on App Store Connect | The version record says **1.0**, the build says **1.0.2**. Recommended: change the record to 1.0.2 (ASC-FILL.md §1) | Omri's App Store Connect check |
 | Devices / OS | iPhone only (`UIDeviceFamily` [1]), iOS 17.0+, portrait | archived Info.plist |
 | App icon | 1024×1024 PNG, RGB, **no alpha**, single-size catalog | `sips` on `App/Assets.xcassets/AppIcon.appiconset/AppIcon.png` |
 | Launch screen | `UILaunchScreen` → colour `LaunchBackground` (exists in the asset catalog) | `project.yml`, `App/Assets.xcassets` |
@@ -33,7 +49,7 @@ demo account it provisions, and the build-number confirmation (§8).
 | `ITSAppUsesNonExemptEncryption` | `false` (HTTPS only; supabase-swift uses swift-crypto for the PKCE SHA-256 hash in `Auth/Internal/PKCE.swift`, which is exempt) | archived Info.plist |
 | Privacy manifest | Present in the bundle, tracking false, **9 collected types**, required-reason APIs `CA92.1` + `C617.1`. Matches the code and the only third-party SDK | `App/Resources/PrivacyInfo.xcprivacy`, `APP-PRIVACY.md` |
 | Third-party SDKs | supabase-swift 2.55.1 and its dependencies only. **No analytics, PostHog, crash or ad SDK** | `Package.resolved` |
-| Simulator launch | Debug and Release both launch, no crash, login screen renders (iPhone 17 Pro Max sim, iOS 27.0) | screenshots in this run |
+| Simulator launch | Debug and Release both launch, no crash, login screen renders: iPhone 17 Pro Max and **iPad Air 11-inch (M3)** (iPhone app in an iPad window), iOS 27.0 | screenshots in this run |
 | Signed-in screens | Exercised on demo data via `-StoreScreenshots` (inbox, fill, contacts, map, profile, availability, feedback). Not exercised against production (no account) | `UITests/StoreScreenshotTests.swift` |
 | Update path | App Store only: below `minBuild` the app shows the update screen, whose button opens `appStoreUrl` from version.json or the App Store app. No `itms-services`, no `LSApplicationQueriesSchemes`, no `embedded.mobileprovision` check | `App/API/AppUpdateCheck.swift`, `App/Screens/ForceUpdateView.swift`, archived binary |
 | Third-party artwork | None bundled. Vehicle rows show a neutral `car.fill` symbol; the contacts message action shows a `message` symbol with the text וואטסאפ | `App/Components/VehicleMark.swift`, `App/Screens/ContactsView.swift` |
@@ -83,6 +99,56 @@ promised the feature.
 **Decided (29 Oct): off for the store.** The `yahpaz://` URL scheme stays registered; with
 the flag off it does nothing.
 
+## 2b. "Unresponsive after login" on iPad (2.1(a)): reproduced, root cause, fix
+
+**Setup.** iPad Air 11-inch (M3) simulator, iOS 27.0, running the iPhone-only app (iPadOS
+shows it in a phone-sized window). Signed-in screens on DEBUG demo data; to go through the
+*real* login screen without touching production, `-StoreScreenshots -StoreSignedOut` now
+lets any email and password sign in to the demo account, and `-StorePushPrompt` keeps the
+real notification prompt (all DEBUG only, not in Release).
+
+**What I checked and ruled out.** No iPad-specific code (no idiom, size-class, `UIScreen` or
+popover use), no blocking calls on the main thread. The demo flows launched already signed in
+passed on the iPad in 45 s: inbox, fill, contacts, map, profile, availability, feedback all
+responded. Release on the iPad reaches the login screen and the live version.json lets build
+17 through.
+
+**Reproduced.** Through the real login screen, every time with a fresh email:
+
+1. The login screen goes away with text still in its password field, so iOS shows
+   **"Save Password?"**. At the same moment the app asks for notification permission, so the
+   two system prompts stack.
+2. On the iPad the save sheet's window is present and **takes every tap before it is
+   drawn**: the screen shows a normal-looking inbox, the accessibility tree has a second
+   window holding Not Now/Save, and two real taps on "המשך התיעוד" did nothing. The
+   sheet appeared only seconds later. To a reviewer that reads as "unresponsive after login".
+3. The rejected build 1.0 (3) of 18 Aug had the same AutoFill login fields (`.username` /
+   `.password` content types), so it showed the same sheet. It had no notification prompt.
+
+On iPhone the sheet slides up visibly at once, which is why this surfaced on iPad.
+
+**What did not fix it.** Removing the AutoFill content types from the login fields: iOS
+still recognised the secure field and offered to save (2 of 2 runs).
+
+**Fix (`5668ef3`).** The login screen empties its password field the moment כניסה is tapped
+and puts it back if sign-in fails, so iOS has nothing to offer to save; the forced
+password-change gate does the same with its two fields. Before: sheet in 3 of 3 runs. After:
+0 of 4. AutoFill *filling* from saved passwords is unaffected; iOS only stops offering to
+save after this form. Visible side effect: during the sign-in round trip the password dots
+disappear, and they come back on an error.
+
+**Test.** `UITests/LoginResponsivenessTests` signs in through the real login screen with a
+fresh email, answers the notification prompt, asserts that no Save Password sheet appears and
+that the inbox takes taps, then opens fill, shifts, contacts, map, profile, availability and
+feedback with an 8 s limit each. Without the fix it fails ("iOS offered to save the
+password"); with it, it passes on the iPad Air 11-inch (M3) and the iPhone 17 Pro Max
+simulators (about 32 s each).
+
+**Limits.** Simulator only; App Review used a real iPad on iPadOS 26.5.2. The mechanism
+(a system sheet blocking touches right after login) fits Apple's report, and the fix removes
+the sheet, but nobody has signed in on a real iPad with this build yet. Do that with the demo
+account before submitting.
+
 ## 3. Review risks, highest first
 
 | # | Risk | Severity | State |
@@ -114,12 +180,17 @@ The Supabase anon key next to it is public by design.
 | `d144cc5` | **Brief 2.** Ad Hoc OTA update path removed: optional-update sheet, `itms-services` install actions and fallback, `isStoreInstall` / `embedded.mobileprovision`, `itmsInstallHref` and `needsOptionalUpdate` (5 tests), `LSApplicationQueriesSchemes`, OTA URLs in Config; deleted `build-adhoc.sh`, `publish-ios.sh`, `publish-ios-batch.sh`, `export-options-adhoc.plist`, `docs/index.html`; README and xtool doc updated |
 | `33a97dc` | 47 car-manufacturer logos and the WhatsApp icon deleted; `VehicleMark` (`car.fill`) and a `message` symbol with text label instead |
 | `276473d` | Screenshots retaken: `04-contacts` replaces `04-my-shifts`; all 16 regenerated |
-| this commit | Listing without משמרות / דוחות, support URL `/support`, demo-account notes, closed decisions |
+| `2dd781d` | Listing without משמרות / דוחות, support URL `/support`, demo-account notes, closed decisions |
+| `5668ef3` | **Brief 3.** Post-login tap blocking fixed (§2b): login and password-change fields emptied before they leave; DEBUG demo sign-in (`-StoreSignedOut` + any credentials) and `-StorePushPrompt`; `LoginResponsivenessTests` |
+| `c1e449d` | Screenshots without login: 7 per size, renumbered 01–07 |
+| this commit | App Store Connect state, version 1.0 → 1.0.2, Resolution Center reply with the 3.2 options |
 
 The Release binary contains none of the demo code: no `StoreScreenshots`, `-StoreScreenshots`
 or `127.0.0.1:9` in `strings` of the archived executable.
 
-## 6. Verification run (final code, after brief 2)
+## 6. Verification run
+
+Brief 3 results are in §6b below; this table is the brief-2 run.
 
 | Check | Result |
 |---|---|
@@ -132,6 +203,18 @@ or `127.0.0.1:9` in `strings` of the archived executable.
 | `scripts/store-screenshots.sh` | 8 screens × 2 sizes; every PNG exact size, RGB, no alpha (`sips`) |
 | Release build, simulator | Launched to the login screen; the new `checkForceUpdate` read the live version.json (`minBuild` 16) and let build 17 through |
 | First pass only (not repeated) | Build with `LIVE_TRACKING` on |
+
+### 6b. Brief 3 run
+
+| Check | Result |
+|---|---|
+| `LoginResponsivenessTests`, iPad Air 11-inch (M3) and iPhone 17 Pro Max | Pass with the fix; fail without it ("iOS offered to save the password") |
+| `StoreScreenshotTests` on the iPad simulator | Pass (every demo screen responds) |
+| Release build, iPad simulator | Launches to the login screen |
+| `scripts/store-screenshots.sh` | 7 screens × 2 sizes, no login; every PNG exact size, RGB, no alpha |
+| `swift test` | 421 passed, 0 failed |
+| Debug build (simulator), unsigned archive | Both succeeded, no warnings in project code; `dist/Yahpaz-appstore-17.xcarchive` refreshed, 1.0.2 (17) |
+| Release binary `strings` | 0 hits for `StoreScreenshots`, `StoreSignedOut`, `StorePushPrompt`, `127.0.0.1:9`, `itms-services`, `mobileprovision` |
 
 Tooling note: on Xcode 27.1, `xcodebuild test` hung for more than 10 minutes after the test
 passed, collecting simulator diagnostics. The screenshot script passes
@@ -150,8 +233,8 @@ the result bundle.
 
 **What a signed archive and upload need, in order:**
 
-1. Paid Apple Developer Program membership on team `477WWCHXU7`, agreements accepted, and the
-   App Store Connect app record for `com.yahpz.responder`.
+1. Paid Apple Developer Program membership on team `477WWCHXU7`, agreements accepted. The
+   App Store Connect app record already exists (Apple ID 6802333227).
 2. A way for Xcode to sign: either sign in to Xcode → Settings → Accounts with the team's
    Apple ID, or create an App Store Connect **Team API key** with the Admin role (or App
    Manager with access to Certificates, Identifiers & Profiles), keep the `.p8` outside the
@@ -175,18 +258,25 @@ the result bundle.
 | Logos | Replace with generic artwork | `33a97dc` |
 | Live tracking | Off | `d1eb993` |
 | Listing | No משמרות / דוחות in any field | LISTING.md (counts rechecked by script) |
+| Screenshots (brief 3) | No login screen; a real in-app screen first | `c1e449d` |
+| iPad 2.1(a) (brief 3) | Reproduce, fix the root cause, add a test | `5668ef3`, §2b |
+| Build number (brief 3) | 17 is fine | App Store Connect: builds 1–4 only |
 
 **Still yours, in order:**
 
 1. **Approve and deploy op-yh-26 `feat/app-review-demo`**: migration and functions (demo
    flag), the site (`/support`, privacy policy). Then check `/support` and `/privacy` logged out
    (URLS.md).
-2. **Provision the demo account** with that branch's script, sign in on a phone and run the
-   checklist in REVIEW-NOTES.md.
-3. **Confirm build 17** was never uploaded before (unconfirmed).
-4. **Signing** (§7), then archive → validate → upload, then ASC-FILL.md.
+2. **Provision the demo account** with that branch's script, sign in on a phone **and on a
+   real iPad** (the 2.1(a) fix is simulator-verified only) and run the checklist in
+   REVIEW-NOTES.md.
+3. **Decide 3.2**: public with option A's answers, or Unlisted (recommended; request it
+   before resubmitting). Drafts in REVIEW-NOTES.md, "Reply to App Review".
+4. **Signing** (§7), then archive → validate → upload. On App Store Connect, change the
+   version 1.0 → **1.0.2**, replace all screenshots, attach build 17, submit, and reply in the
+   Resolution Center (ASC-FILL.md).
 5. **After launch**, in `op-yh-26/public/ios/version.json`: add
-   `"appStoreUrl": "https://apps.apple.com/app/id<APP_ID>"`, and say "App Store" in `messageHe`
+   `"appStoreUrl": "https://apps.apple.com/app/id6802333227"`, and say "App Store" in `messageHe`
    if you like (today it says "יש להוריד ולהתקין"). Raise `minBuild` only when the App Store
    serves that build.
 6. **Ad Hoc phones still on build 16** keep their old OTA update screen. When `minBuild` goes
@@ -210,8 +300,8 @@ the result bundle.
   shows a time that differs from the 09:41 status bar. Cosmetic.
 - Every signed-in screenshot with the tab bar shows its real label **המשמרות שלי** (the
   responder tab bar is האירועים שלי · המשמרות שלי · אנשי קשר · עוד). That is the actual UI, so it
-  was not altered; no screenshot shows a shifts screen. Login, availability and feedback
-  cover the tab bar.
+  was not altered; no screenshot shows a shifts screen. Availability and feedback cover the
+  tab bar.
 - `AppIcon76x76@2x~ipad.png` is generated into the iPhone-only bundle by the universal icon
   slot. Harmless.
 - While this pass ran, another process wrote and then deleted
