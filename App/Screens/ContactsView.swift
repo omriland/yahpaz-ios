@@ -160,11 +160,13 @@ private struct ContactRow: View {
                         label: CONTACTS_WHATSAPP_LABEL,
                         action: onWhatsApp
                     ) {
-                        Image("WhatsApp")
-                            .renderingMode(.template)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 22, height: 22)
+                        HStack(spacing: 4) {
+                            Image(systemName: "message")
+                                .font(.system(size: 18))
+                            Text(CONTACTS_WHATSAPP_LABEL)
+                                .font(TypeScale.caption)
+                        }
+                        .padding(.horizontal, 6)
                     }
                 }
             }
@@ -182,7 +184,7 @@ private struct ContactRow: View {
         Button(action: action) {
             icon()
                 .foregroundStyle(tinted ? FieldTheme.accent : FieldTheme.textMuted)
-                .frame(width: 44, height: 44)
+                .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -30,9 +30,6 @@ targets:
     resources:
       - path: App/Resources
         optional: true
-      - path: App/Resources/car-logos
-        type: folder
-        optional: true
       - path: App/Assets.xcassets
     info:
       path: App/Info.plist

@@ -56,7 +56,6 @@ enum StoreScreenshots {
 
     static var myVehicles: [ProfileVehicle] {
         managedProfileVehicles([
-            // A neutral model keeps manufacturer logos out of store screenshots.
             VehicleRowInput(plateRaw: "1234567", modelRaw: "רכב דמו", archived: false, id: id(21), isDefault: true),
         ])
     }

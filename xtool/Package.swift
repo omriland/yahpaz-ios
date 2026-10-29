@@ -39,7 +39,7 @@ let package = Package(
                 "Yahpaz.entitlements",
                 "Yahpaz-Debug.entitlements",
                 // Packed at the bundle root through xtool.yml (fonts, map layers, privacy
-                // manifest, car logos) and as a pre-compiled Assets.car.
+                // manifest) and as a pre-compiled Assets.car.
                 "Resources",
                 "Assets.xcassets",
             ],

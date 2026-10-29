@@ -372,7 +372,7 @@ struct FillView: View {
     private func treatedPlateRow(_ row: TreatedPlate, removable: Bool) -> some View {
         HStack(spacing: 8) {
             LicensePlateView(plate: row.plateNumber)
-            CarLogo(slug: row.logoSlug)
+            VehicleMark(slug: row.logoSlug)
             if let caption = treatedPlateCaption(model: row.model, color: row.color) {
                 Text(caption)
                     .font(TypeScale.body)

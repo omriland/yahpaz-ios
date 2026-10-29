@@ -287,7 +287,7 @@ private struct VehiclesSection: View {
     private func savedCard(_ vehicle: ProfileVehicleDraft) -> some View {
         FieldCard {
             HStack(spacing: 8) {
-                CarLogo(slug: resolveCarLogoSlug(vehicle.model))
+                VehicleMark(slug: resolveCarLogoSlug(vehicle.model))
                 VStack(alignment: .leading, spacing: 4) {
                     Text(
                         vehicle.archived

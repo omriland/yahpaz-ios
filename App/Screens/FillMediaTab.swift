@@ -347,7 +347,7 @@ struct FillMediaTab: View {
     private func mediaPlateRow(_ plate: EventMediaPlateOption) -> some View {
         let caption = treatedPlateCaption(model: plate.model, color: plate.color)
         return HStack(spacing: 8) {
-            CarLogo(slug: plate.logoSlug)
+            VehicleMark(slug: plate.logoSlug)
             LicensePlateView(plate: plate.plateNumber)
             if let caption {
                 Text(caption)

@@ -9,7 +9,6 @@ skipLSP: true
 resources:
   - .generated/Assets.car
   - Sources/YahpazApp/Resources/PrivacyInfo.xcprivacy
-  - Sources/YahpazApp/Resources/car-logos
   - Sources/YahpazApp/Resources/map/mile-posts.json
   - Sources/YahpazApp/Resources/map/police-station-boundaries.geojson
   - Sources/YahpazApp/Resources/IBMPlexSansHebrew-Regular.ttf
