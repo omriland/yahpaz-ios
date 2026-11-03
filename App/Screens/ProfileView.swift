@@ -44,7 +44,9 @@ struct ProfileView: View {
                                 .font(TypeScale.section)
                                 .foregroundStyle(FieldTheme.textPrimary)
                             LedgerRow(label: "אירועים", value: String(profile.lifetimeEventCount))
-                            LedgerRow(label: "קילומטרים", value: String(Int(profile.lifetimeKm)))
+                            if responderCardShowsLeadKm(hasLeadRole: managesUnit(app.roles)) {
+                                LedgerRow(label: "קילומטרים", value: String(Int(profile.lifetimeKm)))
+                            }
                         }
                     }
 
@@ -593,9 +595,9 @@ private struct VehiclesSection: View {
         guard case let .ok(plate, model) = vehicleFieldsForSave(plateNumber: vehicle.plate, model: vehicle.model) else {
             return
         }
+        let app = app
         let stored = vehicle.rowId.flatMap { id in app.vehicles.first(where: { $0.rowId == id }) }
         if let stored, stored.plate == plate, stored.model == model { return }
-        let app = app
         Task {
             if let id = vehicle.rowId {
                 _ = await app.updateOwnVehicle(vehicleId: id, plateNumber: plate, model: model)
