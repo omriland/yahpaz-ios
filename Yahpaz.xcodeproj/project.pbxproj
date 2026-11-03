@@ -67,6 +67,7 @@
 		BA452735921895CD9095DED5 /* police-station-boundaries.geojson in Resources */ = {isa = PBXBuildFile; fileRef = 7A56FA3D960721E7D2DA0569 /* police-station-boundaries.geojson */; };
 		BFA660E39C6243A072FCE1C4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 565E046848B9CFBC13F085E7 /* PrivacyInfo.xcprivacy */; };
 		C43A009FC577F4FA02A57694 /* MyShiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE6CF9B3D12241CEDBB76F9 /* MyShiftsView.swift */; };
+		C6F1FB26D0693ADE8D7C3A56 /* AccountDeletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485B30272C8C96B93085E82C /* AccountDeletionTests.swift */; };
 		C6FD9185988F136FB9CDAFE4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A60A9BA2B4BB03C6EBA47470 /* Assets.xcassets */; };
 		CE1C0B4DB01B77B2B88B646E /* UnitEventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35D9DC15B1B840E605C401B /* UnitEventsView.swift */; };
 		E773C966FC3AC1B5ED15F0FB /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA78E149A3F270C25CCFC476 /* PrivacyPolicyView.swift */; };
@@ -92,7 +93,6 @@
 		05D9B98FA1538F45EC77F482 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 		064A24A18518ADE910FAACB9 /* StoreScreenshots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreScreenshots.swift; sourceTree = "<group>"; };
 		0EFE7E44232604A77B667971 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
-		0F2832BD0B04339F96CB82A4 /* yahpaz-ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yahpaz-ios"; path = .; sourceTree = SOURCE_ROOT; };
 		0F6E4AA12F2E7B6D29986B65 /* FeedbackSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSheet.swift; sourceTree = "<group>"; };
 		10C40E130BC5ED7B032B2794 /* ViewAsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewAsStore.swift; sourceTree = "<group>"; };
 		1323069FBE38F80122C6D25D /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
@@ -118,6 +118,7 @@
 		3C2BDB6090708E4849BCDEFC /* QAHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAHarness.swift; sourceTree = "<group>"; };
 		40D97BF41BBE46BA9ED4056C /* TreatedPlateModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreatedPlateModels.swift; sourceTree = "<group>"; };
 		41F47D3B774EE4227A553D2C /* LicensePlateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensePlateView.swift; sourceTree = "<group>"; };
+		485B30272C8C96B93085E82C /* AccountDeletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDeletionTests.swift; sourceTree = "<group>"; };
 		4C5F5C50355222D9D6DF0994 /* ComingSoonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComingSoonViews.swift; sourceTree = "<group>"; };
 		4DC5D497AFF171BEF395253D /* VehicleMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleMark.swift; sourceTree = "<group>"; };
 		50295DF0C135A7A94A111C09 /* FormPickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormPickers.swift; sourceTree = "<group>"; };
@@ -136,6 +137,7 @@
 		7A56FA3D960721E7D2DA0569 /* police-station-boundaries.geojson */ = {isa = PBXFileReference; path = "police-station-boundaries.geojson"; sourceTree = "<group>"; };
 		7F3BD471EBC82059ADF298CD /* AdminShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminShellView.swift; sourceTree = "<group>"; };
 		847870FA1511E83F00BEDFED /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
+		0F2832BD0B04339F96CB82A4 /* yahpaz-ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yahpaz-ios"; path = .; sourceTree = SOURCE_ROOT; };
 		86C837C249FC6D563CB9D756 /* EventFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventFormView.swift; sourceTree = "<group>"; };
 		8868B33715C1E400A912305E /* FillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FillView.swift; sourceTree = "<group>"; };
 		8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullSweepTests.swift; sourceTree = "<group>"; };
@@ -325,6 +327,7 @@
 		EAEDDF21C01F020EAD33FD03 /* UITests */ = {
 			isa = PBXGroup;
 			children = (
+				485B30272C8C96B93085E82C /* AccountDeletionTests.swift */,
 				2F75CF7BF94531D68F5F34C3 /* DeepSweepTests.swift */,
 				8B727F7F5A952F99DC3F636D /* FullSweepTests.swift */,
 				752BFE6312112CAD041949AD /* InboxCardTests.swift */,
@@ -528,6 +531,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C6F1FB26D0693ADE8D7C3A56 /* AccountDeletionTests.swift in Sources */,
 				2534D3D036631FCA5AB7EC37 /* DeepSweepTests.swift in Sources */,
 				4EC529D19C279041144BE647 /* FullSweepTests.swift in Sources */,
 				3AD9AB3EDD5B6E94DFB392D0 /* InboxCardTests.swift in Sources */,
@@ -635,7 +639,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Yahpaz.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";
@@ -727,7 +731,7 @@
 				CODE_SIGN_ENTITLEMENTS = "App/Yahpaz-Debug.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 477WWCHXU7;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "אבן דרך";

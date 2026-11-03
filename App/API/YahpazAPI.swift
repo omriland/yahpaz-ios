@@ -142,9 +142,30 @@ actor YahpazAPI {
         }
     }
 
+    /// This device only. A global sign-out would also end the member's other devices
+    /// (and the App Review reviewer's session on the shared demo account).
     func signOut() async {
         ViewAsStore.clearAll()
-        try? await client.auth.signOut()
+        try? await client.auth.signOut(scope: .local)
+    }
+
+    /// Deletes the signed-in member's own account (App Store 5.1.1(v)). The server acts only
+    /// on the caller, refuses "view as" sessions, and only simulates for the App Review demo.
+    func deleteOwnAccount() async -> AccountDeletionResult {
+        #if DEBUG
+        if StoreScreenshots.isOn { return .simulated }
+        #endif
+        do {
+            return try await client.functions.invoke(
+                "delete-account",
+                options: functionOptions(body: DeleteAccountCall(confirm: true)),
+                decode: { data, _ in accountDeletionResult(success: data) }
+            )
+        } catch FunctionsError.httpError(_, let data) {
+            return accountDeletionResult(failure: data)
+        } catch {
+            return .failed(ACCOUNT_DELETION_FAILED)
+        }
     }
 
     func startImpersonation(targetUserId: String) async -> String? {
@@ -3325,6 +3346,10 @@ private struct FillLockRow: Decodable {
 
 private struct EventStatusHolder: Decodable {
     var status: EventStatus
+}
+
+private struct DeleteAccountCall: Encodable {
+    var confirm: Bool
 }
 
 private struct ImpersonateCall: Encodable {

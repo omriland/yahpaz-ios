@@ -9,6 +9,11 @@ struct ProfileView: View {
     @State private var busy = false
     @State private var editingAvailability = false
     @State private var confirmSignOut = false
+    @State private var confirmDeleteAccount = false
+    @State private var finalDeleteAccount = false
+    @State private var deletingAccount = false
+    @State private var deleteOutcome: AccountDeletionResult?
+    @State private var deleteOutcomeShown = false
 
     var body: some View {
         NavigationStack {
@@ -51,6 +56,11 @@ struct ProfileView: View {
                     GhostButton(title: "יציאה") {
                         confirmSignOut = true
                     }
+                    if canDeleteOwnAccount(impersonating: app.impersonating, previewingRole: app.previewRole != nil) {
+                        GhostButton(title: DELETE_ACCOUNT_BUTTON_TITLE, enabled: !deletingAccount, danger: true) {
+                            confirmDeleteAccount = true
+                        }
+                    }
                 }
                 .padding(16)
             }
@@ -66,6 +76,50 @@ struct ProfileView: View {
             } message: {
                 Text("לצאת מהחשבון במכשיר זה?")
             }
+            // Account deletion, step 1 of 2: what goes and what stays.
+            .confirmationDialog(DELETE_ACCOUNT_EXPLAIN_TITLE, isPresented: $confirmDeleteAccount, titleVisibility: .visible) {
+                Button(DELETE_ACCOUNT_CONTINUE, role: .destructive) {
+                    // Let the action sheet finish dismissing before the alert presents.
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(400))
+                        finalDeleteAccount = true
+                    }
+                }
+                Button("ביטול", role: .cancel) {}
+            } message: {
+                Text(DELETE_ACCOUNT_EXPLAIN_MESSAGE)
+            }
+            // Step 2 of 2: final, irreversible.
+            .alert(DELETE_ACCOUNT_FINAL_TITLE, isPresented: $finalDeleteAccount) {
+                Button(DELETE_ACCOUNT_CONFIRM, role: .destructive) {
+                    Task { await deleteAccount() }
+                }
+                Button("ביטול", role: .cancel) {}
+            } message: {
+                Text(DELETE_ACCOUNT_FINAL_MESSAGE)
+            }
+            .alert(deleteOutcomeTitle, isPresented: $deleteOutcomeShown, presenting: deleteOutcome) { outcome in
+                if case .failed = outcome {
+                    Button("סגירה", role: .cancel) {}
+                } else {
+                    Button("סיום") {
+                        Task { await app.signOut() }
+                    }
+                }
+            } message: { outcome in
+                if case .failed(let message) = outcome {
+                    Text(message)
+                } else {
+                    Text(deleteAccountDoneMessage(outcome))
+                }
+            }
+            .overlay {
+                if deletingAccount {
+                    ProgressView()
+                        .padding(24)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+            }
             .sheet(isPresented: $editingAvailability) {
                 AvailabilityView(onSaved: { editingAvailability = false })
                     .environmentObject(app)
@@ -77,6 +131,19 @@ struct ProfileView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+    }
+
+    private var deleteOutcomeTitle: String {
+        if case .failed = deleteOutcome { return DELETE_ACCOUNT_FAILED_TITLE }
+        return DELETE_ACCOUNT_DONE_TITLE
+    }
+
+    private func deleteAccount() async {
+        deletingAccount = true
+        let outcome = await YahpazAPI.shared.deleteOwnAccount()
+        deletingAccount = false
+        deleteOutcome = outcome
+        deleteOutcomeShown = true
     }
 
     private var passwordGate: some View {
