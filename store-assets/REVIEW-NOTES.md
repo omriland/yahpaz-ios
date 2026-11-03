@@ -7,23 +7,27 @@ App Store Connect → the 1.0.2 version page → App Review Information.
 ```
 Even Derech (אבן דרך) is the internal app of the Israeli National Road Clearance Unit (יחפ״צ), a volunteer unit that clears stuck vehicles and obstacles from highways. It is for authorized members only: there is no public sign-up. Accounts are created by the unit's administrators, and members sign in with the same email and password they use on https://yahpz.com.
 
-Please sign in with the demo account in the Sign-In Information fields. It is a regular volunteer (responder) account limited to demo data: the events, contacts and map points it sees are demo records, not real people or incidents.
+Please sign in with the demo account in the Sign-In Information fields. It is a regular volunteer (responder) account that sees only demo data: 3 demo events, 1 demo shift, 1 demo vehicle, 2 demo contacts and 1 demo map point. None of it is a real person or incident.
+
+The tab bar has האירועים שלי (My events), המשמרות שלי (My shifts), אנשי קשר (Contacts) and עוד (More).
 
 What to try:
-1. האירועים שלי (My events): events waiting for this member's report and events already reported.
-2. Tap "השלמת התיעוד שלי" / "המשך התיעוד" on an event to complete your part: vehicle, odometer start and end, route, treated vehicles' plates (the camera can read a plate), photos.
-3. אנשי קשר (Contacts): the unit's members, with call and message actions.
-4. Under עוד (More): מפה (Map) and פרופיל (Profile), where availability is updated.
-5. The round speech-bubble button opens the feedback form (bug or suggestion, text, optional voice note or screenshot).
+1. האירועים שלי (My events): "ממתינים לתיעוד" (waiting for report) has 2 demo events; "תועדו" (reported) has 1.
+2. Tap "השלמת התיעוד שלי" (complete my report) or "המשך התיעוד" (continue report) on an event. The form has the member's vehicle, odometer start and end, route, treatment details, the treated vehicles' plates (the "סריקה ניסיונית" button reads a plate with the camera) and photos from the photo library.
+3. אנשי קשר (Contacts): the unit's members, with call and WhatsApp buttons for members who have a phone number. The two demo contacts are placeholders without a phone number, so their call and WhatsApp buttons are shown disabled.
+4. Under עוד (More): מפה (Map), showing a demo member's saved address, and פרופיל (Profile), where availability is updated.
+5. The round speech-bubble button opens the feedback form: bug or suggestion, text, and an optional voice note or screenshot.
 
-Permissions: the camera is used only to read a licence plate on the event report screen; the microphone only for the optional voice note in the feedback form. The app does not use location and has no background modes.
+Account deletion: members can delete their account in the app under עוד (More) → פרופיל (Profile) → מחיקת חשבון (Delete account), and on the web at https://yahpz.com/delete-data. After two confirmation steps the account and its personal data are deleted immediately; the unit's operational records (event and shift logs) are kept without personal details. On the demo account the deletion is simulated: you see the same steps and are signed out, but the demo account is kept so the review can continue, and you can sign in with it again.
 
-Help: https://yahpz.com/support. Data deletion: accounts are created and removed by the unit; members can request deletion of their data at https://yahpz.com/delete-data.
+Permissions: the camera is used only to read a licence plate in the event report; the microphone only for the optional voice note in the feedback form. The app does not use location and has no background modes.
+
+Help: https://yahpz.com/support. Privacy policy: https://yahpz.com/privacy.
 
 The interface is Hebrew only, right to left. Encryption: HTTPS only (ITSAppUsesNonExemptEncryption = false).
 ```
 
-Length: 1,671 characters (the field allows 4,000).
+Length: 2,586 characters (the field allows 4,000). Build 1.0.2 (18), 03.11.2026: account deletion added, Contacts item corrected.
 
 The notes point to `https://yahpz.com/support`, which goes **live with the op-yh-26 deploy**.
 Do not submit before that page loads logged out.
