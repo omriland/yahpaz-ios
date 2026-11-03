@@ -1918,7 +1918,20 @@ actor YahpazAPI {
         }
     }
 
-    private func replaceMediaPlates(mediaId: String, plateIds: [String]) async -> EventMediaWriteResult {
+    /// Digits of plates the server read off one uploaded photo. Never throws: any failure is "no plates".
+    func scanPlatesInMedia(mediaId: String) async -> [String] {
+        do {
+            let response: PlateScanResponse = try await client.functions.invoke(
+                "plate-scan",
+                options: functionOptions(body: PlateScanCall(mediaId: mediaId))
+            )
+            return (response.plates ?? []).map(plateDigits)
+        } catch {
+            return []
+        }
+    }
+
+    func replaceMediaPlates(mediaId: String, plateIds: [String]) async -> EventMediaWriteResult {
         let unique = uniquePlateIds(plateIds)
         do {
             try await client.from("event_media_plates").delete().eq("media_id", value: mediaId).execute()
@@ -3257,6 +3270,15 @@ private struct NotifyFillReadyCall: Encodable {
         case action
         case eventResponderIds = "event_responder_ids"
     }
+}
+
+private struct PlateScanCall: Encodable {
+    var mediaId: String
+    enum CodingKeys: String, CodingKey { case mediaId = "media_id" }
+}
+
+private struct PlateScanResponse: Decodable {
+    var plates: [String]?
 }
 
 private struct NotifyFillReadyResponse: Decodable {

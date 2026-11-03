@@ -14,6 +14,12 @@ private struct MediaDraft: Identifiable {
     var error: String?
 }
 
+private struct AutoLink: Identifiable {
+    let mediaId: String
+    let plateId: String
+    var id: String { "\(mediaId)|\(plateId)" }
+}
+
 struct FillMediaTab: View {
     let eventId: String
     let viewerId: String?
@@ -38,6 +44,11 @@ struct FillMediaTab: View {
     @State private var editError: String?
     @State private var savingEdit = false
     @State private var deleting = false
+    @State private var autoLinks: [AutoLink] = []
+    @State private var linkSheet = false
+    @State private var linkIds: [String] = []
+    @State private var linkError: String?
+    @State private var savingLink = false
 
     private var inFlight: Int { drafts.filter(\.uploading).count }
     private var addEnabled: Bool { canWrite && canAddMoreMedia(savedCount: items.count, inFlightCount: inFlight) }
@@ -85,6 +96,9 @@ struct FillMediaTab: View {
                         heading: eventMediaTakenWhenLabel(.duringAfterTreatment),
                         items: grouped.during
                     )
+                    ForEach(autoLinks) { link in
+                        autoLinkLine(link)
+                    }
                     ForEach(drafts) { draft in
                         mediaDraftCard(draft)
                     }
@@ -228,7 +242,7 @@ struct FillMediaTab: View {
                 .disabled(draft.uploading)
                 .accessibilityLabel("הסרה")
             }
-            mediaPlateChecklist(
+            mediaPlateChips(
                 selected: draft.treatedPlateIds,
                 enabled: !draft.uploading
             ) { next in
@@ -312,7 +326,7 @@ struct FillMediaTab: View {
     }
 
     @ViewBuilder
-    private func mediaPlateChecklist(
+    private func mediaPlateChips(
         selected: [String],
         enabled: Bool,
         onChange: @escaping ([String]) -> Void
@@ -320,28 +334,89 @@ struct FillMediaTab: View {
         if plates.isEmpty {
             EmptyView()
         } else {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("רכבים בתמונה")
                     .font(TypeScale.label)
                     .foregroundStyle(FieldTheme.textSecondary)
-                ForEach(plates) { plate in
-                    let checked = selected.contains(plate.id)
-                    Button {
-                        onChange(togglePlateId(selected, id: plate.id))
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: checked ? "checkmark.square.fill" : "square")
-                                .foregroundStyle(checked ? FieldTheme.accent : FieldTheme.textMuted)
-                            mediaPlateRow(plate)
-                            Spacer(minLength: 0)
+                FlowLayout(spacing: 8) {
+                    ForEach(plates) { plate in
+                        let checked = selected.contains(plate.id)
+                        Button {
+                            onChange(togglePlateId(selected, id: plate.id))
+                        } label: {
+                            HStack(spacing: 8) {
+                                VehicleMark(slug: plate.logoSlug)
+                                LicensePlateView(plate: plate.plateNumber)
+                                if checked {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(FieldTheme.accent)
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .frame(minHeight: 44)
+                            .background(checked ? FieldTheme.accentSubtle : Color.clear)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .stroke(
+                                        checked ? FieldTheme.accent : FieldTheme.strong,
+                                        lineWidth: checked ? 2 : 1
+                                    )
+                            )
+                            .contentShape(Rectangle())
                         }
-                        .frame(minHeight: 44)
+                        .buttonStyle(.plain)
+                        .disabled(!enabled)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("רכב \(formatPlate(plate.plateNumber))")
+                        .accessibilityAddTraits(checked ? [.isButton, .isSelected] : .isButton)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(!enabled)
                 }
             }
         }
+    }
+
+    private func autoLinkLine(_ link: AutoLink) -> some View {
+        HStack(spacing: 8) {
+            Text(EVENT_MEDIA_AUTO_LINKED)
+                .font(TypeScale.body)
+                .foregroundStyle(FieldTheme.textPrimary)
+            if let plate = plates.first(where: { $0.id == link.plateId }) {
+                LicensePlateView(plate: plate.plateNumber)
+            }
+            Spacer(minLength: 0)
+            GhostButton(title: "ביטול") {
+                Task { await undoAutoLink(link) }
+            }
+        }
+    }
+
+    private func linkSheetView(_ current: EventMedia) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(EVENT_MEDIA_LINK_TITLE)
+                    .font(TypeScale.section)
+                    .foregroundStyle(FieldTheme.textPrimary)
+                Text(EVENT_MEDIA_LINK_HINT)
+                    .font(TypeScale.body)
+                    .foregroundStyle(FieldTheme.textSecondary)
+                mediaPlateChips(selected: linkIds, enabled: !savingLink) {
+                    linkIds = $0
+                    linkError = nil
+                }
+                if let linkError {
+                    Text(linkError).font(TypeScale.caption).foregroundStyle(FieldTheme.alert)
+                }
+                PrimaryButton(title: "שמירה", busy: savingLink) {
+                    Task { await saveLinks(current) }
+                }
+                GhostButton(title: "ביטול", enabled: !savingLink) { linkSheet = false }
+            }
+            .padding(16)
+        }
+        .background(FieldTheme.page.ignoresSafeArea())
+        .environment(\.layoutDirection, .rightToLeft)
+        .presentationDetents([.medium, .large])
     }
 
     private func mediaPlateRow(_ plate: EventMediaPlateOption) -> some View {
@@ -391,7 +466,7 @@ struct FillMediaTab: View {
                             takenWhenPicker(value: editTakenWhen, enabled: !savingEdit, required: false) {
                                 editTakenWhen = $0
                             }
-                            mediaPlateChecklist(selected: editPlateIds, enabled: !savingEdit) {
+                            mediaPlateChips(selected: editPlateIds, enabled: !savingEdit) {
                                 editPlateIds = $0
                             }
                             FormField(
@@ -438,6 +513,13 @@ struct FillMediaTab: View {
                             .font(TypeScale.caption)
                             .foregroundStyle(FieldTheme.textMuted)
                             if own {
+                                if !plates.isEmpty {
+                                    GhostButton(title: EVENT_MEDIA_LINK_TITLE) {
+                                        linkIds = current.treatedPlateIds
+                                        linkError = nil
+                                        linkSheet = true
+                                    }
+                                }
                                 GhostButton(title: "עריכה") { editing = true }
                                 GhostButton(title: "מחיקה", danger: true) { confirmDelete = true }
                             }
@@ -456,6 +538,9 @@ struct FillMediaTab: View {
                         confirmDelete = false
                     }
                 }
+            }
+            .sheet(isPresented: $linkSheet) {
+                linkSheetView(current)
             }
             .confirmationDialog("למחוק את התמונה?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("מחיקה", role: .destructive) {
@@ -552,6 +637,7 @@ struct FillMediaTab: View {
                 drafts.removeAll { $0.id == id }
                 items.append(media)
                 onToast(EVENT_MEDIA_ADDED, .done)
+                Task { await autoLinkScannedPlates(mediaId: media.id) }
             case .error(let message):
                 patchDraft(id) {
                     $0.uploading = false
@@ -589,9 +675,75 @@ struct FillMediaTab: View {
             items = items.map { $0.id == next.id ? next : $0 }
             viewer = next
             editing = false
+            autoLinks.removeAll { $0.mediaId == next.id }
             onToast(EVENT_MEDIA_UPDATED, .done)
         case .error(let message):
             editError = message
+            onToast(message, .pending)
+        case .uploaded:
+            break
+        }
+    }
+
+    private func setLinks(mediaId: String, ids: [String]) {
+        items = items.map { row in
+            guard row.id == mediaId else { return row }
+            var next = row
+            next.treatedPlateIds = ids
+            return next
+        }
+        if let open = viewer, open.id == mediaId {
+            var next = open
+            next.treatedPlateIds = ids
+            viewer = next
+        }
+    }
+
+    private func saveLinks(_ current: EventMedia) async {
+        savingLink = true
+        let result = await YahpazAPI.shared.replaceMediaPlates(mediaId: current.id, plateIds: linkIds)
+        savingLink = false
+        switch result {
+        case .done:
+            setLinks(mediaId: current.id, ids: uniquePlateIds(linkIds))
+            autoLinks.removeAll { $0.mediaId == current.id }
+            linkSheet = false
+            onToast(EVENT_MEDIA_LINK_SAVED, .done)
+        case .error(let message):
+            linkError = message
+        case .uploaded:
+            break
+        }
+    }
+
+    /// Scan failures and write failures are silent: the photo is already uploaded.
+    private func autoLinkScannedPlates(mediaId: String) async {
+        // Nothing on the event to match: skip the scan (it is a paid model call).
+        guard !plates.isEmpty else { return }
+        let scanned = await YahpazAPI.shared.scanPlatesInMedia(mediaId: mediaId)
+        guard !scanned.isEmpty, let current = items.first(where: { $0.id == mediaId }) else { return }
+        let added = autoLinkPlateIds(scannedDigits: scanned, plates: plates, linkedIds: current.treatedPlateIds)
+        guard !added.isEmpty else { return }
+        let merged = uniquePlateIds(current.treatedPlateIds + added)
+        guard case .done = await YahpazAPI.shared.replaceMediaPlates(mediaId: mediaId, plateIds: merged),
+              items.contains(where: { $0.id == mediaId })
+        else { return }
+        setLinks(mediaId: mediaId, ids: merged)
+        autoLinks.append(contentsOf: added.map { AutoLink(mediaId: mediaId, plateId: $0) })
+    }
+
+    private func undoAutoLink(_ link: AutoLink) async {
+        guard let current = items.first(where: { $0.id == link.mediaId }) else {
+            autoLinks.removeAll { $0.id == link.id }
+            return
+        }
+        let rest = current.treatedPlateIds.filter { $0 != link.plateId }
+        switch await YahpazAPI.shared.replaceMediaPlates(mediaId: link.mediaId, plateIds: rest) {
+        case .done:
+            setLinks(mediaId: link.mediaId, ids: rest)
+            autoLinks.removeAll { $0.id == link.id }
+            onToast(EVENT_MEDIA_AUTO_LINK_UNDONE, .done)
+        case .error(let message):
             onToast(message, .pending)
         case .uploaded:
             break
@@ -605,6 +757,7 @@ struct FillMediaTab: View {
         switch result {
         case .done:
             items.removeAll { $0.id == current.id }
+            autoLinks.removeAll { $0.mediaId == current.id }
             immersive = false
             viewer = nil
             confirmDelete = false

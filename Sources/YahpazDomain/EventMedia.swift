@@ -180,6 +180,28 @@ public func togglePlateId(_ ids: [String], id: String) -> [String] {
     return uniquePlateIds(ids + [id])
 }
 
+/// Ids of the event's saved plates whose digits equal a scanned value, not yet linked,
+/// without repeats, in `plates` order.
+public func autoLinkPlateIds(
+    scannedDigits: [String],
+    plates: [EventMediaPlateOption],
+    linkedIds: [String]
+) -> [String] {
+    let scanned = Set(scannedDigits.map(plateDigits).filter { !$0.isEmpty })
+    var seen = Set(linkedIds)
+    var out: [String] = []
+    for plate in plates where scanned.contains(plateDigits(plate.plateNumber)) {
+        if seen.insert(plate.id).inserted { out.append(plate.id) }
+    }
+    return out
+}
+
+public let EVENT_MEDIA_LINK_TITLE = "שיוך לרכב"
+public let EVENT_MEDIA_LINK_HINT = "בחרו את הרכבים שמופיעים בתמונה."
+public let EVENT_MEDIA_LINK_SAVED = "השיוך נשמר."
+public let EVENT_MEDIA_AUTO_LINKED = "התמונה שויכה לרכב"
+public let EVENT_MEDIA_AUTO_LINK_UNDONE = "השיוך בוטל."
+
 public func mapEventMediaError(_ message: String?) -> String {
     if message?.contains("event_media_cap") == true { return EVENT_MEDIA_CAP_ERROR }
     return EVENT_MEDIA_NETWORK
